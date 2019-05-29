@@ -1,0 +1,42 @@
+package com.sky.signal.pre.service.impl;
+
+import com.google.common.base.Stopwatch;
+import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.processor.odAnalyze.StayPointProcessor;
+import com.sky.signal.pre.processor.workLiveProcess.WorkLiveLoader;
+import com.sky.signal.pre.service.ComputeService;
+import org.apache.spark.sql.DataFrame;
+import org.apache.spark.storage.StorageLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * author: ChenHu <chenhu1008@me.com>
+ * date: 2019/3/20 14:37
+ * description: 根据有效数据，按天生成用户OD信息
+ */
+@Service("odService")
+public class ODService implements ComputeService {
+    private static final Logger logger = LoggerFactory.getLogger(SignalProcessService.class);
+    @Autowired
+    private transient ParamProperties params;
+    @Autowired
+    private transient StayPointProcessor stayPointProcessor;
+    @Autowired
+    private transient WorkLiveLoader workLiveLoader;
+
+    @Override
+    public void compute() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
+        workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
+        for (String validSignalFile: params.getValidSignalFileFullPath()) {
+            stayPointProcessor.process(validSignalFile, workLiveDf);
+        }
+        workLiveDf.unpersist();
+        logger.info("ODService duration: " + stopwatch.toString());
+
+    }
+}
