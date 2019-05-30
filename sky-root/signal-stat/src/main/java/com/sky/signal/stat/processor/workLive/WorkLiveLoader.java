@@ -85,4 +85,10 @@ public class WorkLiveLoader implements Serializable {
         df = sqlContext.createDataFrame(rdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);
         return df;
     }
+
+    public DataFrame load1(String workLiveFile) {
+        DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA, workLiveFile)
+                .repartition(params.getPartitions());
+        return df;
+    }
 }
