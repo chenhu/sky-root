@@ -3,13 +3,13 @@ package com.sky.signal.stat.processor;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.od.ODSchemaProvider;
 import com.sky.signal.stat.util.FileUtil;
-import com.sky.signal.stat.util.ProfileUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
+import org.apache.spark.storage.StorageLevel;
 import org.joda.time.DateTime;
 import org.joda.time.LocalTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +47,13 @@ public class ODTraceStat implements Serializable{
                 workLiveDf.col("age_class"),
                 workLiveDf.col("sex"),
                 workLiveDf.col("person_class"));
+        replaced.persist(StorageLevel.DISK_ONLY());
+
+        DataFrame odDayTraceDf = replaced.groupBy("date", "person_class", "sex", "age_class", "leave_base", "arrive_base")
+                .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
+                .orderBy("date", "person_class", "sex", "age_class", "leave_base", "arrive_base");
+
+        FileUtil.saveFile(odDayTraceDf.repartition(20), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-day");
         JavaRDD<Row> traceRdd = replaced.toJavaRDD();
         traceRdd = traceRdd.filter(new Function<Row, Boolean>() {
             @Override
@@ -91,7 +98,7 @@ public class ODTraceStat implements Serializable{
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
                 .orderBy("date", "person_class", "sex", "age_class", "leave_base", "arrive_base", "from_time_class", "arrive_time_class");
 
-        FileUtil.saveFile(newTraceDf.repartition(20), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-stat");
+        FileUtil.saveFile(newTraceDf.repartition(20), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-busy-time");
         return null;
 
     }
