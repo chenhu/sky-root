@@ -20,6 +20,8 @@ public class ODStatService implements ComputeService {
     @Autowired
     private transient ODLoader odLoader;
     @Autowired
+    private transient CombineODWorkLive combineODWorkLive;
+    @Autowired
     private transient WorkLiveLoader workLiveLoader;
     @Autowired
     private transient ParamProperties params;
@@ -44,24 +46,24 @@ public class ODStatService implements ComputeService {
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         DataFrame odDf = odLoader.loadOD();
-//        DataFrame odTraceDf = odLoader.loadODTrace();
-//        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
-        odDf.persist(StorageLevel.DISK_ONLY());
+        DataFrame odTraceDf = odLoader.loadODTrace();
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
+        DataFrame odWorkLiveCombinedDf = combineODWorkLive.process(odDf, workLiveDf);
+        odWorkLiveCombinedDf.persist(StorageLevel.DISK_ONLY());
         // 基站日OD表
-        odDayStat.process(odDf);
+        odDayStat.process(odWorkLiveCombinedDf);
         // 日出行总体特征
-        dayTripSummaryStat.process(odDf);
+        dayTripSummaryStat.process(odWorkLiveCombinedDf);
         // 分目的的总体特征
-        dayTripPurposeSummaryStat.process(odDf);
+        dayTripPurposeSummaryStat.process(odWorkLiveCombinedDf);
         //基站特定时间间隔OD统计
-        oDTimeIntervalStat.process(odDf, sqlContext);
+        oDTimeIntervalStat.process(odWorkLiveCombinedDf, sqlContext);
         //基站特定时间间隔分目的出行特征统计
-        oDTimeIntervalPurposeStat.process(odDf, sqlContext);
+        oDTimeIntervalPurposeStat.process(odWorkLiveCombinedDf, sqlContext);
         // 出行时耗-距离分布
-        oDTimeDistanceStat.process(odDf, sqlContext);
-//        odTraceStat.process(odTraceDf, workLiveDf, sqlContext);
-
-        odDf.unpersist();
+        oDTimeDistanceStat.process(odWorkLiveCombinedDf, sqlContext);
+        odTraceStat.process(odTraceDf, workLiveDf, sqlContext);
+        odWorkLiveCombinedDf.unpersist();
         logger.info("ODStatService duration: " + stopwatch.toString());
     }
 }

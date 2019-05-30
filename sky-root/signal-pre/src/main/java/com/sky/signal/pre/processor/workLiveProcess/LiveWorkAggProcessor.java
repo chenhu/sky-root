@@ -8,7 +8,6 @@ import com.sky.signal.pre.util.ProfileUtil;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.DataFrame;
@@ -266,8 +265,8 @@ public class LiveWorkAggProcessor implements Serializable {
                         result.col("cen_region"),
                         result.col("sex"),
                         result.col("age"),
-                        result.col("exists_days"),
                         result.col("stay_time"),
+                        result.col("exists_days"),
                         result.col("live_base"),
                         result.col("live_lng"),
                         result.col("live_lat"),
@@ -278,64 +277,8 @@ public class LiveWorkAggProcessor implements Serializable {
                         result.col("work_lat"),
                         result.col("on_wsd"),
                         workDfUwd.col("uwd"));
-
         //排除结果中，一个人多个职住地的情况
-
         result = result.dropDuplicates(new String[]{"msisdn"});
-
-        JavaRDD<Row> rddResult3 = result.javaRDD().map(new Function<Row, Row>() {
-            @Override
-            public Row call(Row row) throws Exception {
-                String live_base = row.getAs("live_base");
-                String work_base = row.getAs("work_base");
-                // 归属地是否是江苏省，1: 是; 0: 否
-                Integer region = row.getAs("region");
-                if (region == null) {
-                    region = 0;
-                }
-                Integer jsRegion = TransformFunction.transformJsRegion(region);
-                // 性别
-                Short sex = TransformFunction.transformSexClass((Short) row.getAs("sex"), region);
-                // 年龄分类
-                Integer ageClass = TransformFunction.transformAgeClass((Short) row.getAs("age"), region);
-
-                String cenRegion = TransformFunction.transformCenRegion((Integer) row.getAs("cen_region"));
-                // 分析时间范围内每日平均逗留时间分类
-                Double stayTime = row.getAs("stay_time");
-                if (stayTime == null) {
-                    stayTime = 0d;
-                }
-                Integer stayTimeClass = TransformFunction.transformStayTimeClass(stayTime);
-
-                Long uld = 0l;
-                Long uwd = 0l;
-                Long on_lsd = 0l;
-                Long on_wsd = 0l;
-                if (live_base == null) {
-                    live_base = region.toString();
-                } else {
-                    uld = row.getAs("uld");
-                    on_lsd = row.getAs("on_lsd");
-                }
-                if (work_base == null) {
-                    work_base = region.toString();
-                } else {
-                    uwd = row.getAs("uwd");
-                    on_wsd = row.getAs("on_wsd");
-                }
-
-                Double sum_time = row.getAs("stay_time");
-                Integer person_class = TransformFunction.transformPersonClass(uld, sum_time);
-
-
-                return RowFactory.create(row.getAs("msisdn"), region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
-                        row.getAs("stay_time"), stayTimeClass, row.getAs("exists_days"), live_base, row.getAs("live_lng"), row.getAs("live_lat"),
-                        on_lsd, uld, work_base, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);
-            }
-
-        });
-
-        result = sqlContext.createDataFrame(rddResult3, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA);
         FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType.CSV, params.getWorkLiveFile());
 
         existsDf.unpersist();

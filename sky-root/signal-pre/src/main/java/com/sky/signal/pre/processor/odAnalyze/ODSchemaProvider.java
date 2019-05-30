@@ -33,7 +33,7 @@ public class ODSchemaProvider {
             DataTypes.createStructField("arrive_lat", DataTypes.DoubleType, false),
             DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
             DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false)));
-    public static final StructType OD_LINK_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
+    public static final StructType OD_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
             DataTypes.createStructField("leave_base", DataTypes.StringType, false),
@@ -49,40 +49,4 @@ public class ODSchemaProvider {
             DataTypes.createStructField("cov_speed", DataTypes.DoubleType, false),
             DataTypes.createStructField("distance", DataTypes.IntegerType, false),
             DataTypes.createStructField("move_time", DataTypes.IntegerType, false)));
-
-    public static final StructType OD_TEMP_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
-            DataTypes.createStructField("date", DataTypes.IntegerType, false),
-            DataTypes.createStructField("msisdn", DataTypes.StringType, false),
-            DataTypes.createStructField("leave_base", DataTypes.StringType, true),
-            DataTypes.createStructField("arrive_base", DataTypes.StringType, true),
-            DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
-            DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false),
-            DataTypes.createStructField("linked_distance", DataTypes.IntegerType, false),
-            DataTypes.createStructField("max_speed", DataTypes.DoubleType, false),
-            DataTypes.createStructField("cov_speed", DataTypes.DoubleType, false),
-            DataTypes.createStructField("distance", DataTypes.IntegerType, false),
-            DataTypes.createStructField("move_time", DataTypes.IntegerType, false),
-            DataTypes.createStructField("age_class", DataTypes.IntegerType, false),
-            DataTypes.createStructField("sex", DataTypes.ShortType, false),
-            DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
-            DataTypes.createStructField("live_base", DataTypes.StringType, false),
-            DataTypes.createStructField("work_base", DataTypes.StringType, false)
-    ));
-    public static final StructType OD_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
-            DataTypes.createStructField("date", DataTypes.IntegerType, false),
-            DataTypes.createStructField("msisdn", DataTypes.StringType, false),
-            DataTypes.createStructField("leave_base", DataTypes.StringType, true),
-            DataTypes.createStructField("arrive_base", DataTypes.StringType, true),
-            DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
-            DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false),
-            DataTypes.createStructField("linked_distance", DataTypes.IntegerType, false),
-            DataTypes.createStructField("max_speed", DataTypes.DoubleType, false),
-            DataTypes.createStructField("cov_speed", DataTypes.DoubleType, false),
-            DataTypes.createStructField("distance", DataTypes.IntegerType, false),
-            DataTypes.createStructField("move_time", DataTypes.IntegerType, false),
-            DataTypes.createStructField("age_class", DataTypes.IntegerType, false),
-            DataTypes.createStructField("sex", DataTypes.ShortType, false),
-            DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
-            DataTypes.createStructField("trip_purpose", DataTypes.ShortType, false)
-    ));
 }

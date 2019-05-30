@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import scala.Tuple2;
 import scala.Tuple3;
-import scala.Tuple4;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -508,7 +507,7 @@ public class StayPointProcessor implements Serializable {
 
                 Row od = new GenericRowWithSchema(new Object[]{o.getAs("date"), o.getAs("msisdn"), o.getAs("base"),
                         o.getAs("lng"), o.getAs("lat"), d.getAs("base"), d.getAs("lng"), d.getAs("lat"),
-                        originEnd, destBegin, linkedDistance, maxSpeed, covSpeed, distance, moveTime}, ODSchemaProvider.OD_LINK_SCHEMA);
+                        originEnd, destBegin, linkedDistance, maxSpeed, covSpeed, distance, moveTime}, ODSchemaProvider.OD_SCHEMA);
                 odResult.add(od);
                 if(trace.size()>1) {
                     traceOD.addAll(createODTrace(trace));
@@ -624,35 +623,10 @@ public class StayPointProcessor implements Serializable {
             }
 
         }
-
-        // 迭代器实现方式
-//        for(Iterator<Row> it = trace.iterator(); it.hasNext();) {
-//            current  = it.next();
-//            if(prior == null) {
-//                prior = current;
-//            } else {
-//                Timestamp originEnd = prior.getAs("last_time");
-//                Timestamp destBegin = current.getAs("begin_time");
-//                int distance = MapUtil.getDistance((double) current.getAs("lng"), (double) current.getAs("lat"), (double) prior.getAs("lng"), (double) prior.getAs("lat"));
-//                double subDistance = Math.abs(distance - avgDistance);
-//
-//                int timeDiff = getTimeDiff(originEnd, destBegin);
-//                double speed = MapUtil.formatDecimal(timeDiff == 0 ? 0 : (double) distance / timeDiff * 3.6, 2);
-//                double subSpeed = Math.abs(speed - avgSpeed);
-//                if(subDistance <= 2 * stdDistance && subSpeed <= 2 * stdSpeed) {
-//                    continue;
-//                } else if ((Byte)current.getAs("point_type") != STAY_POINT){
-//                    trace.remove(current);
-//                    prior = current;
-//                }
-//            }
-//        }
-        // 重新计算 moveTime,distance,speed
-
         return result;
     }
 
-    public void process(String validSignalFile, DataFrame workLiveDf) {
+    public void process(String validSignalFile) {
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
@@ -752,38 +726,6 @@ public class StayPointProcessor implements Serializable {
             @Override
             public Iterable<Row> call(Tuple2<List<Row>, List<Row>> result) throws Exception {
                 return result._2();
-            }
-        });
-        DataFrame odLink = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_LINK_SCHEMA);
-        FileUtil.saveFile(odLink.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "od_link/" + date);
-        odLink = odLink.persist(StorageLevel.DISK_ONLY());
-        JavaRDD<Row> odResult = replaceBase(odLink, workLiveDf);
-        DataFrame dataFrame = sqlContext.createDataFrame(odResult, ODSchemaProvider.OD_TEMP_SCHEMA);
-        odRDD = dataFrame.javaRDD().map(new Function<Row, Row>() {
-            @Override
-            public Row call(Row row) throws Exception {
-                String live_base = row.getAs("live_base");
-                String work_base = row.getAs("work_base");
-                String leave_base = row.getAs("leave_base");
-                String arrive_base = row.getAs("arrive_base");
-                Short trip_purpose;
-
-                if ((leave_base.equals(live_base) && arrive_base.equals(work_base))) {
-                    trip_purpose = 1;// HBWPA 通勤出行，从家到工作地
-                } else if (leave_base.equals(work_base) && arrive_base.equals(live_base)) {
-                    trip_purpose = 2;// HBWAP 通勤出行，从工作地到家
-                } else if (leave_base.equals(live_base) && !arrive_base.equals(work_base)) {
-                    trip_purpose = 3;// HBOAP 出行起点为家，终点为其他（非工作地非学校）
-                } else if (arrive_base.equals(live_base) && !leave_base.equals(work_base)) {
-                    trip_purpose = 4;// HBOPA 出行起点为其他（非工作地非学校），终点为家
-                } else if (!leave_base.equals(live_base) && !arrive_base.equals(work_base)) {
-                    trip_purpose = 5;// NHB 出行起点为其他（非家非工作地非学校），终点为其他（非家非工作地非学校）
-                } else {
-                    trip_purpose = 6;// 其他
-                }
-                return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"), row.getAs("leave_time"),
-                        row.getAs("arrive_time"), row.getAs("linked_distance"), row.getAs("max_speed") , row.getAs("cov_speed") , row.getAs("distance"), row.getAs("move_time"),
-                        row.getAs("age_class"), row.getAs("sex"), row.getAs("person_class"), trip_purpose);
             }
         });
         DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);

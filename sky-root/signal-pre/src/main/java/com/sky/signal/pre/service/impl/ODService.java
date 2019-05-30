@@ -3,10 +3,7 @@ package com.sky.signal.pre.service.impl;
 import com.google.common.base.Stopwatch;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.odAnalyze.StayPointProcessor;
-import com.sky.signal.pre.processor.workLiveProcess.WorkLiveLoader;
 import com.sky.signal.pre.service.ComputeService;
-import org.apache.spark.sql.DataFrame;
-import org.apache.spark.storage.StorageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +21,12 @@ public class ODService implements ComputeService {
     private transient ParamProperties params;
     @Autowired
     private transient StayPointProcessor stayPointProcessor;
-    @Autowired
-    private transient WorkLiveLoader workLiveLoader;
-
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
-        workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
         for (String validSignalFile: params.getValidSignalFileFullPath()) {
-            stayPointProcessor.process(validSignalFile, workLiveDf);
+            stayPointProcessor.process(validSignalFile);
         }
-        workLiveDf.unpersist();
         logger.info("ODService duration: " + stopwatch.toString());
 
     }
