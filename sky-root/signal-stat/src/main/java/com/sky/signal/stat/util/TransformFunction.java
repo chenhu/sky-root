@@ -17,6 +17,35 @@ import java.sql.Timestamp;
  */
 public class TransformFunction implements Serializable {
 
+    /**
+     * description: 时间分割，一天时段每小时分割一次
+     * param: [odDF]
+     * return: org.apache.spark.api.java.JavaRDD<org.apache.spark.sql.Row>
+     **/
+    public static final JavaRDD<Row> transformTime1(DataFrame odDF) {
+        JavaRDD<Row> odRDD = odDF.javaRDD().map(new Function<Row, Row>() {
+            @Override
+            public Row call(Row row) throws Exception {
+                DateTime leaveTime = new DateTime(row.getAs("leave_time")) ;
+                DateTime arriveTime = new DateTime(row.getAs("arrive_time"));
+                int leaveIntervalMin =60, arriveIntervalMin = 60;
+                leaveTime  = leaveTime.dayOfWeek().roundFloorCopy().plusMinutes(leaveTime.plusMinutes(-leaveTime.getMinuteOfHour()%leaveIntervalMin).getMinuteOfDay());
+                arriveTime  = arriveTime.dayOfWeek().roundFloorCopy().plusMinutes(arriveTime.plusMinutes(-arriveTime.getMinuteOfHour()%arriveIntervalMin).getMinuteOfDay());
+
+                Timestamp leaveTimestamp=new Timestamp(leaveTime.getMillis());
+                Timestamp arriveTimestamp=new Timestamp(arriveTime.getMillis());
+                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"),
+                        leaveTimestamp, arriveTimestamp, row.getAs("distance"), row.getAs("move_time"), row.getAs("age_class"),row.getAs("sex"),
+                        row.getAs("person_class"), row.getAs("trip_purpose")});
+            }
+        });
+        return odRDD;
+    }
+    /**
+    * description: 时间分割，0-6点，9-16点，19-24点时间间隔为1小时；其余时段为15分钟
+    * param: [odDF]
+    * return: org.apache.spark.api.java.JavaRDD<org.apache.spark.sql.Row>
+    **/
     public static final JavaRDD<Row> transformTime(DataFrame odDF) {
         JavaRDD<Row> odRDD = odDF.javaRDD().map(new Function<Row, Row>() {
             @Override

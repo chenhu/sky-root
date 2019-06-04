@@ -34,8 +34,6 @@ public class ODStatService implements ComputeService {
     @Autowired
     private transient ODTimeIntervalStat oDTimeIntervalStat;
     @Autowired
-    private transient ODTimeIntervalPurposeStat oDTimeIntervalPurposeStat;
-    @Autowired
     private transient ODTimeDistanceStat oDTimeDistanceStat;
     @Autowired
     private transient ODTraceStat odTraceStat;
@@ -58,8 +56,6 @@ public class ODStatService implements ComputeService {
         dayTripPurposeSummaryStat.process(odWorkLiveCombinedDf);
         //基站特定时间间隔OD统计
         oDTimeIntervalStat.process(odWorkLiveCombinedDf, sqlContext);
-        //基站特定时间间隔分目的出行特征统计
-        oDTimeIntervalPurposeStat.process(odWorkLiveCombinedDf, sqlContext);
         // 出行时耗-距离分布
         oDTimeDistanceStat.process(odWorkLiveCombinedDf, sqlContext);
         odTraceStat.process(odTraceDf, workLiveDf, sqlContext);

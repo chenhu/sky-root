@@ -99,6 +99,7 @@ public class ODTraceStat implements Serializable{
                 .orderBy("date", "person_class", "sex", "age_class", "leave_base", "arrive_base", "from_time_class", "arrive_time_class");
 
         FileUtil.saveFile(newTraceDf.repartition(20), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-busy-time");
+        replaced.unpersist();
         return null;
 
     }
