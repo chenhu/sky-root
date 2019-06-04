@@ -2,10 +2,14 @@ package com.sky.signal.pre.processor.workLiveProcess;
 
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.ProfileUtil;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -14,6 +18,7 @@ import org.apache.spark.storage.StorageLevel;
 import org.joda.time.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import scala.Tuple2;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -112,12 +117,52 @@ public class WorkProcess implements Serializable {
      * 工作地判断处理器
      *
      */
-    public void process(JavaRDD<List<Row>> validRdd) {
+    public void process() {
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        JavaRDD<Row> workRdd = validRdd.flatMap(new FlatMapFunction<List<Row>, Row>() {
+        DataFrame validSignalDF = null;
+        for (String ValidSignalFile : params.getValidSignalForWork()) {
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
+            if (validSignalDF == null) {
+                validSignalDF = validDF;
+            } else {
+                validSignalDF = validSignalDF.unionAll(validDF);
+            }
+        }
+
+        // 计算手机号码出现天数，以及每天逗留时间
+        DataFrame existsDf = validSignalDF.groupBy("date", "msisdn", "region", "cen_region", "sex", "age").
+                agg(sum("move_time").as("sum_time")).orderBy("date", "msisdn", "region", "cen_region", "sex", "age");;
+        FileUtil.saveFile(existsDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "work/existsDf");
+
+        //手机号码->信令数据
+        JavaPairRDD<String, Row> signalRdd = validSignalDF.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {
+            public Tuple2<String, Row> call(Row row) throws Exception {
+                String msisdn = row.getAs("msisdn");
+                return new Tuple2<>(msisdn, row);
+            }
+        });
+        //按手机号对数据分组，相同手机号放到同一个List里面
+        List<Row> rows = new ArrayList<>();
+        JavaPairRDD<String, List<Row>> signalPairRdd = signalRdd.aggregateByKey(rows, params.getPartitions(), new Function2<List<Row>,
+                Row, List<Row>>() {
+            @Override
+            public List<Row> call(List<Row> rows, Row row) throws Exception {
+                rows.add(row);
+                return rows;
+            }
+        }, new Function2<List<Row>, List<Row>, List<Row>>() {
+            @Override
+            public List<Row> call(List<Row> rows1, List<Row> rows2) throws Exception {
+                rows1.addAll(rows2);
+                return rows1;
+            }
+        });
+
+        JavaRDD<List<Row>> signalListRdd = signalPairRdd.values();
+        JavaRDD<Row> workRdd = signalListRdd.flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {
                 //按startTime排序
@@ -130,10 +175,10 @@ public class WorkProcess implements Serializable {
         DataFrame workDf = sqlContext.createDataFrame(workRdd, LiveWorkSchemaProvider.BASE_SCHEMA);
         workDf = workDf.persist(StorageLevel.DISK_ONLY());
         //按基站加总
-        DataFrame workDfSumAll = workDf.groupBy("msisdn", "base", "lng", "lat").agg(sum("stay_time").as("stay_time"), countDistinct("date").as("days"));
-        FileUtil.saveFile(workDfSumAll.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"work_live/workDfSumAll");
+        DataFrame workDfSumAll = workDf.groupBy("msisdn", "base", "lng", "lat").agg(sum("stay_time").as("stay_time"), countDistinct("date").as("days")).orderBy("msisdn", "base", "lng", "lat");
+        FileUtil.saveFile(workDfSumAll.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"work/workDfSumAll");
 
         DataFrame workDfUwd = workDf.groupBy("msisdn").agg(countDistinct("date").as("uwd"));
-        FileUtil.saveFile(workDfUwd.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"work_live/workDfUwd");
+        FileUtil.saveFile(workDfUwd.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"work/workDfUwd");
     }
 }

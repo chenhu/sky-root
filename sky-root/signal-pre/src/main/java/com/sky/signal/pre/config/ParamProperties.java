@@ -68,6 +68,14 @@ public class ParamProperties {
     private List<String> validSignalFilesForWorkLive;
 
     /**
+     * 用来做工作地处理的有效信令文件
+     */
+    private List<String> validSignalForWork;
+    /**
+     * 用来做居住地处理的有效信令文件
+     */
+    private List<String> validSignalForLive;
+    /**
      * 职住文件
      */
     private String workLiveFile;
