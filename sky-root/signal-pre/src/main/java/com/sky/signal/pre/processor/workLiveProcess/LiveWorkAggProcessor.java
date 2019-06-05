@@ -26,51 +26,39 @@ public class LiveWorkAggProcessor implements Serializable {
             partitions = params.getPartitions();
         }
         // 计算手机号码出现天数，以及每天逗留时间
-        DataFrame workExistsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "work/existsDf");
-        DataFrame liveExistsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "live/existsDf");
-
-        DataFrame existsDf = workExistsDf.unionAll(liveExistsDf).groupBy("msisdn", "region", "cen_region", "sex", "age")
-                .agg(countDistinct("date").as("exists_days"), sum("sum_time").as("sum_time"))
-                .withColumn("stay_time", floor(col("sum_time").divide(col("exists_days"))).cast("Double"));
-        existsDf =  existsDf.persist(StorageLevel.DISK_ONLY());
+        DataFrame existsDf =  readExistsDf().persist(StorageLevel.DISK_ONLY());
 
         //出现2天的手机号
         DataFrame fitUsers = existsDf.filter(col("exists_days").geq(EXISTS_DAYS)).select(col("msisdn"));
         fitUsers = fitUsers.persist(StorageLevel.DISK_ONLY());
 
         //居住地处理
-        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getSavePath()
-                + "live/liveDfSumAll");
+        DataFrame liveDfSumAll = readLiveDfSumAll();
         // 计算手机号码居住地基站逗留时间、逗留天数、平均每日逗留时间
         liveDfSumAll = liveDfSumAll.groupBy("msisdn", "base", "lng", "lat").agg(sum("stay_time").as("stay_time"), sum("days").as("days"))
                 .withColumn("daily_time", floor(col("stay_time").divide(col("days"))));
         liveDfSumAll = liveDfSumAll.persist(StorageLevel.DISK_ONLY());
         // 计算手机号码居住地最大逗留时间
         DataFrame liveDfMaxStayTime = liveDfSumAll.groupBy("msisdn").agg(max("stay_time").as("stay_time"));
-
         // 找出手机号码在居住地 发生最大逗留时间的 基站
         DataFrame liveDfOnLsd = liveDfSumAll.join(liveDfMaxStayTime, liveDfSumAll.col("msisdn").equalTo(liveDfMaxStayTime.col("msisdn"))
                 .and(liveDfSumAll.col("stay_time").equalTo(liveDfMaxStayTime.col("stay_time"))))
                 .select(liveDfSumAll.col("msisdn"), liveDfSumAll.col("base"), liveDfSumAll.col("lng"), liveDfSumAll.col("lat"),
                         liveDfSumAll.col("daily_time"), liveDfSumAll.col("days").as("on_lsd"));
-
         // 过滤发生最大逗留时间 基站中，逗留时间超过2小时的基站
         liveDfOnLsd = liveDfOnLsd.filter(col("daily_time").gt(7200));
         // 找出 出现天数超过2天的手机号码中， 最大逗留时间超过2小时的基站
         liveDfOnLsd = liveDfOnLsd.join(fitUsers, liveDfOnLsd.col("msisdn").equalTo(fitUsers.col("msisdn"))).drop(fitUsers.col("msisdn"));
         liveDfOnLsd = liveDfOnLsd.persist(StorageLevel.DISK_ONLY());
-
         // 加载手机号码、居住地逗留天数 的数据
-        DataFrame liveDfUld = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.ULD_SCHEMA, params.getSavePath()
-                + "live/liveDfUld");
+        DataFrame liveDfUld = readDfUld();
         // 过滤出逗留时间超过2天的手机号码
         liveDfUld = liveDfUld.join(fitUsers, liveDfUld.col("msisdn").equalTo(fitUsers.col("msisdn"))).drop(fitUsers.col("msisdn"));
         liveDfUld = liveDfUld.persist(StorageLevel.DISK_ONLY());
 
 
         //工作地处理
-        DataFrame workDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params
-                .getSavePath() + "work/workDfSumAll");
+        DataFrame workDfSumAll = readWorkDfSumAll();
         //计算手机号码工作地基站逗留时间、逗留天数、平均每日逗留时间
         workDfSumAll = workDfSumAll.groupBy("msisdn", "base", "lng", "lat").agg(sum("stay_time").as("stay_time"), sum("days").as("days"))
                 .withColumn("daily_time", floor(col("stay_time").divide(col("days"))));
@@ -91,11 +79,7 @@ public class LiveWorkAggProcessor implements Serializable {
         workDfOnWsd = workDfOnWsd.persist(StorageLevel.DISK_ONLY());
 
         // 加载手机号码、工作地逗留天数 的数据
-        DataFrame workDfUwd = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.UWD_SCHEMA, params.getSavePath()
-                + "work/workDfUwd");
-
-        // 加载手机号码、工作地逗留天数 的数据
-        workDfUwd = workDfUwd.groupBy("msisdn").agg(sum("uwd").as("uwd"));
+        DataFrame workDfUwd = readDfUwd();
         // 过滤出逗留时间超过2天的手机号码
         workDfUwd = workDfUwd.join(fitUsers, workDfUwd.col("msisdn").equalTo(fitUsers.col("msisdn"))).drop(fitUsers.col("msisdn"));
         workDfUwd = workDfUwd.persist(StorageLevel.DISK_ONLY());
@@ -179,4 +163,42 @@ public class LiveWorkAggProcessor implements Serializable {
         workDfOnWsd.unpersist();
         return result;
     }
+
+    private DataFrame readExistsDf() {
+        DataFrame workExistsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "work/*/existsDf");
+        DataFrame liveExistsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "live/*/existsDf");
+        DataFrame existsDf = workExistsDf.unionAll(liveExistsDf).groupBy("msisdn", "region", "cen_region", "sex", "age")
+                .agg(sum("exists_days").as("exists_days"), sum("sum_time").as("sum_time"))
+                .withColumn("stay_time", floor(col("sum_time").divide(col("exists_days"))).cast("Double"));
+        return existsDf;
+    }
+
+    private DataFrame readLiveDfSumAll() {
+        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getSavePath()
+                + "live/*/liveDfSumAll");
+        liveDfSumAll = liveDfSumAll.groupBy("msisdn", "base" ,"lng", "lat").agg(sum("stay_time").as("stay_time"), sum("days").as("days")).orderBy("msisdn", "base", "lng", "lat");
+        return liveDfSumAll;
+    }
+
+    private DataFrame readWorkDfSumAll() {
+        DataFrame workDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getSavePath()
+                + "work/*/workDfSumAll");
+        workDfSumAll = workDfSumAll.groupBy("msisdn", "base" ,"lng", "lat").agg(sum("stay_time").as("stay_time"), sum("days").as("days")).orderBy("msisdn", "base", "lng", "lat");
+        return workDfSumAll;
+    }
+
+    private DataFrame readDfUld() {
+        DataFrame liveDfUld = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.ULD_SCHEMA, params.getSavePath()
+                + "live/*/liveDfUld");
+        liveDfUld = liveDfUld.groupBy("msisdn").agg(sum("uld").as("uld"));
+        return liveDfUld;
+    }
+    private DataFrame readDfUwd() {
+        DataFrame workDfUld = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.UWD_SCHEMA, params.getSavePath()
+                + "work/*/workDfUwd");
+        workDfUld = workDfUld.groupBy("msisdn").agg(sum("uwd").as("uwd"));
+        return workDfUld;
+    }
+
+
 }

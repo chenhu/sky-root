@@ -2,7 +2,6 @@ package com.sky.signal.pre.processor.workLiveProcess;
 
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -108,26 +107,18 @@ public class LiveProcess implements Serializable {
      * 居住地判断处理器
      *
      */
-    public void process() {
+    public void process(DataFrame validSignalDF, int batchId) {
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
 
-        DataFrame validSignalDF = null;
-        for (String ValidSignalFile : params.getValidSignalForLive()) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
-            if (validSignalDF == null) {
-                validSignalDF = validDF;
-            } else {
-                validSignalDF = validSignalDF.unionAll(validDF);
-            }
-        }
+        validSignalDF.persist(StorageLevel.DISK_ONLY());
 
         // 计算手机号码出现天数，以及每天逗留时间
-        DataFrame existsDf = validSignalDF.groupBy("date", "msisdn", "region", "cen_region", "sex", "age").
-                agg(sum("move_time").as("sum_time")).orderBy("date", "msisdn", "region", "cen_region", "sex", "age");
-        FileUtil.saveFile(existsDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "live/existsDf");
+        DataFrame existsDf = validSignalDF.groupBy("msisdn", "region", "cen_region", "sex", "age").
+                agg(countDistinct("date").as("exists_days"), sum("move_time").as("sum_time")).orderBy("msisdn", "region", "cen_region", "sex", "age");
+        FileUtil.saveFile(existsDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "live/" + batchId + "/existsDf");
 
         //手机号码->信令数据
         JavaPairRDD<String, Row> signalRdd = validSignalDF.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {
@@ -169,9 +160,11 @@ public class LiveProcess implements Serializable {
         liveDf = liveDf.persist(StorageLevel.DISK_ONLY());
         //按基站加总
         DataFrame liveDfSumAll = liveDf.groupBy("msisdn", "base" ,"lng", "lat").agg(sum("stay_time").as("stay_time"), countDistinct("date").as("days")).orderBy("msisdn", "base", "lng", "lat");
-        FileUtil.saveFile(liveDfSumAll.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"live/liveDfSumAll");
+        FileUtil.saveFile(liveDfSumAll.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"live/" + batchId + "/liveDfSumAll");
 
         DataFrame liveDfUld = liveDf.groupBy("msisdn").agg(countDistinct("date").as("uld"));
-        FileUtil.saveFile(liveDfUld.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"live/liveDfUld");
+        FileUtil.saveFile(liveDfUld.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"live/" + batchId + "/liveDfUld");
+        validSignalDF.unpersist();
+        liveDf.unpersist();
     }
 }

@@ -58,12 +58,12 @@ public class LiveWorkSchemaProvider {
             DataTypes.createStructField("stay_time", DataTypes.DoubleType, false),
             DataTypes.createStructField("days", DataTypes.LongType, false)));
     public static final StructType EXIST_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
-            DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
             DataTypes.createStructField("region", DataTypes.IntegerType, false),
             DataTypes.createStructField("cen_region", DataTypes.IntegerType, false),// 户籍所在地
             DataTypes.createStructField("sex", DataTypes.ShortType, false),
             DataTypes.createStructField("age", DataTypes.ShortType, false),
+            DataTypes.createStructField("exists_days", DataTypes.IntegerType, false),
             DataTypes.createStructField("sum_time", DataTypes.LongType, false)));
     public static final StructType ULD_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),

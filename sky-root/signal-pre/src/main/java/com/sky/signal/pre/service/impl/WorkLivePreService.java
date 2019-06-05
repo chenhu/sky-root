@@ -4,7 +4,6 @@ import com.google.common.base.Stopwatch;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.processor.workLiveProcess.LiveProcess;
-import com.sky.signal.pre.processor.workLiveProcess.WorkLiveFilterProcess;
 import com.sky.signal.pre.processor.workLiveProcess.WorkProcess;
 import com.sky.signal.pre.service.ComputeService;
 import com.sky.signal.pre.util.FileUtil;
@@ -20,14 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 过滤有效时段的有效数据，用来做职住分析
+ * 职住分析分批次预处理
  */
-@Service("workLiveFilterService")
-public class WorkLiveFilterService implements ComputeService {
-    private static final Logger logger = LoggerFactory.getLogger(WorkLiveFilterService.class);
-
-    @Autowired
-    protected WorkLiveFilterProcess workLiveFilterProcess;
+@Service("workLivePreService")
+public class WorkLivePreService implements ComputeService {
+    private static final Logger logger = LoggerFactory.getLogger(WorkLivePreService.class);
     @Autowired
     private transient WorkProcess workProcess;
     @Autowired
@@ -38,8 +34,6 @@ public class WorkLiveFilterService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        workLiveFilterProcess.process();
-
         Map<Integer, List<String>> liveValidSignalFileMap = getBatchFiles(params.getValidSignalForLive());
         Map<Integer, List<String>> workValidSignalFileMap = getBatchFiles(params.getValidSignalForWork());
 

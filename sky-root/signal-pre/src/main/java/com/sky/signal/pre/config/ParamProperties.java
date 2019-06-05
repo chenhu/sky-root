@@ -63,6 +63,10 @@ public class ParamProperties {
     private String basePath;
 
     /**
+     * 职住分析每个批次处理有效数据天数
+     */
+    private Integer workliveBatchSize;
+    /**
      * 有效信令数据文件
      */
     private List<String> validSignalFilesForWorkLive;

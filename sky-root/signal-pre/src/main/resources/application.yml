@@ -1,5 +1,5 @@
 #yaml配置文件支持多profile, 可根据不同profile配置参数
-spring.profiles.active: local
+spring.profiles.active: cmcc
 
 logging:
   level: #日志级别, 可针对不同package设置
@@ -24,6 +24,7 @@ param:
   userFile: file:///Users/chenhu/data/yancheng/用户信息.csv
   basePath: file:///Users/chenhu/data/yancheng/轨迹数据
   savePath: file:///Users/chenhu/data/yancheng/save/
+  workliveBatchSize: 3
   workLiveFile: file:///Users/chenhu/data/yancheng/save/work_live_his
   validSignalFilesForWorkLive:
     - /Users/chenhu/data/yancheng/save/validSignal/20170108
@@ -71,6 +72,7 @@ param:
   baseFile: /user/bdoc/17/services/hdfs/132/huaian/save/baseArea.csv
   userFile: /user/bdoc/17/services/hdfs/132/huaian/huaianCRM.csv
   workLiveFile: /user/bdoc/17/services/hdfs/132/huaian/save/work_live_his
+  workliveBatchSize: 7
   validSignalFilesForWorkLive:
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181001
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181002
@@ -110,8 +112,84 @@ param:
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181105
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181106
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181107
-
-
+  validSignalForWork:
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181001
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181002
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181003
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181004
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181005
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181006
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181007
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181008
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181009
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181010
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181011
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181012
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181013
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181014
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181015
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181016
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181017
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181018
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181019
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181020
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181021
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181022
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181023
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181024
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181025
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181026
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181027
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181028
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181030
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181031
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181101
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181102
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181103
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181104
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181105
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181106
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForWork/20181107
+  validSignalForLive:
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181001
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181002
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181003
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181004
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181005
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181006
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181007
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181008
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181009
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181010
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181011
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181012
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181013
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181014
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181015
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181016
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181017
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181018
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181019
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181020
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181021
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181022
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181023
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181024
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181025
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181026
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181027
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181028
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181030
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181031
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181101
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181102
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181103
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181104
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181105
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181106
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignalForLive/20181107
 
 
 
