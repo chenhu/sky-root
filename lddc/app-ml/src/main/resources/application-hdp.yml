@@ -1,0 +1,29 @@
+# user-defined variables
+app-conf:
+  appName: 机器学习训练模型
+  partitions: 100
+  split: 2
+  send: 1
+  # 训练数据
+  trainData: /user/root/ml/gaode
+  # 格式化后的训练数据
+  trainDataTrans: /user/root/ml/save/gaode/train
+  # 天气数据位置
+  weather: /user/root/ml/weather.csv
+  # libsvm
+  libSvm: /user/root/ml/save/gaode/libsvm
+  # 模型位置
+  model: /user/root/ml/save/gaode/model
+  # 统计结果位置
+  statPath: /user/root/ml/save/gaode/stat
+
+  areaCode: 320101
+auth-conf:
+  # 平台类型 1：华为平台
+  platform: 0
+  # 华为平台的认证信息
+  userPrincipal: tzjj
+  userKeytabPath: /opt/hadoopclient/secret/user.keytab
+  krb5ConfPath: /opt/hadoopclient/secret/krb5.conf
+
+
