@@ -20,6 +20,7 @@ param:
   statpatitions: 1
   savePath: file:///Users/chenhu/data/yancheng/save/
   workLiveFile: file:///Users/chenhu/data/yancheng/save/work_live_his
+  statBatchSize: 3
   validSignalFilesForStat:
     - /Users/chenhu/data/yancheng/save/validSignal/20170108
     - /Users/chenhu/data/yancheng/save/validSignal/20170109
@@ -58,9 +59,24 @@ spring.profiles: cmcc
 
 param:
   statpatitions: 1
+  statBatchSize: 7
   savePath: /user/bdoc/17/services/hdfs/132/huaian/save/
   workLiveFile: /user/bdoc/17/services/hdfs/132/huaian/save/work_live_his
   validSignalFilesForStat:
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181001
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181002
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181003
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181004
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181005
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181006
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181007
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181008
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181009
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181010
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181011
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181012
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181013
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181014
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181015
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181016
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181017
@@ -68,7 +84,38 @@ param:
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181019
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181020
     - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181021
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181022
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181023
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181024
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181025
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181026
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181027
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181028
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181030
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181031
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181101
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181102
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181103
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181104
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181105
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181106
+    - /user/bdoc/17/services/hdfs/132/huaian/save/validSignal/20181107
   odFiles:
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181001
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181002
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181003
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181004
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181005
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181006
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181007
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181008
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181009
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181010
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181011
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181012
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181013
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181014
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181015
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181016
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181017
@@ -76,15 +123,22 @@ param:
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181019
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181020
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181021
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181022
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181023
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181024
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181025
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181026
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181027
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181028
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181029
-#    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181031
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181022
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181023
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181024
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181025
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181026
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181027
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181028
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181031
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181101
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181102
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181103
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181104
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181105
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181106
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181107
   odTraceFiles:
     - /user/bdoc/17/services/hdfs/132/huaian/save/od_trace/20181003
     - /user/bdoc/17/services/hdfs/132/huaian/save/od_trace/20181013

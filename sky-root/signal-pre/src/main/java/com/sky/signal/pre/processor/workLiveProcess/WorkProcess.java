@@ -121,12 +121,6 @@ public class WorkProcess implements Serializable {
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        validSignalDF.persist(StorageLevel.DISK_ONLY());
-        // 计算手机号码出现天数，以及每天逗留时间
-        DataFrame existsDf = validSignalDF.groupBy("msisdn", "region", "cen_region", "sex", "age").
-                agg(countDistinct("date").as("exists_days"), sum("move_time").as("sum_time")).orderBy("msisdn", "region", "cen_region", "sex", "age");;
-        FileUtil.saveFile(existsDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "work/" + batchId + "/existsDf");
-
         //手机号码->信令数据
         JavaPairRDD<String, Row> signalRdd = validSignalDF.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {
             public Tuple2<String, Row> call(Row row) throws Exception {

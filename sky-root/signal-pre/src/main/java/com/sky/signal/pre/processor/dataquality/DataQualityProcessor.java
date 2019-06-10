@@ -61,17 +61,35 @@ public class DataQualityProcessor {
         // 没有找到crm信息的手机信令
         DataFrame agg2 = dfWithCRM.filter(col("cen_region").equalTo(0)).groupBy("date").agg(count("msisdn").as("no_crm_count"));
         // 统计date和开始日期或者结束日期不同天的数据,以及开始日期和结束日期不同天的数据
-        DataFrame agg3 = dfWithCRM.groupBy("date").agg(sum(col("date_count1")).as("date_count1"), sum(col("date_count2")).as("date_count2"));
+        DataFrame agg3 = dfWithCRM.groupBy("date").agg(sum(col("date_count1")).as("dt_error_count1"), sum(col("date_count2")).as("dt_error_count2"));
+        DataFrame allSignalDf = tuple2._2().persist(StorageLevel.DISK_ONLY());
         // 统计没有匹配到基站的数据
-        DataFrame agg4 = tuple2._2().groupBy(col("date")).agg(count("msisdn").as("no_base_count"));
+        DataFrame inValidDf = allSignalDf.filter(col("base").equalTo("null").and(col("lng").equalTo(0)).and(col("lat")
+                .equalTo(0)));
+        DataFrame agg4 = inValidDf.groupBy(col("date")).agg(count("msisdn").as("no_base_count"));
+
+        DataFrame agg5 = allSignalDf.groupBy("date").agg(count("*").as("orginal_count"));
+        DataFrame joinedDf = agg1.join(agg2, agg1.col("date").equalTo(agg2.col("date")))
+                .join(agg3, agg1.col("date").equalTo(agg3.col("date")))
+                .join(agg4, agg1.col("date").equalTo(agg4.col("date")))
+                .join(agg5, agg1.col("date").equalTo(agg5.col("date")))
+                .select(
+                        agg1.col("date"),
+                        agg5.col("orginal_count"),
+                        agg1.col("valid_row_count"),
+                        agg1.col("base_count"),
+                        agg2.col("no_crm_count"),
+                        agg3.col("dt_error_count1"),
+                        agg3.col("dt_error_count2"),
+                        agg4.col("no_base_count"),
+                        agg1.col("msisdn_count")
+                );
 
         String date = params.getStrYear() + params.getStrMonth() + params.getStrDay();
         // 保存结果
-        FileUtil.saveFile(agg1.repartition(1), FileUtil.FileType.CSV, params.getSavePath() + "stat/dataquality/" + date + "/stat1");
-        FileUtil.saveFile(agg2.repartition(1), FileUtil.FileType.CSV, params.getSavePath() + "stat/dataquality/" + date + "/stat2");
-        FileUtil.saveFile(agg3.repartition(1), FileUtil.FileType.CSV, params.getSavePath() + "stat/dataquality/" + date + "/stat3");
-        FileUtil.saveFile(agg4.repartition(1), FileUtil.FileType.CSV, params.getSavePath() + "stat/dataquality/" + date + "/stat4");
+        FileUtil.saveFile(joinedDf.repartition(1), FileUtil.FileType.CSV, params.getSavePath() + "stat/dataquality/" + date + "/stat");
 
         validDf.unpersist();
+        allSignalDf.unpersist();
     }
 }

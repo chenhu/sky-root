@@ -3,7 +3,10 @@ package com.sky.signal.pre.service.impl;
 import com.google.common.base.Stopwatch;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.dataquality.DataQualityProcessor;
+import com.sky.signal.pre.processor.dataquality.DataQualitySchemaProvider;
 import com.sky.signal.pre.service.ComputeService;
+import com.sky.signal.pre.util.FileUtil;
+import org.apache.spark.sql.DataFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,10 @@ public class DataQualityService implements ComputeService {
         for (String traceSignalFile: params.getTraceSignalFileFullPath()) {
             dataQualityProcessor.process(traceSignalFile);
         }
+        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, DataQualitySchemaProvider.SIGNAL_SCHEMA_BASE, params.getSavePath()
+                + "stat/dataquality/*/stat").orderBy("date");
+        FileUtil.saveFile(liveDfSumAll.repartition(1), FileUtil.FileType.CSV, params.getSavePath()
+                + "stat/dataquality-all");
         logger.info("DataQualityService duration: " + stopwatch.toString());
 
     }

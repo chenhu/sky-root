@@ -122,14 +122,12 @@ public class SignalLoader implements Serializable {
         });
 
         DataFrame df = sqlContext.createDataFrame(rdd, SignalSchemaProvider.SIGNAL_SCHEMA_BASE);
-        // 没有匹配到基站的 数据
-        DataFrame inValidDf = df.filter(col("base").equalTo("null").and(col("lng").equalTo(0)).and(col("lat")
-                .equalTo(0)));
+
         //过滤手机号码/基站不为0的数据,并删除重复手机信令数据
         DataFrame validDf = df.filter(col("msisdn").notEqual("null").and(col("base").notEqual("null")).and(col("lng").notEqual(0)).and(col("lat")
                 .notEqual(0))).dropDuplicates(new String[]{"msisdn", "begin_time"});
         //
-        return new Tuple2<>(validDf, inValidDf);
+        return new Tuple2<>(validDf, df);
     }
 
     /**

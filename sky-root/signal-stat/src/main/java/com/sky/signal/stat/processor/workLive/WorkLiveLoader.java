@@ -55,6 +55,10 @@ public class WorkLiveLoader implements Serializable {
                 }
                 Integer stayTimeClass = TransformFunction.transformStayTimeClass(stayTime);
 
+                Long existsDays = 0l;
+                if(row.getAs("exists_days") !=null) {
+                    existsDays = row.getAs("exists_days");
+                }
                 Long uld = 0l;
                 Long uwd = 0l;
                 Long on_lsd = 0l;
@@ -62,33 +66,36 @@ public class WorkLiveLoader implements Serializable {
                 if (live_base == null) {
                     live_base = region.toString();
                 } else {
-                    uld = row.getAs("uld");
-                    on_lsd = row.getAs("on_lsd");
+                    if(row.getAs("uld") !=null) {
+                        uld = row.getAs("uld");
+                    }
+                    if(row.getAs("on_lsd") !=null) {
+                        on_lsd = row.getAs("on_lsd");
+                    }
                 }
                 if (work_base == null) {
                     work_base = region.toString();
                 } else {
-                    uwd = row.getAs("uwd");
-                    on_wsd = row.getAs("on_wsd");
+                    if(row.getAs("uwd") !=null) {
+                        uwd = row.getAs("uwd");
+                    }
+                    if(row.getAs("on_wsd") !=null) {
+                        on_wsd = row.getAs("on_wsd");
+                    }
                 }
 
                 Double sum_time = row.getAs("stay_time");
-                Integer person_class = TransformFunction.transformPersonClass(uld, sum_time);
-
-
+                if(sum_time == null) {
+                    sum_time = 0d;
+                }
+                Integer person_class = TransformFunction.transformPersonClassByExistsDays(existsDays, sum_time);
                 return RowFactory.create(row.getAs("msisdn"), region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
-                        row.getAs("stay_time"), stayTimeClass, row.getAs("exists_days"), live_base, row.getAs("live_lng"), row.getAs("live_lat"),
+                        row.getAs("stay_time"), stayTimeClass, existsDays, live_base, row.getAs("live_lng"), row.getAs("live_lat"),
                         on_lsd, uld, work_base, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);
             }
 
         });
         df = sqlContext.createDataFrame(rdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);
-        return df;
-    }
-
-    public DataFrame load1(String workLiveFile) {
-        DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA, workLiveFile)
-                .repartition(params.getPartitions());
         return df;
     }
 }

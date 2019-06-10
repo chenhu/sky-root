@@ -6,7 +6,6 @@ import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
-import com.sky.signal.pre.processor.dataSelector.SelectSignalData;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -61,8 +60,6 @@ public class SignalProcessor implements Serializable {
     private transient CRMProcess crmProcess;
     @Autowired
     private transient PhoneAttributionProcess phoneAttributionProcess;
-    @Autowired
-    private transient SelectSignalData selectSignalData;
 
     /**
      * 合并同一手机连续相同基站信令数据
@@ -484,13 +481,7 @@ public class SignalProcessor implements Serializable {
     public void oneProcess(String path,final Broadcast<Map<String, Row>> cellVar,final Broadcast<Map<String, Row>> userVar,
                            final Broadcast<Map<String, Row>> areaVar,final Broadcast< Map<Integer,Row>> regionVar){
         JavaRDD<String> lines;
-        //获取指定区域范围内的原始手机信令数据，根据传入areaVar里面的区域，筛选信令
-        if(areaVar != null) {
-            lines= selectSignalData.process(path,areaVar).repartition(params.getPartitions());
-        }
-        else {
-            lines=sparkContext.textFile(path).repartition(params.getPartitions());
-        }
+        lines=sparkContext.textFile(path).repartition(params.getPartitions());
         //补全基站信息并删除重复信令
         DataFrame df=signalLoader.cell(cellVar).mergeCell(lines)._1();
 

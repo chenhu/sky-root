@@ -62,6 +62,8 @@ public class ParamProperties {
      */
     private String basePath;
 
+    private Integer statBatchSize;
+
     /**
      * 有效信令数据文件
      */

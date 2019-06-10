@@ -165,9 +165,8 @@ public class LiveWorkAggProcessor implements Serializable {
     }
 
     private DataFrame readExistsDf() {
-        DataFrame workExistsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "work/*/existsDf");
-        DataFrame liveExistsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "live/*/existsDf");
-        DataFrame existsDf = workExistsDf.unionAll(liveExistsDf).groupBy("msisdn", "region", "cen_region", "sex", "age")
+        DataFrame existsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "exists-days/*/existsDf");
+        existsDf = existsDf.groupBy("msisdn", "region", "cen_region", "sex", "age")
                 .agg(sum("exists_days").as("exists_days"), sum("sum_time").as("sum_time"))
                 .withColumn("stay_time", floor(col("sum_time").divide(col("exists_days"))).cast("Double"));
         return existsDf;

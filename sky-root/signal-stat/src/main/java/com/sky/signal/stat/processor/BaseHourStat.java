@@ -3,7 +3,6 @@ package com.sky.signal.stat.processor;
 import com.google.common.collect.Lists;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
-import com.sky.signal.stat.util.ProfileUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.DataFrame;
@@ -40,7 +39,7 @@ public class BaseHourStat implements Serializable {
     @Autowired
     private transient ParamProperties params;
 
-    public DataFrame process(DataFrame validDF, DataFrame workLiveDF) {
+    public DataFrame process(DataFrame validDF, DataFrame workLiveDF, int batchId) {
 
         JavaRDD<Row> rdd = validDF.javaRDD().flatMap(new FlatMapFunction<Row, Row>() {
             @Override
@@ -72,7 +71,7 @@ public class BaseHourStat implements Serializable {
         joinedDf = joinedDf.groupBy("date", "base", "time_inter", "person_class", "js_region", "sex", "age_class").agg(countDistinct("msisdn")
                 .as("peo_num")).orderBy(col("date"),col("base"),col("time_inter"),col("person_class"),col("js_region"), col("sex"), col
                 ("age_class"));
-        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/base-hour");
+        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/" + batchId + "/base-hour");
         return joinedDf;
     }
 }
