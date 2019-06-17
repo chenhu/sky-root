@@ -35,7 +35,7 @@ public class ODTraceStat implements Serializable{
     private static final LocalTime time0800 = new LocalTime(8, 0);
     private static final LocalTime time0700 = new LocalTime(7, 0);
 
-    public DataFrame process(DataFrame ODTraceDf, DataFrame workLiveDf, SQLContext sqlContext) {
+    public DataFrame process(DataFrame ODTraceDf, DataFrame workLiveDf, Integer batchId, SQLContext sqlContext) {
         DataFrame replaced = ODTraceDf.join(workLiveDf, ODTraceDf.col("msisdn").equalTo(workLiveDf.col("msisdn")), "left_outer");
         replaced = replaced.select(
                 ODTraceDf.col("date"),
@@ -53,7 +53,7 @@ public class ODTraceStat implements Serializable{
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
                 .orderBy("date", "person_class", "sex", "age_class", "leave_base", "arrive_base");
 
-        FileUtil.saveFile(odDayTraceDf.repartition(20), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-day");
+        FileUtil.saveFile(odDayTraceDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/odtrace-batch/"+batchId+"/od-trace-day");
         JavaRDD<Row> traceRdd = replaced.toJavaRDD();
         traceRdd = traceRdd.filter(new Function<Row, Boolean>() {
             @Override
@@ -98,9 +98,16 @@ public class ODTraceStat implements Serializable{
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
                 .orderBy("date", "person_class", "sex", "age_class", "leave_base", "arrive_base", "from_time_class", "arrive_time_class");
 
-        FileUtil.saveFile(newTraceDf.repartition(20), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-busy-time");
+        FileUtil.saveFile(newTraceDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/odtracebusy/"+batchId+"/od-trace-busy-time");
         replaced.unpersist();
         return null;
 
+    }
+
+    public void combineData() {
+        DataFrame odTraceDayDf =  FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getSavePath() + "stat/odtrace-batch/*/od-trace-day");
+        FileUtil.saveFile(odTraceDayDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-day");
+        DataFrame odTraceBusyTimeDf =  FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getSavePath() + "stat/odtracebusy/*/od-trace-busy-time");
+        FileUtil.saveFile(odTraceBusyTimeDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trace-busy-time");
     }
 }

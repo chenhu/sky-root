@@ -1,6 +1,8 @@
 package com.sky.signal.stat.processor;
 
+import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.od.ODSchemaProvider;
+import com.sky.signal.stat.util.FileUtil;
 import com.sky.signal.stat.util.MapUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -20,10 +22,11 @@ import java.io.Serializable;
  */
 @Service("combineODWorkLive")
 public class CombineODWorkLive implements Serializable {
-
+    @Autowired
+    private transient ParamProperties params;
     @Autowired
     private transient SQLContext sqlContext;
-    public DataFrame process(DataFrame od, DataFrame workLiveStat) {
+    public DataFrame process(DataFrame od, DataFrame workLiveStat, Integer batchId) {
         DataFrame replaced = od.join(workLiveStat, od.col("msisdn").equalTo(workLiveStat.col("msisdn")), "left_outer");
         replaced = replaced.select(
                 od.col("date"),
@@ -94,23 +97,20 @@ public class CombineODWorkLive implements Serializable {
                 } else if (arriveWorkDis <= 800) {
                     workBase = row.getAs("arrive_base");
                 }
-
-                String live_base = row.getAs("live_base");
-                String work_base = row.getAs("work_base");
                 String leave_base = row.getAs("leave_base");
                 String arrive_base = row.getAs("arrive_base");
                 Short trip_purpose;
 
-                if ((leave_base.equals(live_base) && arrive_base.equals(work_base))) {
+                if ((leave_base.equals(liveBase) && arrive_base.equals(workBase))) {
                     trip_purpose = 1;// HBWPA 通勤出行，从家到工作地
-                } else if (leave_base.equals(work_base) && arrive_base.equals(live_base)) {
+                } else if (leave_base.equals(workBase) && arrive_base.equals(liveBase)) {
                     trip_purpose = 2;// HBWAP 通勤出行，从工作地到家
-                } else if (leave_base.equals(live_base) && !arrive_base.equals(work_base)) {
+                } else if (leave_base.equals(liveBase) && !arrive_base.equals(workBase)) {
                     trip_purpose = 3;// HBOAP 出行起点为家，终点为其他（非工作地非学校）
-                } else if (arrive_base.equals(live_base) && !leave_base.equals(work_base)) {
+                } else if (!leave_base.equals(workBase) && arrive_base.equals(liveBase)) {
                     trip_purpose = 4;// HBOPA 出行起点为其他（非工作地非学校），终点为家
-                } else if (!leave_base.equals(live_base) && !arrive_base.equals(work_base)) {
-                    trip_purpose = 5;// NHB 出行起点为其他（非家非工作地非学校），终点为其他（非家非工作地非学校）
+                } else if (!leave_base.equals(liveBase) && !arrive_base.equals(liveBase)) {
+                    trip_purpose = 5;// NHB 出行起点为非家，终点为非家
                 } else {
                     trip_purpose = 6;// 其他
                 }
@@ -119,7 +119,14 @@ public class CombineODWorkLive implements Serializable {
                         row.getAs("sex"), row.getAs("person_class"), liveBase, workBase, trip_purpose});
             }
         });
-        return sqlContext.createDataFrame(joinedRDD, ODSchemaProvider.OD_STAT_SCHEMA);
+        DataFrame joinedDf = sqlContext.createDataFrame(joinedRDD, ODSchemaProvider.OD_STAT_SCHEMA);
+
+        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/combine-batch/"+batchId+"/combine-od");
+
+        return joinedDf;
     }
 
+    public DataFrame read() {
+        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_STAT_SCHEMA,params.getSavePath() + "stat/combine-batch/*/combine-od");
+    }
 }

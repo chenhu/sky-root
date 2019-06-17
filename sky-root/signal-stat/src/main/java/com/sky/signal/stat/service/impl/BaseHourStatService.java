@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +35,7 @@ public class BaseHourStatService implements ComputeService {
         Stopwatch stopwatch = Stopwatch.createStarted();
         DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
-        Map<Integer, List<String>> workValidSignalFileMap = getBatchFiles(params.getValidSignalFilesForStat());
+        Map<Integer, List<String>> workValidSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
         for( int batchId: workValidSignalFileMap.keySet()) {
             List<String> validSignalFiles = workValidSignalFileMap.get(batchId);
             baseHourStat.process(getValidSignal(validSignalFiles),workLiveDf, batchId);
@@ -46,24 +44,6 @@ public class BaseHourStatService implements ComputeService {
         workLiveDf.unpersist();
         logger.info("BaseHourStatService duration: " + stopwatch.toString());
     }
-
-    private Map<Integer, List<String>> getBatchFiles(List<String> fileList) {
-        int workLiveBatchs = params.getStatBatchSize();
-        List<String> batchValidSignalList = new ArrayList<>();
-        Map<Integer, List<String>> batchMap = new HashMap<>();
-        int batchNum = 1;
-        for(int i=1; i <= fileList.size(); i++) {
-            batchValidSignalList.add(fileList.get(i - 1));
-            if(i% workLiveBatchs == 0 || i == fileList.size()) {
-                batchMap.put(batchNum, batchValidSignalList);
-                batchNum ++ ;
-                batchValidSignalList = new ArrayList<>() ;
-                continue;
-            }
-        }
-        return batchMap;
-    }
-
     private DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
         for (String ValidSignalFile : validSignalFiles) {

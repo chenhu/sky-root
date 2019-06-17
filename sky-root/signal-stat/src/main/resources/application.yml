@@ -51,6 +51,17 @@ param:
     - /Users/chenhu/data/yancheng/save/od_trace/20170114
     - /Users/chenhu/data/yancheng/save/od_trace/20170115
     - /Users/chenhu/data/yancheng/save/od_trace/20170116
+  odTripStatFiles:
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170108
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170109
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170110
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170111
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170112
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170113
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170114
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170115
+    - /Users/chenhu/data/yancheng/save/stat_trip/20170116
+
 
 ---
 
@@ -139,6 +150,44 @@ param:
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181105
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181106
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181107
+  odTripStatFiles:
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181001
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181002
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181003
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181004
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181005
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181006
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181007
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181008
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181009
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181010
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181011
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181012
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181013
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181014
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181015
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181016
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181017
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181018
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181019
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181020
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181021
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181022
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181023
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181024
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181025
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181026
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181027
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181028
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181031
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181101
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181102
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181103
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181104
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181105
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181106
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181107
   odTraceFiles:
     - /user/bdoc/17/services/hdfs/132/huaian/save/od_trace/20181003
     - /user/bdoc/17/services/hdfs/132/huaian/save/od_trace/20181013

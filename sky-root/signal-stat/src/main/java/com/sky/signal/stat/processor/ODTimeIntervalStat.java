@@ -48,7 +48,7 @@ public class ODTimeIntervalStat implements Serializable{
                 .withColumn("avg_dis", floor(col("sum_dis").divide(col("trip_num")))).drop("sum_time").drop("sum_dis")
                 .orderBy("date","leave_base", "arrive_base", "person_class", "trip_purpose", "sex", "age_class", "leaveTime_inter", "arriveTime_inter");
 
-        FileUtil.saveFile(specialDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-interval-sepcail-stat");
+        FileUtil.saveFile(specialDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-interval-special-stat");
 
         DataFrame generalDf1 = generalDf.groupBy("date", "leave_base", "arrive_base", "person_class", "trip_purpose", "sex", "age_class", "leaveTime_inter", "arriveTime_inter")
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"), sum("move_time").as("sum_time"), sum("distance").as("sum_dis"))

@@ -100,6 +100,11 @@ public class ParamProperties {
     private List<String> odTraceFiles;
 
     /**
+     * 出行统计的文件列表
+     */
+    private List<String> odTripStatFiles;
+
+    /**
      * 基站区域对照表
      */
     private String baseFile;

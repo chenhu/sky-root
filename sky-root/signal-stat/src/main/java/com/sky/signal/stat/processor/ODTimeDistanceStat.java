@@ -3,7 +3,6 @@ package com.sky.signal.stat.processor;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.od.ODSchemaProvider;
 import com.sky.signal.stat.util.FileUtil;
-import com.sky.signal.stat.util.ProfileUtil;
 import com.sky.signal.stat.util.TransformFunction;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.DataFrame;
@@ -34,10 +33,12 @@ public class ODTimeDistanceStat implements Serializable{
         ODDf = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_STAT_TEMP_SCHEMA);
 
 
-        ODDf = ODDf.groupBy("date", "person_class", "trip_purpose", "move_time_class", "distance_class", "max_speed_class")
-                .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"), sum("move_time").divide(60).cast(new DecimalType(10,2)).as("sum_time"),
-                        sum("linked_distance").divide(1000).cast(new DecimalType(10,2)).as("sum_dis"))
-                .orderBy("date", "person_class", "trip_purpose", "move_time_class", "distance_class", "max_speed_class");
+        ODDf = ODDf.groupBy("date", "person_class", "trip_purpose", "move_time_class", "distance_class", "max_speed_class", "cov_speed_class")
+                .agg(sum("move_time").divide(60).cast(new DecimalType(10,2)).as("sum_time"),
+                        sum("linked_distance").divide(1000).cast(new DecimalType(10,2)).as("sum_dis"),
+                        count("*").as("trip_num"),
+                        countDistinct("msisdn").as("num_inter"))
+                .orderBy("date", "person_class", "trip_purpose", "move_time_class", "distance_class", "max_speed_class", "cov_speed_class");
 
         FileUtil.saveFile(ODDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-distance-stat");
         return ODDf;

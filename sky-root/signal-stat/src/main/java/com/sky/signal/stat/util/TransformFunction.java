@@ -90,12 +90,35 @@ public class TransformFunction implements Serializable {
                 int tripDistanceClass = transformDistance(avgDistance);
                 double maxSpeed = row.getAs("max_speed");
                 int maxSpeedClass = transformSpeed(maxSpeed);
+                double covSpeed = row.getAs("cov_speed");
+                int covSpeedClass = transformCovSpeed(covSpeed);
                 return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"),
-                        row.getAs("linked_distance"), tripDistanceClass,maxSpeedClass, row.getAs("move_time"), moveTimeClass,
+                        row.getAs("linked_distance"), tripDistanceClass,maxSpeedClass, row.getAs("move_time"), moveTimeClass, covSpeedClass,
                         row.getAs("person_class"), row.getAs("trip_purpose")});
             }
         });
         return odRDD;
+    }
+    private static int transformCovSpeed(double covSpeed) {
+        int covSpeedClass;
+        if(covSpeed > 0 && covSpeed <= 0.2) {
+            covSpeedClass = 1;
+        } else if(covSpeed > 0.2 && covSpeed <= 0.4) {
+            covSpeedClass = 2;
+        }else if(covSpeed > 0.4 && covSpeed <= 0.6) {
+            covSpeedClass = 3;
+        }else if(covSpeed > 0.6 && covSpeed <= 0.8) {
+            covSpeedClass = 4;
+        }else if(covSpeed > 0.8 && covSpeed <= 1) {
+            covSpeedClass = 5;
+        }else if(covSpeed > 1 && covSpeed <= 1.2) {
+            covSpeedClass = 6;
+        }else if(covSpeed > 1.2 && covSpeed <= 1.5) {
+            covSpeedClass = 7;
+        } else {
+            covSpeedClass = 8;
+        }
+        return covSpeedClass;
     }
 
     private static int transformSpeed(double maxSpeed) {

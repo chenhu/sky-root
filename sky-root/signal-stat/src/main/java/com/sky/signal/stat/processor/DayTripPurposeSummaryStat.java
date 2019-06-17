@@ -2,7 +2,6 @@ package com.sky.signal.stat.processor;
 
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
-import com.sky.signal.stat.util.ProfileUtil;
 import org.apache.spark.sql.DataFrame;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ public class DayTripPurposeSummaryStat implements Serializable{
         DataFrame df = ODDf.groupBy("date", "person_class","trip_purpose", "sex", "age_class")
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
                 .orderBy("date","person_class", "trip_purpose", "sex", "age_class");
-        int partitions = 1;
         FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/day-trip-with-purpose-summary-stat");
         return df;
 
