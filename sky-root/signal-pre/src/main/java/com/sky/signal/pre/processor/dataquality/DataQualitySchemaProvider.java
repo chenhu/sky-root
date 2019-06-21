@@ -16,10 +16,6 @@ public class DataQualitySchemaProvider {
             DataTypes.createStructField("orginal_count", DataTypes.LongType, false),
             DataTypes.createStructField("valid_row_count", DataTypes.LongType, false),
             DataTypes.createStructField("base_count", DataTypes.LongType, false),
-            DataTypes.createStructField("no_crm_count", DataTypes.LongType, false),
-            DataTypes.createStructField("dt_error_count1", DataTypes.LongType, false),
-            DataTypes.createStructField("dt_error_count2", DataTypes.LongType, false),
-            DataTypes.createStructField("no_base_count", DataTypes.LongType, false),
             DataTypes.createStructField("msisdn_count", DataTypes.LongType, false)
     ));
 }

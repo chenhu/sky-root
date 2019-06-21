@@ -3,7 +3,6 @@ package com.sky.signal.stat.service.impl;
 import com.google.common.base.Stopwatch;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.BaseHourStat;
-import com.sky.signal.stat.processor.BaseHourStatAgg;
 import com.sky.signal.stat.processor.signal.SignalSchemaProvider;
 import com.sky.signal.stat.processor.workLive.WorkLiveLoader;
 import com.sky.signal.stat.service.ComputeService;
@@ -27,20 +26,18 @@ public class BaseHourStatService implements ComputeService {
     private transient WorkLiveLoader workLiveLoader;
     @Autowired
     private transient BaseHourStat baseHourStat;
-    @Autowired
-    private transient BaseHourStatAgg baseHourStatAgg;
 
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
-        Map<Integer, List<String>> workValidSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
-        for( int batchId: workValidSignalFileMap.keySet()) {
-            List<String> validSignalFiles = workValidSignalFileMap.get(batchId);
+        Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
+        for( int batchId: validSignalFileMap.keySet()) {
+            List<String> validSignalFiles = validSignalFileMap.get(batchId);
             baseHourStat.process(getValidSignal(validSignalFiles),workLiveDf, batchId);
         }
-        baseHourStatAgg.process();
+        baseHourStat.agg();
         workLiveDf.unpersist();
         logger.info("BaseHourStatService duration: " + stopwatch.toString());
     }

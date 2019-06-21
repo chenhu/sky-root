@@ -7,9 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import scala.Tuple2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Component
@@ -204,5 +207,29 @@ public class ParamProperties {
             }
         }
         return fileList;
+    }
+
+    /**
+    * description: 返回根据日期参数拼接成的 日期、有效数据路径、原始数据路径 的 map
+    * param: []
+    * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,java.lang.String>>
+    **/
+    public Map<String, Tuple2<String, String>> getSignalFilePathTuple2() {
+        String basePath = this.getBasePath();
+        String savePath = this.getSavePath();
+        String sep = java.io.File.separator;
+        String[] days = strDay.split(",");
+        Map<String, Tuple2<String, String>> resultMap = new HashMap<>();
+        for (String day: days) {
+            String date = strYear + strMonth + day;
+            if(basePath.endsWith(sep)) {
+                String orginalPath =  basePath + "track_";
+                resultMap.put(date, new Tuple2<>(savePath + "validSignal" + sep + date, orginalPath + date )) ;
+            } else {
+                String orginalPath =  basePath + sep + "track_";
+                resultMap.put(date, new Tuple2<>(savePath + sep + "validSignal" + sep + date, orginalPath + date )) ;
+            }
+        }
+        return resultMap;
     }
 }

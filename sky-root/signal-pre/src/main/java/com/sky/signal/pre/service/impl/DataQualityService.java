@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import scala.Tuple2;
+
+import java.util.Map;
 
 /**
  * author: ChenHu <chenhu1008@me.com>
@@ -28,8 +31,11 @@ public class DataQualityService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        for (String traceSignalFile: params.getTraceSignalFileFullPath()) {
-            dataQualityProcessor.process(traceSignalFile);
+        Map<String, Tuple2<String, String>> signalMap = params.getSignalFilePathTuple2();
+        for(String date: signalMap.keySet()) {
+            String traceFilePath = signalMap.get(date)._2;
+            String validSignalFilePath = signalMap.get(date)._1;
+            dataQualityProcessor.process(date,traceFilePath, validSignalFilePath);
         }
         DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, DataQualitySchemaProvider.SIGNAL_SCHEMA_BASE, params.getSavePath()
                 + "stat/dataquality/*/stat").orderBy("date");

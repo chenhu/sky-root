@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import scala.Tuple2;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -65,7 +64,39 @@ public class SignalLoader implements Serializable {
         return this;
     }
 
-    public Tuple2<DataFrame, DataFrame> mergeCell(JavaRDD<String> lines) {
+    public DataFrame getOrginalSignal(JavaRDD<String> lines) {
+        JavaRDD<Row> rdd = lines.flatMap(new FlatMapFunction<String, Row>() {
+            @Override
+            public List<Row> call(String line) throws Exception {
+                String[] prop = line.split("\0");
+                String[] props = prop[1].split("\1");
+                List<Row> rows = new ArrayList<>();
+                for (int i = 0; i < props.length; i++) {
+                    Integer date = 0;
+                    String strip = props[i];
+                    if (!Strings.isNullOrEmpty(strip)) {
+                        String[] strips = strip.split("\\|");
+                        if (strips.length >= 9) {
+                            try {
+                                date = Integer.valueOf(strips[0]);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+
+                            }
+                        }
+                        Row row = RowFactory.create(date, strip);
+                        rows.add(row);
+                    }
+                }
+                return rows;
+            }
+        });
+
+        DataFrame orginalDf = sqlContext.createDataFrame(rdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORGINAL);
+
+        return orginalDf;
+    }
+    public DataFrame mergeCell(JavaRDD<String> lines) {
         JavaRDD<Row> rdd = lines.flatMap(new FlatMapFunction<String, Row>() {
             @Override
             public List<Row> call(String line) throws Exception {
@@ -126,8 +157,7 @@ public class SignalLoader implements Serializable {
         //过滤手机号码/基站不为0的数据,并删除重复手机信令数据
         DataFrame validDf = df.filter(col("msisdn").notEqual("null").and(col("base").notEqual("null")).and(col("lng").notEqual(0)).and(col("lat")
                 .notEqual(0))).dropDuplicates(new String[]{"msisdn", "begin_time"});
-        //
-        return new Tuple2<>(validDf, df);
+        return validDf;
     }
 
     /**

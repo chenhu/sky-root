@@ -483,7 +483,7 @@ public class SignalProcessor implements Serializable {
         JavaRDD<String> lines;
         lines=sparkContext.textFile(path).repartition(params.getPartitions());
         //补全基站信息并删除重复信令
-        DataFrame df=signalLoader.cell(cellVar).mergeCell(lines)._1();
+        DataFrame df=signalLoader.cell(cellVar).mergeCell(lines);
 
         //手机号码->信令数据
         JavaPairRDD<String, Row> rdd1 = df.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {

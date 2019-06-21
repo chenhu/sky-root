@@ -142,6 +142,7 @@ param:
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181027
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181028
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181030
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181031
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181101
     - /user/bdoc/17/services/hdfs/132/huaian/save/od/20181102
@@ -180,6 +181,7 @@ param:
     - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181027
     - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181028
     - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181029
+    - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181030
     - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181031
     - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181101
     - /user/bdoc/17/services/hdfs/132/huaian/save/stat_trip/20181102

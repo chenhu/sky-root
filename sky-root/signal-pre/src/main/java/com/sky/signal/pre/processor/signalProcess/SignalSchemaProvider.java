@@ -10,6 +10,10 @@ import org.apache.spark.sql.types.StructType;
  * description: 信令相关的Schema定义
  */
 public class SignalSchemaProvider {
+    // 原始数据分日期
+    public static final StructType SIGNAL_SCHEMA_ORGINAL = DataTypes.createStructType(Lists.newArrayList(
+            DataTypes.createStructField("date", DataTypes.IntegerType, false),
+            DataTypes.createStructField("line", DataTypes.StringType, false)));
     //原始数据合并了基站后的数据
     public static final StructType SIGNAL_SCHEMA_BASE = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),

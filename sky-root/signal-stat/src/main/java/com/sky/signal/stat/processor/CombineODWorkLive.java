@@ -22,6 +22,11 @@ import java.io.Serializable;
  */
 @Service("combineODWorkLive")
 public class CombineODWorkLive implements Serializable {
+
+    // 尝试 800,1000,1200,1500出行率的差别
+    private static final int CONST_LEAVE = 1000;
+    private static final int CONST_LARGE = 10000;
+
     @Autowired
     private transient ParamProperties params;
     @Autowired
@@ -66,35 +71,38 @@ public class CombineODWorkLive implements Serializable {
                 Double workLng = row.getAs("work_lng");
                 Double workLat = row.getAs("work_lat");
 
-                Integer leaveHomeDis = 10000;
+                // 10000米的设置，是为了设置一个尽量大的值，在没有判断出职住基站的情况下，让出发或者到达地点尽量离家或工作地远些
+                Integer leaveHomeDis = CONST_LARGE;
                 if (liveLng != null && liveLat != null) {
                     leaveHomeDis = MapUtil.getDistance(leaveLng, leaveLat, liveLng, liveLat);
                 }
 
-                Integer leaveWorkDis = 10000;
+                Integer leaveWorkDis = CONST_LARGE;
                 if (workLng != null && workLat != null) {
                     leaveWorkDis = MapUtil.getDistance(leaveLng, leaveLat, workLng, workLat);
                 }
 
-                Integer arriveHomeDis = 10000;
+                Integer arriveHomeDis = CONST_LARGE;
                 if (liveLng != null && liveLat != null) {
                     arriveHomeDis = MapUtil.getDistance(arriveLng, arriveLat, liveLng, liveLat);
                 }
-                Integer arriveWorkDis = 10000;
+                Integer arriveWorkDis = CONST_LARGE;
                 if (workLng != null && workLat != null) {
                     arriveWorkDis = MapUtil.getDistance(arriveLng, arriveLat, workLng, workLat);
                 }
 
+                // 如果离开位置离家或工作地小于一个比较合理的常量，比如说800米，就认为是从家或者从工作地出发的。因为信令信号会在附近基站切换
+
                 String liveBase = row.getAs("live_base");
-                if (leaveHomeDis <= 800) {
+                if (leaveHomeDis <= CONST_LEAVE) {
                     liveBase = row.getAs("leave_base");
-                } else if (arriveHomeDis <= 800) {
+                } else if (arriveHomeDis <= CONST_LEAVE) {
                     liveBase = row.getAs("arrive_base");
                 }
                 String workBase = row.getAs("work_base");
-                if (leaveWorkDis <= 800) {
+                if (leaveWorkDis <= CONST_LEAVE) {
                     workBase = row.getAs("leave_base");
-                } else if (arriveWorkDis <= 800) {
+                } else if (arriveWorkDis <= CONST_LEAVE) {
                     workBase = row.getAs("arrive_base");
                 }
                 String leave_base = row.getAs("leave_base");
