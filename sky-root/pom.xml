@@ -21,7 +21,7 @@
         <!-- 目前华为平台spark为2个版本 分别为2.1.0和1.5.1-->
         <spark.version>1.6.2</spark.version>
         <spring-kafka>1.0.6.RELEASE</spring-kafka>
-        <scope.type>provided</scope.type>
+        <scope.type>compile</scope.type>
         <client.scope.type>compile</client.scope.type>
     </properties>
     <repositories>

@@ -1,5 +1,5 @@
 #yaml配置文件支持多profile, 可根据不同profile配置参数
-spring.profiles.active: cmcc
+spring.profiles.active: local
 
 logging:
   level: #日志级别, 可针对不同package设置
@@ -8,7 +8,7 @@ logging:
   #file: mobile.log
 
 param:
-  appName: huaian-pre-process
+  appName: pre-process
 
 ---
 
@@ -16,26 +16,20 @@ param:
 spring.profiles: local
 
 param:
+  rootValidSignalPath: /Users/chenhu/data/shenzhen/save/validSignal
+  rootDataPath: file:///Users/chenhu/data/shenzhen
   masterUrl: local[2]
-  cityCode: 1000515
-  cellFile: file:///Users/chenhu/data/yancheng/cell.csv
-  phoneCityFile: file:///Users/chenhu/data/yancheng/GSDZ.csv
-  baseFile: file:///Users/chenhu/data/yancheng/save/baseArea.csv
-  userFile: file:///Users/chenhu/data/yancheng/用户信息.csv
-  basePath: file:///Users/chenhu/data/yancheng/轨迹数据
-  savePath: file:///Users/chenhu/data/yancheng/save/
-  workliveBatchSize: 3
-  workLiveFile: file:///Users/chenhu/data/yancheng/save/work_live_his
+  cityCode: 1000250
+  cellFile: file:///Users/chenhu/data/shenzhen/cell/nanjing.csv
+  phoneCityFile: file:///Users/chenhu/data/shenzhen/GSDZ.csv
+  baseFile: file:///Users/chenhu/data/shenzhen/save/baseArea.csv
+  userFile: file:///Users/chenhu/data/shenzhen/用户信息.csv
+  basePath: /Users/chenhu/data/shenzhen/轨迹数据
+  savePath: /Users/chenhu/data/shenzhen/save/
+  workliveBatchSize: 1
+  workLiveFile: /Users/chenhu/data/shenzhen/save/work_live_his
   validSignalFilesForWorkLive:
-    - /Users/chenhu/data/yancheng/save/validSignal/20170108
-    - /Users/chenhu/data/yancheng/save/validSignal/20170109
-    - /Users/chenhu/data/yancheng/save/validSignal/20170110
-    - /Users/chenhu/data/yancheng/save/validSignal/20170111
-    - /Users/chenhu/data/yancheng/save/validSignal/20170112
-    - /Users/chenhu/data/yancheng/save/validSignal/20170113
-    - /Users/chenhu/data/yancheng/save/validSignal/20170114
-    - /Users/chenhu/data/yancheng/save/validSignal/20170115
-    - /Users/chenhu/data/yancheng/save/validSignal/20170116
+    - /Users/chenhu/data/shenzhen/save/validSignal/20191101
 ---
 
 #移动环境

@@ -35,6 +35,7 @@ import static org.apache.spark.sql.functions.col;
 public class SignalLoader implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SignalLoader.class);
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter FORMATTED = DateTimeFormat.forPattern("yyyyMMdd");
     private Broadcast<Map<String, Row>> cellVar;
     private Broadcast<Map<String, Row>> areaVar;
     private Broadcast<Map<Integer, Row>> regionVar;
@@ -117,17 +118,17 @@ public class SignalLoader implements Serializable {
                     Timestamp end_time = null;
                     String strip = props[i];
                     if (!Strings.isNullOrEmpty(strip)) {
-                        String[] strips = strip.split("\\|");
-                        if (strips.length >= 9) {
+                        String[] strips = strip.split("\\|", -1);
+                        if (strips.length >= 18) {
                             try {
-                                date = Integer.valueOf(strips[0]);
-                                msisdn = strips[1];
-                                tac = Integer.valueOf(strips[3]);
-                                cell = Long.valueOf(strips[4]);
+                                date = Integer.valueOf(DateTime.parse(strips[5], FORMATTER).toString(FORMATTED));
+                                msisdn = strips[0];
+                                tac = Integer.valueOf(strips[14]);
+                                cell = Long.valueOf(strips[6]);
                                 begin_time = new Timestamp(DateTime.parse(strips[5], FORMATTER).getMillis());
-                                end_time = new Timestamp(DateTime.parse(strips[6], FORMATTER).getMillis());
-                                city_code = Integer.valueOf(strips[7]);
-                                region = Integer.valueOf(strips[8]);
+                                end_time = new Timestamp(DateTime.parse(strips[9], FORMATTER).getMillis());
+                                city_code = Integer.valueOf(strips[2]);
+                                region = Integer.valueOf(strips[3]);
                             } catch (Exception e) {
                                 e.printStackTrace();
 
