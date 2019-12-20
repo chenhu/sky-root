@@ -25,6 +25,7 @@ param:
   baseFile: file:///Users/chenhu/data/shenzhen/save/baseArea.csv
   userFile: file:///Users/chenhu/data/shenzhen/用户信息.csv
   basePath: /Users/chenhu/data/shenzhen/轨迹数据
+  trackPre: track_
   savePath: /Users/chenhu/data/shenzhen/save/
   workliveBatchSize: 1
   workLiveFile: /Users/chenhu/data/shenzhen/save/work_live_his
@@ -43,6 +44,7 @@ param:
   savePath: /user/bdoc/17/services/hdfs/132/nanjing/save/
   cellFile: /user/bdoc/17/services/hdfs/132/nanjing/nanjing.csv
   basePath: /user/bdoc/17/services/hdfs/132/nanjing/
+  trackPre: dt=
   phoneCityFile: /user/bdoc/17/services/hdfs/132/nanjing/GSDZ.csv
   baseFile: /user/bdoc/17/services/hdfs/132/nanjing/save/baseArea.csv
   userFile: /user/bdoc/17/services/hdfs/132/nanjing/crm_new/

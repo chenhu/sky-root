@@ -122,6 +122,9 @@ public class ParamProperties {
     private String SERVICENAME = "service";
     private static final Logger logger = LoggerFactory.getLogger(ParamProperties.class);
 
+    // 轨迹文件路径前面统一字符，比如track_、dt= ,后面带有日期yyyyMMdd
+    public String trackPre;
+
     /**
      * 注入程序参数
      *
@@ -181,9 +184,9 @@ public class ParamProperties {
         List<String> fileList = new ArrayList<>();
         for (String day: days) {
             if(orignal.endsWith(sep)) {
-                fileList.add(orignal + "track_" + strYear + strMonth + day);
+                fileList.add(orignal + trackPre + strYear + strMonth + day);
             } else {
-                fileList.add(orignal + sep + "track_" + strYear + strMonth + day);
+                fileList.add(orignal + sep + trackPre + strYear + strMonth + day);
             }
         }
         return fileList;
@@ -223,10 +226,10 @@ public class ParamProperties {
         for (String day: days) {
             String date = strYear + strMonth + day;
             if(basePath.endsWith(sep)) {
-                String orginalPath =  basePath + "track_";
+                String orginalPath =  basePath + trackPre;
                 resultMap.put(date, new Tuple2<>(savePath + "validSignal" + sep + date, orginalPath + date )) ;
             } else {
-                String orginalPath =  basePath + sep + "track_";
+                String orginalPath =  basePath + sep + trackPre;
                 resultMap.put(date, new Tuple2<>(savePath + sep + "validSignal" + sep + date, orginalPath + date )) ;
             }
         }
