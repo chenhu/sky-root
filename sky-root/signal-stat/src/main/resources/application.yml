@@ -167,9 +167,8 @@ param:
     - /user/bdoc/17/services/hdfs/132/nanjing/save/stat_trip/20191129
     - /user/bdoc/17/services/hdfs/132/nanjing/save/stat_trip/20191130
   odTraceFiles:
-    - /user/bdoc/17/services/hdfs/132/nanjing/save/od_trace/20191103
-    - /user/bdoc/17/services/hdfs/132/nanjing/save/od_trace/20191113
-    - /user/bdoc/17/services/hdfs/132/nanjing/save/od_trace/20191123
+    - /user/bdoc/17/services/hdfs/132/nanjing/save/od_trace/20191112
+    - /user/bdoc/17/services/hdfs/132/nanjing/save/od_trace/20191116
 
 
 

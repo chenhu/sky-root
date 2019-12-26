@@ -561,7 +561,7 @@ public class SignalProcessor implements Serializable {
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load();
 
         //CRM信息
-        final Broadcast<Map<String, Row>> userVar = crmProcess.process();
+        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
 
         // 手机号码归属地信息
         final Broadcast< Map<Integer,Row>> regionVar = phoneAttributionProcess.process();

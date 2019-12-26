@@ -2,18 +2,21 @@ package com.sky.signal.pre.processor.crmAnalyze;
 
 import com.google.common.base.Strings;
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.util.FileUtil;
+import com.sky.signal.pre.util.ProfileUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,10 +30,27 @@ public class CRMProcess implements Serializable {
     @Autowired
     private transient JavaSparkContext sparkContext;
     @Autowired
+    private transient SQLContext sqlContext;
+    @Autowired
     private transient ParamProperties params;
-    public final Broadcast<Map<String, Row>> process() {
-        JavaRDD<String> usersRdd=sparkContext.textFile(params.getUserFile());
-        JavaRDD<Row> userRdd= usersRdd.map(new Function<String,Row>() {
+    public final Broadcast<Map<String, Row>> load() {
+        Row[] userRows= FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getSavePath() + "crm").collect();
+        Map<String, Row> UserMap = new HashMap<>(userRows.length);
+        for (Row row:userRows) {
+            UserMap.put(row.getString(0),row);
+        }
+        final Broadcast<Map<String, Row>> userVar = sparkContext.broadcast(UserMap);
+        return userVar;
+    }
+
+    public void process() {
+
+        int partitions = 1;
+        if(!ProfileUtil.getActiveProfile().equals("local")) {
+            partitions = params.getPartitions();
+        }
+        JavaRDD<String> orignalRDD=sparkContext.textFile(params.getUserFile());
+        JavaRDD<Row> userRdd= orignalRDD.map(new Function<String,Row>() {
             @Override
             public Row call(String line) {
                 String msisdn=null;
@@ -56,7 +76,7 @@ public class CRMProcess implements Serializable {
                 return RowFactory.create(msisdn,sex,age,id);
             }
         });
-        List<Row> userRows=userRdd.filter(new org.apache.spark.api.java.function.Function<Row, Boolean>() {
+        userRdd=userRdd.filter(new org.apache.spark.api.java.function.Function<Row, Boolean>() {
             @Override
             public Boolean call(Row row) throws Exception {
                 String msisdn=row.getString(0);
@@ -68,13 +88,9 @@ public class CRMProcess implements Serializable {
                 }
                 return true;
             }
-        }).collect();
-        Map<String, Row> UserMap = new HashMap<>(userRows.size());
-        for (Row row:userRows) {
-            UserMap.put(row.getString(0),row);
-        }
-        final Broadcast<Map<String, Row>> userVar = sparkContext.broadcast(UserMap);
-        return userVar;
+        });
+        DataFrame userDf = sqlContext.createDataFrame(userRdd, CrmSchemaProvider.CRM_SCHEMA).dropDuplicates();
+        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "crm");
     }
 
 }
