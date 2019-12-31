@@ -543,7 +543,10 @@ public class SignalProcessor implements Serializable {
         // 补全归属地信息
         JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
         DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
-        String date=signalMerged.first().getAs("date").toString();
+//        String date=signalMerged.first().getAs("date").toString();
+        //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
+        String date=path.substring(path.length() - 8);
+
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
