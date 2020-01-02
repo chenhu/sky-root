@@ -13,7 +13,7 @@ public class CrmSchemaProvider {
 
     public static final StructType CRM_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
-            DataTypes.createStructField("age", DataTypes.ShortType, false),
             DataTypes.createStructField("sex", DataTypes.ShortType, false),
+            DataTypes.createStructField("age", DataTypes.ShortType, false),
             DataTypes.createStructField("id", DataTypes.IntegerType, false)));
 }
