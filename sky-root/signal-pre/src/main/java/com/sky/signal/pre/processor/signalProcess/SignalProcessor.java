@@ -6,6 +6,7 @@ import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
+import com.sky.signal.pre.processor.crmAnalyze.CrmSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -478,10 +479,17 @@ public class SignalProcessor implements Serializable {
     /**
      *对一天的信令数据进行预处理
      */
-    public void oneProcess(String path,final Broadcast<Map<String, Row>> cellVar,final Broadcast<Map<String, Row>> userVar,
+    public void oneProcess(String path,final Broadcast<Map<String, Row>> cellVar,
                            final Broadcast<Map<String, Row>> areaVar,final Broadcast< Map<Integer,Row>> regionVar){
+
+        int partitions = 1;
+        if(!ProfileUtil.getActiveProfile().equals("local")) {
+            partitions = params.getPartitions();
+        }
+
         JavaRDD<String> lines;
         lines=sparkContext.textFile(path).repartition(params.getPartitions());
+//        lines=sparkContext.textFile(path);
         //补全基站信息并删除重复信令
         DataFrame df=signalLoader.cell(cellVar).mergeCell(lines);
 
@@ -509,6 +517,7 @@ public class SignalProcessor implements Serializable {
             }
         });
         JavaRDD<List<Row>> rdd3 = rdd2.values();
+//        rdd3 = rdd3.persist(StorageLevel.DISK_ONLY());
         //按手机号码对信令数据预处理
         JavaRDD<Row> rdd4 = rdd3.flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
@@ -534,25 +543,24 @@ public class SignalProcessor implements Serializable {
             }
         });
         DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-
-        signalBaseDf=signalBaseDf.persist(StorageLevel.DISK_ONLY());
-
+//        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "validSignal/temp");
+//        signalBaseDf=signalBaseDf.persist(StorageLevel.DISK_ONLY());
+//        rdd3.unpersist();
         // 补全CRM数据、替换外省归属地
-        JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
-        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
+//        JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
+        DataFrame crmDf = FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getSavePath() + "crm");
+        DataFrame signalBaseWithCRMDf = signalBaseDf.join(crmDf, signalBaseDf.col("msisdn").equalTo(crmDf.col("msisdn")), "left_outer").drop(crmDf.col("msisdn")).withColumnRenamed("id","cen_region");
+
+//        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
         // 补全归属地信息
         JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
         DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
 //        String date=signalMerged.first().getAs("date").toString();
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date=path.substring(path.length() - 8);
-
-        int partitions = 1;
-        if(!ProfileUtil.getActiveProfile().equals("local")) {
-            partitions = params.getPartitions();
-        }
         FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "validSignal/"+date);
-        signalBaseDf.unpersist();
+//        signalBaseDf.unpersist();
+
     }
 
     /**
@@ -564,14 +572,14 @@ public class SignalProcessor implements Serializable {
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load();
 
         //CRM信息
-        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
+//        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
 
         // 手机号码归属地信息
         final Broadcast< Map<Integer,Row>> regionVar = phoneAttributionProcess.process();
 
         //对轨迹数据预处理
         for(String traceFile: params.getTraceSignalFileFullPath()) {
-            oneProcess(traceFile,cellVar,userVar,null,regionVar);
+            oneProcess(traceFile,cellVar,null,regionVar);
         }
     }
 }
