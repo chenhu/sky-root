@@ -62,9 +62,9 @@ public class CRMProcess implements Serializable {
                     if(props.length>=5) {
                         try{
                             msisdn = props[0];
-                            sex = Short.valueOf(props[3]);
-                            age = Short.valueOf(props[2]);
-                            id = Integer.valueOf(props[4]);
+                            sex = Short.valueOf(props[4]);
+                            age = Short.valueOf(props[3]);
+                            id = Integer.valueOf(props[5]);
                         }catch (Exception e){
                             msisdn=null;
                             sex=-2;
