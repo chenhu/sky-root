@@ -35,7 +35,7 @@ public class SparkConfig {
         //分区数
 //        sparkConf.set("spark.default.parallelism", params.getPartitions().toString());
 //        sparkConf.set("spark.sql.shuffle.partitions", params.getPartitions().toString());
-        sparkConf.set("spark.network.timeout", "600");
+//        sparkConf.set("spark.network.timeout", "60000");
         sparkConf.set("spark.locality.wait", "10");
 
 
