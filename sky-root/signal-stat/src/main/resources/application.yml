@@ -70,7 +70,7 @@ spring.profiles: cmcc
 
 param:
   statpatitions: 1
-  statBatchSize: 7
+  statBatchSize: 2
   savePath: /user/bdoc/17/services/hdfs/132/nanjing/save/
   workLiveFile: /user/bdoc/17/services/hdfs/132/nanjing/save/work_live_his
   validSignalFilesForStat:
