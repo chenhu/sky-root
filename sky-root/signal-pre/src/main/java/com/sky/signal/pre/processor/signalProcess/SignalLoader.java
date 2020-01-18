@@ -77,9 +77,9 @@ public class SignalLoader implements Serializable {
                     String strip = props[i];
                     if (!Strings.isNullOrEmpty(strip)) {
                         String[] strips = strip.split("\\|");
-                        if (strips.length >= 9) {
+                        if (strips.length >= 18) {
                             try {
-                                date = Integer.valueOf(strips[0]);
+                                date = Integer.valueOf(DateTime.parse(strips[5], FORMATTER).toString(FORMATTED));
                             } catch (Exception e) {
                                 e.printStackTrace();
 
