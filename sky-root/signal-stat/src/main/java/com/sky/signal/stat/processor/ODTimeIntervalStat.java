@@ -32,15 +32,15 @@ public class ODTimeIntervalStat implements Serializable{
     private transient ParamProperties params;
 
     public DataFrame process(DataFrame oDDf, SQLContext sqlContext) {
-        oDDf.persist(StorageLevel.DISK_ONLY());
         // 特殊分析，高峰和平峰时段分析
         JavaRDD<Row> odRDDSpecial = TransformFunction.transformTime(oDDf);
         // 不分时段分析
         JavaRDD<Row> odRDDGeneral = TransformFunction.transformTime1(oDDf);
 
         DataFrame specialDf = sqlContext.createDataFrame(odRDDSpecial, ODSchemaProvider.OD_TEMP_SCHEMA);
+        specialDf = specialDf.persist(StorageLevel.DISK_ONLY());
         DataFrame generalDf = sqlContext.createDataFrame(odRDDGeneral, ODSchemaProvider.OD_TEMP_SCHEMA);
-
+        generalDf = generalDf.persist(StorageLevel.DISK_ONLY());
 
         DataFrame specialDf1 = specialDf.groupBy("date", "leave_base", "arrive_base", "person_class", "trip_purpose", "sex", "age_class", "leaveTime_inter", "arriveTime_inter")
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"), sum("move_time").as("sum_time"), sum("distance").as("sum_dis"))
@@ -70,7 +70,8 @@ public class ODTimeIntervalStat implements Serializable{
                 .orderBy("date", "person_class", "trip_purpose", "sex", "age_class", "leaveTime_inter", "arriveTime_inter");
 
         FileUtil.saveFile(purposeGeneralDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-interval-purpose-general-stat");
-        oDDf.unpersist();
+        specialDf.unpersist();
+        generalDf.unpersist();
         return null;
     }
 }

@@ -33,6 +33,6 @@ public class CombineTripStatWorkLive implements Serializable {
     }
 
     public DataFrame read() {
-        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRIP_STAT_SCHEMA,params.getSavePath() + "stat/od_trip_stat/*/combine-statTrip");
+        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRIP_STAT_SCHEMA,params.getSavePath() + "stat/od_trip_stat/*/combine-statTrip").repartition(params.getPartitions());
     }
 }

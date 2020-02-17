@@ -33,7 +33,7 @@ public class ODTripCombineService implements ComputeService {
         Stopwatch stopwatch = Stopwatch.createStarted();
 
         Map<Integer, List<String>> odTripMap = FilesBatchUtils.getBatchFiles(params.getOdTripStatFiles(), params.getStatBatchSize());
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class").repartition(params.getPartitions());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
         // 分批次预处理
         for( int batchId: odTripMap.keySet()) {

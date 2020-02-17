@@ -127,6 +127,12 @@ public class ParamProperties {
     private String strYear, strMonth, strDay;
     // 服务名称注入
     private String SERVICENAME = "service";
+    // 如果数据量比较大，分批次进行处理，每个批次处理的数据"份数"
+    private String BATCH_SIZE = "batch-size";
+
+    // 统计报表最终输出文件数
+    private String STAT_PARTIONS = "stat-partition";
+
     private static final Logger logger = LoggerFactory.getLogger(ParamProperties.class);
 
     /**
@@ -172,6 +178,13 @@ public class ParamProperties {
             } else {
                 throw new RuntimeException("Should passing the [month] argument first if you want to use the [day] argument , using: --year --month --day");
             }
+        }
+        if (args.containsOption(BATCH_SIZE)) {
+            statBatchSize = Integer.valueOf(args.getOptionValues(BATCH_SIZE).get(0).trim());
+        }
+
+        if (args.containsOption(STAT_PARTIONS)) {
+            statpatitions = Integer.valueOf(args.getOptionValues(STAT_PARTIONS).get(0).trim());
         }
     }
 

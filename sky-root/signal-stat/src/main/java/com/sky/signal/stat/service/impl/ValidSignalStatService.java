@@ -30,7 +30,7 @@ public class ValidSignalStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class").repartition(params.getPartitions());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
         Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
         for( int batchId: validSignalFileMap.keySet()) {
@@ -44,7 +44,7 @@ public class ValidSignalStatService implements ComputeService {
     private DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
         for (String ValidSignalFile : validSignalFiles) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile).select("date","msisdn");
             if (validSignalDF == null) {
                 validSignalDF = validDF;
             } else {
@@ -52,6 +52,6 @@ public class ValidSignalStatService implements ComputeService {
             }
         }
 
-        return validSignalDF;
+        return validSignalDF.repartition(params.getPartitions());
     }
 }

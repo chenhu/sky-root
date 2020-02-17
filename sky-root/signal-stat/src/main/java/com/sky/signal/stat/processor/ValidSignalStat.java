@@ -33,7 +33,7 @@ public class ValidSignalStat implements Serializable {
         joinedDf = joinedDf.select(validDF.col("date"),validDF.col("msisdn"),workLiveDF.col("person_class"))
                 .groupBy("date","person_class")
                 .agg(countDistinct("msisdn").as("peo_num"));
-        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/validSignal-stat/" + batchId + "/stat");
+        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/validSignal-stat/" + batchId + "/stat");
         return joinedDf;
     }
     public DataFrame agg() {

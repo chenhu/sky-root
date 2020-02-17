@@ -135,6 +135,6 @@ public class CombineODWorkLive implements Serializable {
     }
 
     public DataFrame read() {
-        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_STAT_SCHEMA,params.getSavePath() + "stat/combine-batch/*/combine-od");
+        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_STAT_SCHEMA,params.getSavePath() + "stat/combine-batch/*/combine-od").repartition(params.getPartitions());
     }
 }
