@@ -2,6 +2,7 @@ package com.sky.signal.stat.processor.workLive;
 
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
+import com.sky.signal.stat.util.HuaianPersonClassification;
 import com.sky.signal.stat.util.TransformFunction;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -26,7 +27,8 @@ public class WorkLiveLoader implements Serializable {
     private transient ParamProperties params;
     @Autowired
     private transient SQLContext sqlContext;
-
+    @Autowired
+    HuaianPersonClassification huaianPersonClassification;
 
     public DataFrame load(String workLiveFile) {
         DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, workLiveFile);
@@ -88,7 +90,7 @@ public class WorkLiveLoader implements Serializable {
                 if(sum_time == null) {
                     sum_time = 0d;
                 }
-                Integer person_class = TransformFunction.transformPersonClassByExistsDays(existsDays, sum_time);
+                Integer person_class = huaianPersonClassification.classify(existsDays, sum_time);
                 return RowFactory.create(row.getAs("msisdn"), region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
                         row.getAs("stay_time"), stayTimeClass, existsDays, live_base, row.getAs("live_lng"), row.getAs("live_lat"),
                         on_lsd, uld, work_base, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);

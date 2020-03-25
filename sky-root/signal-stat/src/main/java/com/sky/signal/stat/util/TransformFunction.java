@@ -6,6 +6,7 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -287,92 +288,6 @@ public class TransformFunction implements Serializable {
         return sexClass;
     }
 
-    /**
-     * description: 根据居住时段数据天数（uld），日均逗留时长，对人口进行分类
-     * param: [uld, sumStayMinutes]
-     * return: java.lang.Integer
-     **/
-    public static final Integer transformPersonClass(Long uld, Double sumStaySeconds) {
-        Integer person_class;
-//        int tag = 3;
-//        int tag = 7;
-        int tag = 9;
-        // 常住人口，总逗留不小于9天，日均逗留时常大于48分钟
-        if (uld >= tag && sumStaySeconds > 48 * 60) {
-            person_class = 0;
-
-        } else if (uld < tag && uld > 1 && sumStaySeconds > 48 * 60) { // 旅游,商务人口 总逗留时间1到7天，日均逗留时间大于48分钟
-            person_class = 1;
-        } else if (sumStaySeconds <= 48 * 60) { // 流动人口, 日均逗留时间不高于48分钟
-            person_class = 2;
-        } else { // 其他人口
-            person_class = 3;
-        }
-        return person_class;
-    }
-    /**
-     * description: 根据总的出现天数（exists_days），日均逗留时长，对人口进行分类
-     * param: [days, sumStayMinutes]
-     * return: java.lang.Integer
-     **/
-    public static final Integer transformPersonClassByExistsDays(Long days, Double sumStaySeconds) {
-        Integer person_class;
-//        int tag = 3;
-//        int tag = 7;
-        int tag = 9;
-        if (days >= tag && sumStaySeconds > 48 * 60) {
-            person_class = 0;
-        } else if (days < tag && days > 1 && sumStaySeconds > 48 * 60) { // 旅游,商务人口 总逗留时间1到7天，日均逗留时间大于48分钟
-            person_class = 1;
-        } else if (sumStaySeconds <= 48 * 60) { // 流动人口, 日均逗留时间不高于48分钟
-            person_class = 2;
-        } else { // 其他人口
-            person_class = 3;
-        }
-        return person_class;
-    }
-    /**
-     * description: 根据居住时段数据天数（uld），日均逗留时长分类，对人口进行分类
-     * param: [uld, sumStayMinutes]
-     * return: java.lang.Integer
-     **/
-    public static final Integer transformPersonClass1(Long uld, Integer stay_time_class) {
-        Integer person_class;
-        int tag = 9;
-        // 常住人口，总逗留不小于7天，日均逗留时常大于48分钟
-        if (uld >= tag && stay_time_class > 7) {
-            person_class = 0;
-
-        } else if (uld < tag && uld > 1 && stay_time_class > 7) { // 旅游,商务人口 总逗留时间1到7天，日均逗留时间大于48分钟
-            person_class = 1;
-        } else if (stay_time_class <= 7) { // 流动人口, 日均逗留时间不高于48分钟
-            person_class = 2;
-        } else { // 其他人口
-            person_class = 3;
-        }
-        return person_class;
-    }
-
-    /**
-     * description: 根据总的出现天数（exists_days），日均逗留时长分类，对人口进行分类
-     * param: [days, sumStayMinutes]
-     * return: java.lang.Integer
-     **/
-    public static final Integer transformPersonClassByExistsDays1(Long days, Integer stay_time_class) {
-        Integer person_class;
-        int tag = 9;
-        if (days >= tag && stay_time_class > 7) {
-            person_class = 0;
-
-        } else if (days < tag && days > 1 && stay_time_class > 7) { // 旅游,商务人口 总逗留时间1到7天，日均逗留时间大于48分钟
-            person_class = 1;
-        } else if (stay_time_class <= 7) { // 流动人口, 日均逗留时间不高于48分钟
-            person_class = 2;
-        } else { // 其他人口
-            person_class = 3;
-        }
-        return person_class;
-    }
     /**
      * description: 根据居住时段数据天数（uld）进行分类
      * param: [uld]
