@@ -16,4 +16,5 @@ public interface PersonClassification {
      * @return 类别
      */
     int classify(Long days, Double seconds );
+    int classify(Long uld, Integer stay_time_class);
 }
