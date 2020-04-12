@@ -1,0 +1,32 @@
+param:
+  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
+  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/work_live_his
+  validSignalFilesForStat:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191007
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191010
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191015
+  odFiles:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191007
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191010
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191015
+  odTripStatFiles:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191007
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191010
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191015
+  odTraceFiles:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191007
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191010
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191015
+
+
+
+
+

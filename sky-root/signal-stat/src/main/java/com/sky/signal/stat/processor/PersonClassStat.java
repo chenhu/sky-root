@@ -2,8 +2,8 @@ package com.sky.signal.stat.processor;
 
 import com.google.common.collect.Lists;
 import com.sky.signal.stat.config.ParamProperties;
+import com.sky.signal.stat.util.ChangshuPersonClassification;
 import com.sky.signal.stat.util.FileUtil;
-import com.sky.signal.stat.util.HuaianPersonClassification;
 import com.sky.signal.stat.util.TransformFunction;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -33,7 +33,7 @@ public class PersonClassStat implements Serializable {
     @Autowired
     private transient SQLContext sqlContext;
     @Autowired
-    HuaianPersonClassification huaianPersonClassification;
+    ChangshuPersonClassification changshuPersonClassification;
 
     private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("exists_days", DataTypes.LongType, false),
@@ -69,7 +69,7 @@ public class PersonClassStat implements Serializable {
                 }
                 Integer uld_class = TransformFunction.transformULDClass(uld);
                 Integer stay_time_class = row.getAs("stay_time_class");
-                Integer person_class = huaianPersonClassification.classify(uld, stay_time_class);
+                Integer person_class = changshuPersonClassification.classify(uld, stay_time_class);
                 return RowFactory.create(uld, uld_class, stay_time_class,person_class, row.getAs("peo_num"));
             }
 

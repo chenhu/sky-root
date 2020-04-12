@@ -30,7 +30,7 @@ public class BaseHourStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class","js_region","sex","age_class").repartition(params.getPartitions());
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class","sex","age_class").repartition(params.getPartitions());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
         Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
         for( int batchId: validSignalFileMap.keySet()) {
@@ -44,7 +44,8 @@ public class BaseHourStatService implements ComputeService {
     private DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
         for (String ValidSignalFile : validSignalFiles) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile).select("msisdn","date","base","begin_time","last_time");
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile)
+                    .select("msisdn","date","base","lat","lng","begin_time","last_time");
             if (validSignalDF == null) {
                 validSignalDF = validDF;
             } else {

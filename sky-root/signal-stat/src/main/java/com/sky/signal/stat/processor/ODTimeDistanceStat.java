@@ -21,6 +21,10 @@ import static org.apache.spark.sql.functions.*;
  * date: 2019/4/30 15:57
  * description: 出行时耗-距离分布
  */
+/**
+2020-04-12
+ 常熟需求，去掉max_speed和cov_speed,加了ageClass
+ */
 @Service("oDTimeDistanceStat")
 public class ODTimeDistanceStat implements Serializable{
 
@@ -33,12 +37,12 @@ public class ODTimeDistanceStat implements Serializable{
         ODDf = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_STAT_TEMP_SCHEMA);
 
 
-        ODDf = ODDf.groupBy("date", "person_class", "trip_purpose", "move_time_class", "distance_class", "max_speed_class", "cov_speed_class")
+        ODDf = ODDf.groupBy("date", "age_class", "trip_purpose", "move_time_class", "distance_class")
                 .agg(sum("move_time").divide(60).cast(new DecimalType(10,2)).as("sum_time"),
                         sum("linked_distance").divide(1000).cast(new DecimalType(10,2)).as("sum_dis"),
                         count("*").as("trip_num"),
                         countDistinct("msisdn").as("num_inter"))
-                .orderBy("date", "person_class", "trip_purpose", "move_time_class", "distance_class", "max_speed_class", "cov_speed_class");
+                .orderBy("date", "age_class", "trip_purpose", "move_time_class", "distance_class");
 
         FileUtil.saveFile(ODDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-distance-stat");
         return ODDf;

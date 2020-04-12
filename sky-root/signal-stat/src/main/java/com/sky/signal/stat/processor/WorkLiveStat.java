@@ -24,10 +24,10 @@ public class WorkLiveStat implements Serializable {
 
     public DataFrame process(DataFrame workLiveDF) {
 
-        DataFrame joinedDf = workLiveDF.groupBy("exists_days", "stay_time_class", "live_base", "on_lsd", "uld", "work_base", "on_wsd",
-                "uwd", "sex", "age_class", "region", "cen_region").agg(countDistinct("msisdn")
-                .as("peo_num")).orderBy(col("exists_days"), col("stay_time_class"), col("live_base"), col("on_lsd"), col("uld"),
-                col("work_base"), col("on_wsd"), col("uwd"), col("sex"), col("age_class"), col("region"), col("cen_region")).repartition(1);
+        DataFrame joinedDf = workLiveDF.groupBy("exists_days", "stay_time_class", "live_geo", "on_lsd", "uld", "work_geo", "on_wsd",
+                "uwd", "sex", "age_class").agg(countDistinct("msisdn")
+                .as("peo_num")).orderBy(col("exists_days"), col("stay_time_class"), col("live_geo"), col("on_lsd"), col("uld"),
+                col("work_geo"), col("on_wsd"), col("uwd"), col("sex"), col("age_class")).repartition(1);
         FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/work-live-stat");
         return joinedDf;
     }

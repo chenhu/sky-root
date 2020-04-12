@@ -82,10 +82,6 @@ public class ParamProperties {
      * 用来做居住地处理的有效信令文件
      */
     private List<String> validSignalForLive;
-    /**
-     * 职住文件
-     */
-    private String workLiveFile;
 
     /**
      * 停驻点

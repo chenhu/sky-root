@@ -1,0 +1,43 @@
+param:
+  cityCode: 1000512
+  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
+  cellFile: /user/bdoc/17/services/hdfs/132/changshu/changshu.csv
+  basePath: /user/bdoc/17/services/hdfs/132/changshu/
+  trackPre: dt=
+  phoneCityFile: /user/bdoc/17/services/hdfs/132/changshu/GSDZ.csv
+  baseFile: /user/bdoc/17/services/hdfs/132/changshu/save/baseArea.csv
+  userFile: /user/bdoc/17/services/hdfs/132/changshu/crm_new/
+  workliveBatchSize: 7
+  validSignalFilesForWorkLive:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170602
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170603
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170604
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170605
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170606
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170607
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170608
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170609
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170610
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170611
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170612
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170613
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170614
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170615
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170616
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170617
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170618
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170619
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170620
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170621
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170622
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170623
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170624
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170625
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170626
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170627
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170628
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170629
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170630
+
+
+

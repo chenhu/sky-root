@@ -1,5 +1,5 @@
 #yaml配置文件支持多profile, 可根据不同profile配置参数
-spring.profiles.active: cmcc
+spring.profiles.active: 201706
 
 logging:
   level: #日志级别, 可针对不同package设置
@@ -9,78 +9,3 @@ logging:
 
 param:
   appName: wildsky-pre-process
-
----
-
-#本机环境
-spring.profiles: local
-
-param:
-  rootValidSignalPath: /Users/chenhu/data/changshu/save/validSignal
-  rootDataPath: file:///Users/chenhu/data/changshu
-  masterUrl: local[2]
-  cityCode: 1000512
-  cellFile: file:///Users/chenhu/data/changshu/cell/changshu.csv
-  phoneCityFile: file:///Users/chenhu/data/changshu/GSDZ.csv
-  baseFile: file:///Users/chenhu/data/changshu/save/baseArea.csv
-  userFile: file:///Users/chenhu/data/changshu/用户信息.csv
-  basePath: /Users/chenhu/data/changshu/轨迹数据
-  trackPre: track_
-  savePath: /Users/chenhu/data/changshu/save/
-  workliveBatchSize: 1
-  workLiveFile: /Users/chenhu/data/changshu/save/work_live_his
-  validSignalFilesForWorkLive:
-    - /Users/chenhu/data/changshu/save/validSignal/20191101
----
-
-#移动环境
-spring.profiles: cmcc
-
-param:
-#  partitions: 2000
-#  service: workLiveService
-# 南京
-  cityCode: 1000512
-  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
-  cellFile: /user/bdoc/17/services/hdfs/132/changshu/changshu.csv
-  basePath: /user/bdoc/17/services/hdfs/132/changshu/
-  trackPre: dt=
-  phoneCityFile: /user/bdoc/17/services/hdfs/132/changshu/GSDZ.csv
-  baseFile: /user/bdoc/17/services/hdfs/132/changshu/save/baseArea.csv
-  userFile: /user/bdoc/17/services/hdfs/132/changshu/crm_new/
-  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/work_live_his
-  workliveBatchSize: 7
-  validSignalFilesForWorkLive:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191101
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191102
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191103
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191104
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191105
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191106
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191107
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191108
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191109
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191110
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191111
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191112
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191113
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191114
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191115
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191116
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191117
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191118
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191119
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191120
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191121
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191122
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191123
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191124
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191125
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191126
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191127
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191128
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191129
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191130
-
-
-

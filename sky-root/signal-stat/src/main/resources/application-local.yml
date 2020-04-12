@@ -1,0 +1,47 @@
+param:
+  masterUrl: local[2]
+  savePath: file:///Users/chenhu/data/changshu/save/
+  workLiveFile: file:///Users/chenhu/data/changshu/save/work_live_his
+  validSignalFilesForStat:
+    - /Users/chenhu/data/changshu/save/validSignal/20170108
+    - /Users/chenhu/data/changshu/save/validSignal/20170109
+    - /Users/chenhu/data/changshu/save/validSignal/20170110
+    - /Users/chenhu/data/changshu/save/validSignal/20170111
+    - /Users/chenhu/data/changshu/save/validSignal/20170112
+    - /Users/chenhu/data/changshu/save/validSignal/20170113
+    - /Users/chenhu/data/changshu/save/validSignal/20170114
+    - /Users/chenhu/data/changshu/save/validSignal/20170115
+    - /Users/chenhu/data/changshu/save/validSignal/20170116
+  odFiles:
+    - /Users/chenhu/data/changshu/save/od/20170108
+    - /Users/chenhu/data/changshu/save/od/20170109
+    - /Users/chenhu/data/changshu/save/od/20170110
+    - /Users/chenhu/data/changshu/save/od/20170111
+    - /Users/chenhu/data/changshu/save/od/20170112
+    - /Users/chenhu/data/changshu/save/od/20170113
+    - /Users/chenhu/data/changshu/save/od/20170114
+    - /Users/chenhu/data/changshu/save/od/20170115
+    - /Users/chenhu/data/changshu/save/od/20170116
+  odTraceFiles:
+    - /Users/chenhu/data/changshu/save/od_trace/20170108
+    - /Users/chenhu/data/changshu/save/od_trace/20170109
+    - /Users/chenhu/data/changshu/save/od_trace/20170110
+    - /Users/chenhu/data/changshu/save/od_trace/20170111
+    - /Users/chenhu/data/changshu/save/od_trace/20170112
+    - /Users/chenhu/data/changshu/save/od_trace/20170113
+    - /Users/chenhu/data/changshu/save/od_trace/20170114
+    - /Users/chenhu/data/changshu/save/od_trace/20170115
+    - /Users/chenhu/data/changshu/save/od_trace/20170116
+  odTripStatFiles:
+    - /Users/chenhu/data/changshu/save/stat_trip/20170108
+    - /Users/chenhu/data/changshu/save/stat_trip/20170109
+    - /Users/chenhu/data/changshu/save/stat_trip/20170110
+    - /Users/chenhu/data/changshu/save/stat_trip/20170111
+    - /Users/chenhu/data/changshu/save/stat_trip/20170112
+    - /Users/chenhu/data/changshu/save/stat_trip/20170113
+    - /Users/chenhu/data/changshu/save/stat_trip/20170114
+    - /Users/chenhu/data/changshu/save/stat_trip/20170115
+    - /Users/chenhu/data/changshu/save/stat_trip/20170116
+
+
+

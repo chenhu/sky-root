@@ -1,10 +1,7 @@
 package com.sky.signal.stat.processor.workLive;
 
 import com.sky.signal.stat.config.ParamProperties;
-import com.sky.signal.stat.util.ChangshuPersonClassification;
-import com.sky.signal.stat.util.FileUtil;
-import com.sky.signal.stat.util.HuaianPersonClassification;
-import com.sky.signal.stat.util.TransformFunction;
+import com.sky.signal.stat.util.*;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.DataFrame;
@@ -66,9 +63,7 @@ public class WorkLiveLoader implements Serializable {
                 Long uwd = 0l;
                 Long on_lsd = 0l;
                 Long on_wsd = 0l;
-                if (live_base == null) {
-                    live_base = region.toString();
-                } else {
+                if (live_base != null) {
                     if(row.getAs("uld") !=null) {
                         uld = row.getAs("uld");
                     }
@@ -76,9 +71,7 @@ public class WorkLiveLoader implements Serializable {
                         on_lsd = row.getAs("on_lsd");
                     }
                 }
-                if (work_base == null) {
-                    work_base = region.toString();
-                } else {
+                if (work_base != null) {
                     if(row.getAs("uwd") !=null) {
                         uwd = row.getAs("uwd");
                     }
@@ -91,10 +84,24 @@ public class WorkLiveLoader implements Serializable {
                 if(sum_time == null) {
                     sum_time = 0d;
                 }
+                //生成geohash
+                Double work_lat = row.getAs("work_lat");
+                Double work_lng = row.getAs("work_lng");
+                GeoHash workGeoHash = new GeoHash(work_lat, work_lng);
+                workGeoHash.sethashLength(7);
+                String workGeo = workGeoHash.getGeoHashBase32();
+
+                Double live_lat = row.getAs("live_lat");
+                Double live_lng = row.getAs("live_lng");
+                GeoHash liveGeoHash = new GeoHash(live_lat, live_lng);
+                liveGeoHash.sethashLength(7);
+                String liveGeo = liveGeoHash.getGeoHashBase32();
+
+
                 Integer person_class = changshuPersonClassification.classify(existsDays, sum_time);
                 return RowFactory.create(row.getAs("msisdn"), region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
-                        row.getAs("stay_time"), stayTimeClass, existsDays, live_base, row.getAs("live_lng"), row.getAs("live_lat"),
-                        on_lsd, uld, work_base, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);
+                        row.getAs("stay_time"), stayTimeClass, existsDays,live_base, liveGeo, row.getAs("live_lng"), row.getAs("live_lat"),
+                        on_lsd, uld, work_base, workGeo, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);
             }
 
         });

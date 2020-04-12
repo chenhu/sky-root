@@ -149,7 +149,7 @@ public class LiveWorkAggProcessor implements Serializable {
                         workDfUwd.col("uwd"));
         //排除结果中，一个人多个职住地的情况
         result = result.dropDuplicates(new String[]{"msisdn"});
-        FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType.CSV, params.getWorkLiveFile());
+        FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "work_live_his");
 
         existsDf.unpersist();
         fitUsers.unpersist();

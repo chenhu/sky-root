@@ -21,6 +21,14 @@ ValidSignalStat             表12-1 日出行人口情况                       
 深圳项目分析南京手机信令对应的报表-cmcc2019003
 
 
-常熟项目分析常熟手机信令对应的报表-cmcc2019002
-WorkLiveStat1                表1 人口分布集合数据表                             stat/work-live-stat-1
-ODTimeIntervalStat1          表2 内部人口流动数据表                             stat/od-time-interval-general-stat-1
+常熟项目分析常熟手机信令对应的报表-cmcc2020002
+完成 WorkLiveStat              表1-1 人口分布集合数据表                             stat/work-live-stat           workLiveStatService
+完成 baseHourStat              表1-2 人口活动热力分布表                             stat/base-hour                baseHourStatService
+完成 odDayStat                 表2-1 日内部人口流动数据表                            stat/od-day-stat            oDDayStatService
+完成 dayTripSummaryStat        表2-2 日总体出行特征                                 stat/day-trip-summary-stat   oDTripStatService
+完成 dayTripPurposeSummaryStat 表2-3 分目的总体出行特征                              stat/day-trip-with-purpose-summary-stat  oDTripStatService
+完成 oDTimeIntervalStat        表2-4 网格特定时间间隔（半小时）OD表                   stat/od-time-interval-general-stat  oDTimeStatService
+完成 oDTimeDistanceStat        表2-5 odtimestance出行时耗-距离分布表                 stat/od-time-distance-stat  oDTimeStatService
+
+
+

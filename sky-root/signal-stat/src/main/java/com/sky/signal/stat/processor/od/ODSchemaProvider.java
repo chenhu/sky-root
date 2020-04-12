@@ -32,7 +32,9 @@ public class ODSchemaProvider {
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
             DataTypes.createStructField("leave_base", DataTypes.StringType, true),
+            DataTypes.createStructField("leave_geo", DataTypes.StringType, true),
             DataTypes.createStructField("arrive_base", DataTypes.StringType, true),
+            DataTypes.createStructField("arrive_geo", DataTypes.StringType, true),
             DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
             DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false),
             DataTypes.createStructField("linked_distance", DataTypes.IntegerType, false),
@@ -44,7 +46,9 @@ public class ODSchemaProvider {
             DataTypes.createStructField("sex", DataTypes.ShortType, false),
             DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
             DataTypes.createStructField("live_base", DataTypes.StringType, true),
+            DataTypes.createStructField("live_geo", DataTypes.StringType, true),
             DataTypes.createStructField("work_base", DataTypes.StringType, true),
+            DataTypes.createStructField("work_geo", DataTypes.StringType, true),
             DataTypes.createStructField("trip_purpose", DataTypes.ShortType, false)
     ));
     public static final StructType OD_TRACE_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
@@ -91,6 +95,7 @@ public class ODSchemaProvider {
             DataTypes.createStructField("move_time_class", DataTypes.IntegerType, false),
             DataTypes.createStructField("cov_speed_class", DataTypes.IntegerType, false),
             DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
+            DataTypes.createStructField("age_class", DataTypes.IntegerType, false),
             DataTypes.createStructField("trip_purpose", DataTypes.ShortType, false)
     ));
 
@@ -98,8 +103,8 @@ public class ODSchemaProvider {
     public static final StructType OD_TEMP_SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
-            DataTypes.createStructField("leave_base", DataTypes.StringType, true),
-            DataTypes.createStructField("arrive_base", DataTypes.StringType, true),
+            DataTypes.createStructField("leave_geo", DataTypes.StringType, true),
+            DataTypes.createStructField("arrive_geo", DataTypes.StringType, true),
             DataTypes.createStructField("leaveTime_inter", DataTypes.TimestampType, false),
             DataTypes.createStructField("arriveTime_inter", DataTypes.TimestampType, false),
             DataTypes.createStructField("distance", DataTypes.IntegerType, false),

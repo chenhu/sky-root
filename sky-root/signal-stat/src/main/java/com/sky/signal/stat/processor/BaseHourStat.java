@@ -3,6 +3,7 @@ package com.sky.signal.stat.processor;
 import com.google.common.collect.Lists;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
+import com.sky.signal.stat.util.GeoHash;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.DataFrame;
@@ -26,19 +27,22 @@ import static org.apache.spark.sql.functions.*;
 * param:
 * return:
 **/
+
+/**
+ * 20190412 基站编码改为网格编码
+ */
 @Service("baseHourStat")
 public class BaseHourStat implements Serializable {
     private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
-            DataTypes.createStructField("base", DataTypes.StringType, false),
+            DataTypes.createStructField("geohash", DataTypes.StringType, false),
             DataTypes.createStructField("time_inter", DataTypes.IntegerType, false)));
     private static final StructType SCHEMA1 = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
-            DataTypes.createStructField("base", DataTypes.StringType, false),
+            DataTypes.createStructField("geohash", DataTypes.StringType, false),
             DataTypes.createStructField("time_inter", DataTypes.IntegerType, false),
             DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
-            DataTypes.createStructField("js_region", DataTypes.IntegerType, false),
             DataTypes.createStructField("sex", DataTypes.ShortType, false),
             DataTypes.createStructField("age_class", DataTypes.IntegerType, false),
             DataTypes.createStructField("peo_num", DataTypes.LongType, false)
@@ -58,7 +62,10 @@ public class BaseHourStat implements Serializable {
                 DateTime lastTime = new DateTime(row.getAs("last_time")).hourOfDay().roundCeilingCopy();
                 //每小时1笔数据
                 while (begin_time.compareTo(lastTime) <= 0) {
-                    rows.add(RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("base"), begin_time.getHourOfDay()));
+                    //生成geohash
+                    GeoHash g = new GeoHash(row.getDouble(3), row.getDouble(4));
+                    g.sethashLength(7);
+                    rows.add(RowFactory.create(row.getAs("date"), row.getAs("msisdn"),g.getGeoHashBase32(), begin_time.getHourOfDay()));
                     begin_time = begin_time.plusHours(1);
                 }
                 return rows;
@@ -70,23 +77,22 @@ public class BaseHourStat implements Serializable {
                 .select(
                         processedDf.col("date"),
                         processedDf.col("msisdn"),
-                        processedDf.col("base"),
+                        processedDf.col("geohash"),
                         processedDf.col("time_inter"),
                         workLiveDF.col("person_class"),
-                        workLiveDF.col("js_region"),
                         workLiveDF.col("sex"),
                         workLiveDF.col("age_class")
                 );
-        joinedDf = joinedDf.groupBy("date", "base", "time_inter", "person_class", "js_region", "sex", "age_class").agg(countDistinct("msisdn")
-                .as("peo_num")).orderBy(col("date"),col("base"),col("time_inter"),col("person_class"),col("js_region"), col("sex"), col
+        joinedDf = joinedDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(countDistinct("msisdn")
+                .as("peo_num")).orderBy(col("date"),col("geohash"),col("time_inter"),col("person_class"), col("sex"), col
                 ("age_class"));
         FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/" + batchId + "/base-hour");
         return joinedDf;
     }
     public DataFrame agg() {
         DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA1, params.getSavePath() + "stat/*/base-hour");
-        aggDf = aggDf.groupBy("date", "base", "time_inter", "person_class", "js_region", "sex", "age_class").agg(sum("peo_num")
-                .as("peo_num")).orderBy(col("date"),col("base"),col("time_inter"),col("person_class"),col("js_region"), col("sex"), col
+        aggDf = aggDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(sum("peo_num")
+                .as("peo_num")).orderBy(col("date"),col("geohash"),col("time_inter"),col("person_class"), col("sex"), col
                 ("age_class"));
         FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/base-hour");
         return aggDf;

@@ -3,6 +3,7 @@ package com.sky.signal.stat.processor;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.od.ODSchemaProvider;
 import com.sky.signal.stat.util.FileUtil;
+import com.sky.signal.stat.util.GeoHash;
 import com.sky.signal.stat.util.MapUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -70,6 +71,14 @@ public class CombineODWorkLive implements Serializable {
                 Double liveLat = row.getAs("live_lat");
                 Double workLng = row.getAs("work_lng");
                 Double workLat = row.getAs("work_lat");
+                //计算出发基站和到达基站的geohash
+                GeoHash leaveGeoHash = new GeoHash(leaveLat, leaveLng);
+                leaveGeoHash.sethashLength(7);
+                String leaveGeo = leaveGeoHash.getGeoHashBase32();
+
+                GeoHash arriveGeoHash = new GeoHash(arriveLat, arriveLng);
+                arriveGeoHash.sethashLength(7);
+                String arriveGeo = arriveGeoHash.getGeoHashBase32();
 
                 // 10000米的设置，是为了设置一个尽量大的值，在没有判断出职住基站的情况下，让出发或者到达地点尽量离家或工作地远些
                 Integer leaveHomeDis = CONST_LARGE;
@@ -122,9 +131,9 @@ public class CombineODWorkLive implements Serializable {
                 } else {
                     trip_purpose = 6;// 其他
                 }
-                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"), row.getAs("leave_time"),
+                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"),leaveGeo, row.getAs("arrive_base"), arriveGeo, row.getAs("leave_time"),
                         row.getAs("arrive_time"), row.getAs("linked_distance"), row.getAs("max_speed"), row.getAs("cov_speed"), row.getAs("distance"), row.getAs("move_time"), row.getAs("age_class"),
-                        row.getAs("sex"), row.getAs("person_class"), liveBase, workBase, trip_purpose});
+                        row.getAs("sex"), row.getAs("person_class"), liveBase, row.getAs("live_geo"), workBase, row.getAs("work_geo"), trip_purpose});
             }
         });
         DataFrame joinedDf = sqlContext.createDataFrame(joinedRDD, ODSchemaProvider.OD_STAT_SCHEMA);

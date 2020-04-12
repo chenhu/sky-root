@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
  */
 @Service("changshuPersonClassification")
 public  class ChangshuPersonClassification implements PersonClassification {
-    private static final Integer dayFlag = 7;
+    private static final Integer dayFlag = 20;// 30*2/3
     private static final Integer secondsFlag = 480*60;
 
     @Override
@@ -22,7 +22,7 @@ public  class ChangshuPersonClassification implements PersonClassification {
             person_class = 0;
         } else if (days < dayFlag && days > 1 && seconds > secondsFlag) { // 流动人口
             person_class = 1;
-        } else { // 其他人口
+        } else { // 访客人口
             person_class = 2;
         }
         return person_class;
@@ -40,7 +40,7 @@ public  class ChangshuPersonClassification implements PersonClassification {
             person_class = 0;
         } else if (uld < dayFlag && uld > 1 && stay_time_class > 7) { // 流动人口
             person_class = 1;
-        } else { // 其他人口
+        } else { // 访客人口
             person_class = 2;
         }
         return person_class;
