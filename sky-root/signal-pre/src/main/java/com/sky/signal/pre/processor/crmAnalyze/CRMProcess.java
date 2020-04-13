@@ -34,7 +34,7 @@ public class CRMProcess implements Serializable {
     @Autowired
     private transient ParamProperties params;
     public final Broadcast<Map<String, Row>> load() {
-        Row[] userRows= FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getSavePath() + "crm").collect();
+        Row[] userRows= FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getBasePath() + "crm").collect();
         Map<String, Row> UserMap = new HashMap<>(userRows.length);
         for (Row row:userRows) {
             UserMap.put(row.getString(0),row);
@@ -62,9 +62,9 @@ public class CRMProcess implements Serializable {
                     if(props.length>=5) {
                         try{
                             msisdn = props[0];
-                            sex = Short.valueOf(props[4]);
-                            age = Short.valueOf(props[3]);
-                            id = Integer.valueOf(props[5]);
+                            age = Short.valueOf(props[2]);
+                            sex = Short.valueOf(props[3]);
+                            id = Integer.valueOf(props[4]);
                         }catch (Exception e){
                             msisdn=null;
                             sex=-2;
@@ -90,7 +90,7 @@ public class CRMProcess implements Serializable {
             }
         });
         DataFrame userDf = sqlContext.createDataFrame(userRdd, CrmSchemaProvider.CRM_SCHEMA).dropDuplicates();
-        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "crm");
+        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.CSV, params.getBasePath() + "crm");
     }
 
 }

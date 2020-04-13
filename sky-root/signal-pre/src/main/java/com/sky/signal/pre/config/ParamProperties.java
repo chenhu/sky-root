@@ -84,6 +84,11 @@ public class ParamProperties {
     private List<String> validSignalForLive;
 
     /**
+     * 职住分析结果文件存储位置
+     */
+    private String workliveSavePath;
+
+    /**
      * 停驻点
      */
     private String traceFile;

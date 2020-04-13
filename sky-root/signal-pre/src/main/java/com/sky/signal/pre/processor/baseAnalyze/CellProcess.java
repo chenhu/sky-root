@@ -109,7 +109,7 @@ public class CellProcess implements Serializable {
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "cell");
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getBasePath() + "cell");
         return df;
     }
 }

@@ -25,7 +25,7 @@ public class CellLoader implements Serializable {
     private transient ParamProperties params;
     public Broadcast<Map<String, Row>> load() {
         // 加载现有的基站数据,这个数据是由 cellProcess.process() 生成的
-        Row[] cellRows= FileUtil.readFile(FileUtil.FileType.CSV, CellSchemaProvider.CELL_SCHEMA,params.getSavePath() + "cell").collect();
+        Row[] cellRows= FileUtil.readFile(FileUtil.FileType.CSV, CellSchemaProvider.CELL_SCHEMA,params.getBasePath() + "cell").collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
             Integer tac = row.getInt(1);

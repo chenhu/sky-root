@@ -9,3 +9,12 @@ logging:
 
 param:
   appName: wildsky-pre-process
+  cityCode: 1000512
+  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
+  cellFile: /user/bdoc/17/services/hdfs/132/changshu/cell.csv
+  basePath: /user/bdoc/17/services/hdfs/132/changshu/tmp_changshu_track/
+  trackPre: dt=
+  phoneCityFile: /user/bdoc/17/services/hdfs/132/changshu/GSDZ.csv
+  baseFile: /user/bdoc/17/services/hdfs/132/changshu/save/baseArea.csv
+  userFile: /user/bdoc/17/services/hdfs/132/changshu/crm_new/
+  workliveBatchSize: 7
