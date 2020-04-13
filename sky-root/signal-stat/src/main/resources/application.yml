@@ -8,6 +8,6 @@ logging:
   #file: mobile.log
 param:
   appName: wildsky-stat-process
-
+  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
 
 

@@ -487,8 +487,14 @@ public class SignalProcessor implements Serializable {
             partitions = params.getPartitions();
         }
 
-        JavaRDD<String> lines;
-        lines=sparkContext.textFile(path).repartition(partitions);
+        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
+        JavaRDD<Row> linesRows = sqlContext.read().parquet(path).repartition(partitions).toJavaRDD();
+        JavaRDD<String> lines = linesRows.map(new org.apache.spark.api.java.function.Function<Row, String>() {
+            @Override
+            public String call(Row row) throws Exception {
+                return row.getString(0);
+            }
+        });
 //        lines=sparkContext.textFile(path);
         //补全基站信息并删除重复信令
         DataFrame df=signalLoader.cell(cellVar).mergeCell(lines);

@@ -1,6 +1,5 @@
 param:
-  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
-  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/work_live_his
+  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201706/work_live_his
   validSignalFilesForStat:
     - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170612
     - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170614
