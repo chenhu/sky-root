@@ -1,17 +1,16 @@
 param:
-  rootValidSignalPath: /Users/chenhu/data/changshu/save/validSignal
-  rootDataPath: file:///Users/chenhu/data/changshu
   masterUrl: local[2]
   cityCode: 1000512
-  cellFile: file:///Users/chenhu/data/changshu/cell/changshu.csv
+  savePath: /Users/chenhu/data/changshu/save/
+  cellFile: file:///Users/chenhu/data/changshu/cell/cell.csv
+  basePath: /Users/chenhu/data/changshu/轨迹数据/
+  trackPre: track_
   phoneCityFile: file:///Users/chenhu/data/changshu/GSDZ.csv
   baseFile: file:///Users/chenhu/data/changshu/save/baseArea.csv
-  userFile: file:///Users/chenhu/data/changshu/用户信息.csv
-  basePath: /Users/chenhu/data/changshu/轨迹数据
-  trackPre: track_
-  savePath: /Users/chenhu/data/changshu/save/
+  userFile: file:///Users/chenhu/data/changshu/crm.csv
   workliveBatchSize: 1
+  workliveSavePath: /Users/chenhu/data/changshu/save/201706/
   validSignalFilesForWorkLive:
-    - /Users/chenhu/data/changshu/save/validSignal/20191101
+    - /Users/chenhu/data/changshu/save/validSignal/20170602
 
 
