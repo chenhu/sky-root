@@ -35,7 +35,7 @@ public class DataQualityService implements ComputeService {
         for(String date: signalMap.keySet()) {
             String traceFilePath = signalMap.get(date)._2;
             String validSignalFilePath = signalMap.get(date)._1;
-            dataQualityProcessor.process(date,traceFilePath, validSignalFilePath);
+            dataQualityProcessor.processForParquet(date,traceFilePath, validSignalFilePath);
         }
         DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, DataQualitySchemaProvider.SIGNAL_SCHEMA_BASE, params.getSavePath()
                 + "stat/dataquality/*/stat").orderBy("date");

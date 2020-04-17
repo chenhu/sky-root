@@ -34,7 +34,7 @@ import static org.apache.spark.sql.functions.col;
 @Component
 public class SignalLoader implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SignalLoader.class);
-    private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
     private static final DateTimeFormatter FORMATTED = DateTimeFormat.forPattern("yyyyMMdd");
     private Broadcast<Map<String, Row>> cellVar;
     private Broadcast<Map<String, Row>> areaVar;
@@ -97,6 +97,59 @@ public class SignalLoader implements Serializable {
 
         return orginalDf;
     }
+
+    /**
+     * Parquet格式轨迹解析
+     * @param df
+     * @return
+     */
+    public DataFrame mergeCell(DataFrame df) {
+        final Integer  cityCode = Integer.valueOf(params.getCityCode());
+        JavaRDD<Row> rdd = df.javaRDD().map(new Function<Row, Row>() {
+            @Override
+            public Row call(Row row) throws Exception {
+                String startTime = row.getAs("start_time").toString();
+                String endTime = row.getAs("end_time").toString();
+                Integer date = Integer.valueOf(DateTime.parse(startTime, FORMATTER).toString(FORMATTED));
+                String msisdn = row.getAs("msisdn");
+                Integer region = cityCode;
+                Integer city_code = Integer.valueOf(row.getAs("reg_city").toString());
+                Integer tac = Integer.valueOf(row.getAs("lac").toString());
+                Long cell = Long.valueOf(row.getAs("start_ci").toString());
+                String base = null;
+                double lng = 0d;
+                double lat = 0d;
+                Timestamp begin_time = new Timestamp(DateTime.parse(startTime, FORMATTER).getMillis());
+                Timestamp end_time = new Timestamp(DateTime.parse(endTime, FORMATTER).getMillis());
+                //根据tac/cell查找基站信息
+                Row cellRow = cellVar.value().get(tac.toString() + '|' + cell.toString());
+                if (cellRow == null) {
+                    //Do nothing
+                } else {
+                    city_code = cellRow.getInt(0);
+                    base = cellRow.getString(3);
+                    lng = cellRow.getDouble(4);
+                    lat = cellRow.getDouble(5);
+                }
+
+                Row track = RowFactory.create(date, msisdn, region, city_code, tac, cell, base, lng, lat, begin_time, end_time);
+                return track;
+            }
+        });
+
+        df = sqlContext.createDataFrame(rdd, SignalSchemaProvider.SIGNAL_SCHEMA_BASE);
+
+        //过滤手机号码/基站不为0的数据,并删除重复手机信令数据
+        DataFrame validDf = df.filter(col("msisdn").notEqual("null").and(col("base").notEqual("null")).and(col("lng").notEqual(0)).and(col("lat")
+                .notEqual(0))).dropDuplicates(new String[]{"msisdn", "begin_time"});
+        return validDf;
+    }
+
+    /**
+     * 文本格式轨迹解析
+     * @param lines
+     * @return
+     */
     public DataFrame mergeCell(JavaRDD<String> lines) {
         JavaRDD<Row> rdd = lines.flatMap(new FlatMapFunction<String, Row>() {
             @Override
