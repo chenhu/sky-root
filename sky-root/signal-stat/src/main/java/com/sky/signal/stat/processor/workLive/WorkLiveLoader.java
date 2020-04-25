@@ -25,8 +25,6 @@ public class WorkLiveLoader implements Serializable {
     private transient ParamProperties params;
     @Autowired
     private transient SQLContext sqlContext;
-    @Autowired
-    ChangshuPersonClassification changshuPersonClassification;
 
     public DataFrame load(String workLiveFile) {
         DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, workLiveFile);
@@ -87,18 +85,13 @@ public class WorkLiveLoader implements Serializable {
                 //生成geohash
                 Double work_lat = row.getAs("work_lat");
                 Double work_lng = row.getAs("work_lng");
-                GeoHash workGeoHash = new GeoHash(work_lat, work_lng);
-                workGeoHash.sethashLength(7);
-                String workGeo = workGeoHash.getGeoHashBase32();
+                String  workGeo = GeoUtil.geo(work_lat, work_lng);
 
                 Double live_lat = row.getAs("live_lat");
                 Double live_lng = row.getAs("live_lng");
-                GeoHash liveGeoHash = new GeoHash(live_lat, live_lng);
-                liveGeoHash.sethashLength(7);
-                String liveGeo = liveGeoHash.getGeoHashBase32();
+                String liveGeo = GeoUtil.geo(live_lat, live_lng);
 
-
-                Integer person_class = changshuPersonClassification.classify(existsDays, sum_time);
+                Integer person_class = ChangshuPersonClassification.classify(existsDays, sum_time);
                 return RowFactory.create(row.getAs("msisdn"), region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
                         row.getAs("stay_time"), stayTimeClass, existsDays,live_base, liveGeo, row.getAs("live_lng"), row.getAs("live_lat"),
                         on_lsd, uld, work_base, workGeo, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);

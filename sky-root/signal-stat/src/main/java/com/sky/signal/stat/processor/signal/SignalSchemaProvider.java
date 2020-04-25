@@ -14,7 +14,7 @@ public class SignalSchemaProvider {
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
             DataTypes.createStructField("region", DataTypes.IntegerType, false),
-            DataTypes.createStructField("city_code", DataTypes.IntegerType, false), // 信号所在城市
+            DataTypes.createStructField("city_code", DataTypes.IntegerType, false), // 号码归属地
             DataTypes.createStructField("cen_region", DataTypes.IntegerType, false),// 户籍所在地
             DataTypes.createStructField("sex", DataTypes.ShortType, false),
             DataTypes.createStructField("age", DataTypes.ShortType, false),

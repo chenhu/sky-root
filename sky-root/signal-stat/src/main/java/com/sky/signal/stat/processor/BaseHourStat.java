@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
 import com.sky.signal.stat.util.GeoHash;
+import com.sky.signal.stat.util.GeoUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.DataFrame;
@@ -62,10 +63,7 @@ public class BaseHourStat implements Serializable {
                 DateTime lastTime = new DateTime(row.getAs("last_time")).hourOfDay().roundCeilingCopy();
                 //每小时1笔数据
                 while (begin_time.compareTo(lastTime) <= 0) {
-                    //生成geohash
-                    GeoHash g = new GeoHash(row.getDouble(3), row.getDouble(4));
-                    g.sethashLength(7);
-                    rows.add(RowFactory.create(row.getAs("date"), row.getAs("msisdn"),g.getGeoHashBase32(), begin_time.getHourOfDay()));
+                    rows.add(RowFactory.create(row.getAs("date"), row.getAs("msisdn"), GeoUtil.geo(row.getDouble(3), row.getDouble(4)), begin_time.getHourOfDay()));
                     begin_time = begin_time.plusHours(1);
                 }
                 return rows;

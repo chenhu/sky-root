@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
  * 将人口类别分为 0-常住人口 1-旅游商务人口 2-流动人口 3-其他
  */
 @Service("huaianPersonClassification")
-public  class HuaianPersonClassification implements PersonClassification {
+public  class HuaianPersonClassification {
     //逗留天数阀值，一般为3、7、9，要根据当前业务而定
     private static final Integer dayFlag = 9;
     //停留的时间阀值
     private static final Integer secondsFlag = 480*60;
 
-    @Override
-    public int classify( Long days, Double seconds) {
+    public static int classify( Long days, Double seconds) {
         Integer person_class;
         if (days >= dayFlag && seconds > secondsFlag) { //常住人口
             person_class = 0;
@@ -38,7 +37,7 @@ public  class HuaianPersonClassification implements PersonClassification {
      * @param stay_time_class
      * @return
      */
-    public int classify(Long uld, Integer stay_time_class) {
+    public static int classify(Long uld, Integer stay_time_class) {
         Integer person_class;
         if (uld >= dayFlag && stay_time_class > 7) { //常住人口
             person_class = 0;

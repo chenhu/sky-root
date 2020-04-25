@@ -27,7 +27,7 @@ public class ODDayStat implements Serializable{
                 .withColumn("avg_time",floor(col("sum_time").divide(col("trip_num")).divide(60)))
                 .withColumn("avg_dis", floor(col("sum_dis").divide(col("trip_num")))).drop("sum_time").drop("sum_dis")
                 .orderBy("date","leave_geo", "arrive_geo", "person_class", "trip_purpose","sex", "age_class");
-        FileUtil.saveFile(df, FileUtil.FileType.CSV, params.getSavePath() + "stat/od-day-stat");
+        FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-day-stat");
         return df;
 
     }

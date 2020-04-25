@@ -1,5 +1,7 @@
 package com.sky.signal.stat.util;
 
+import org.springframework.util.StringUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,6 +159,9 @@ public class GeoHash implements Serializable {
      * @Description: 获取经纬度的base32字符串
      */
     public String getGeoHashBase32() {
+        if(StringUtils.isEmpty(location.getLat()) || StringUtils.isEmpty(location.getLng())) {
+            return null;
+        }
         return getGeoHashBase32(location.getLat(), location.getLng());
     }
 

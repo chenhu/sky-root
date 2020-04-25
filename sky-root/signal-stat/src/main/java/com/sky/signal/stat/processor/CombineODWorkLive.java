@@ -4,6 +4,7 @@ import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.od.ODSchemaProvider;
 import com.sky.signal.stat.util.FileUtil;
 import com.sky.signal.stat.util.GeoHash;
+import com.sky.signal.stat.util.GeoUtil;
 import com.sky.signal.stat.util.MapUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -32,8 +33,8 @@ public class CombineODWorkLive implements Serializable {
     private transient ParamProperties params;
     @Autowired
     private transient SQLContext sqlContext;
-    public DataFrame process(DataFrame od, DataFrame workLiveStat, Integer batchId) {
-        DataFrame replaced = od.join(workLiveStat, od.col("msisdn").equalTo(workLiveStat.col("msisdn")), "left_outer");
+    public DataFrame process(DataFrame od, DataFrame workLiveDf, Integer batchId) {
+        DataFrame replaced = od.join(workLiveDf, od.col("msisdn").equalTo(workLiveDf.col("msisdn")), "left_outer");
         replaced = replaced.select(
                 od.col("date"),
                 od.col("msisdn"),
@@ -50,15 +51,17 @@ public class CombineODWorkLive implements Serializable {
                 od.col("cov_speed"),
                 od.col("distance"),
                 od.col("move_time"),
-                workLiveStat.col("age_class"),
-                workLiveStat.col("sex"),
-                workLiveStat.col("person_class"),
-                workLiveStat.col("live_base"),
-                workLiveStat.col("live_lng"),
-                workLiveStat.col("live_lat"),
-                workLiveStat.col("work_base"),
-                workLiveStat.col("work_lng"),
-                workLiveStat.col("work_lat"));
+                workLiveDf.col("age_class"),
+                workLiveDf.col("sex"),
+                workLiveDf.col("person_class"),
+                workLiveDf.col("live_geo"),
+                workLiveDf.col("live_base"),
+                workLiveDf.col("live_lng"),
+                workLiveDf.col("live_lat"),
+                workLiveDf.col("work_geo"),
+                workLiveDf.col("work_base"),
+                workLiveDf.col("work_lng"),
+                workLiveDf.col("work_lat"));
 
         JavaRDD<Row> joinedRDD = replaced.javaRDD().map(new Function<Row, Row>() {
             @Override
@@ -72,13 +75,9 @@ public class CombineODWorkLive implements Serializable {
                 Double workLng = row.getAs("work_lng");
                 Double workLat = row.getAs("work_lat");
                 //计算出发基站和到达基站的geohash
-                GeoHash leaveGeoHash = new GeoHash(leaveLat, leaveLng);
-                leaveGeoHash.sethashLength(7);
-                String leaveGeo = leaveGeoHash.getGeoHashBase32();
+                String leaveGeo = GeoUtil.geo(leaveLat, leaveLng);
 
-                GeoHash arriveGeoHash = new GeoHash(arriveLat, arriveLng);
-                arriveGeoHash.sethashLength(7);
-                String arriveGeo = arriveGeoHash.getGeoHashBase32();
+                String arriveGeo = GeoUtil.geo(arriveLat, arriveLng);
 
                 // 10000米的设置，是为了设置一个尽量大的值，在没有判断出职住基站的情况下，让出发或者到达地点尽量离家或工作地远些
                 Integer leaveHomeDis = CONST_LARGE;

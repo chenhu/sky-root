@@ -32,8 +32,6 @@ public class PersonClassStat implements Serializable {
     private transient ParamProperties params;
     @Autowired
     private transient SQLContext sqlContext;
-    @Autowired
-    ChangshuPersonClassification changshuPersonClassification;
 
     private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("exists_days", DataTypes.LongType, false),
@@ -69,7 +67,7 @@ public class PersonClassStat implements Serializable {
                 }
                 Integer uld_class = TransformFunction.transformULDClass(uld);
                 Integer stay_time_class = row.getAs("stay_time_class");
-                Integer person_class = changshuPersonClassification.classify(uld, stay_time_class);
+                Integer person_class = ChangshuPersonClassification.classify(uld, stay_time_class);
                 return RowFactory.create(uld, uld_class, stay_time_class,person_class, row.getAs("peo_num"));
             }
 
