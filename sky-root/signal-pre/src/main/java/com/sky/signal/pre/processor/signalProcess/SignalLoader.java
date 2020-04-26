@@ -112,8 +112,8 @@ public class SignalLoader implements Serializable {
                 String endTime = row.getAs("end_time").toString();
                 Integer date = Integer.valueOf(DateTime.parse(startTime, FORMATTER).toString(FORMATTED));
                 String msisdn = row.getAs("msisdn");
-                Integer region = cityCode;
-                Integer city_code = Integer.valueOf(row.getAs("reg_city").toString());
+                Integer city_code = cityCode;
+                Integer region = Integer.valueOf(row.getAs("reg_city").toString());
                 Integer tac = Integer.valueOf(row.getAs("lac").toString());
                 Long cell = Long.valueOf(row.getAs("start_ci").toString());
                 String base = null;
@@ -126,7 +126,6 @@ public class SignalLoader implements Serializable {
                 if (cellRow == null) {
                     //Do nothing
                 } else {
-                    city_code = cellRow.getInt(0);
                     base = cellRow.getString(3);
                     lng = cellRow.getDouble(4);
                     lat = cellRow.getDouble(5);
