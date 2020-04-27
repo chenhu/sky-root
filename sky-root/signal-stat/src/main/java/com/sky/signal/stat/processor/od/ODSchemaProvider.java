@@ -45,6 +45,7 @@ public class ODSchemaProvider {
             DataTypes.createStructField("age_class", DataTypes.IntegerType, false),
             DataTypes.createStructField("sex", DataTypes.ShortType, false),
             DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
+            DataTypes.createStructField("region", DataTypes.IntegerType, false),
             DataTypes.createStructField("live_base", DataTypes.StringType, true),
             DataTypes.createStructField("live_geo", DataTypes.StringType, true),
             DataTypes.createStructField("work_base", DataTypes.StringType, true),
