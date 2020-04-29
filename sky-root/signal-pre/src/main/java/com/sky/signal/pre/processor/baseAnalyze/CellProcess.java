@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.util.FileUtil;
+import com.sky.signal.pre.util.GeoUtil;
 import com.sky.signal.pre.util.ProfileUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -53,6 +54,7 @@ public class CellProcess implements Serializable {
                 Long cell = 0L;
                 Double lng = 0d;
                 Double lat = 0d;
+                String geoHash = null;
                 if (!Strings.isNullOrEmpty(line)) {
                     String[] props = line.split(",");
                     if (props.length >= 4) {
@@ -62,16 +64,18 @@ public class CellProcess implements Serializable {
                             cell = Long.valueOf(props[1]);
                             lng = Double.valueOf(props[2]);
                             lat = Double.valueOf(props[3]);
+                            geoHash = GeoUtil.geo(lat, lng);
                         }catch (Exception e){
                              city_code=0;
                              tac = 0;
                              cell = 0L;
                              lng = 0d;
                              lat = 0d;
+                            geoHash = "";
                         }
                     }
                 }
-                return RowFactory.create(city_code,tac, cell, lng, lat);
+                return RowFactory.create(city_code,tac, cell, lng, lat, geoHash);
             }
         });
 
@@ -100,7 +104,7 @@ public class CellProcess implements Serializable {
                 cellMap.put(position, base);
             }
             base=row.getAs("tac").toString() +'|'+base;
-            newRows.add(RowFactory.create(row.getInt(0), row.getInt(1), row.getLong(2),base,row.getDouble(3),row.getDouble(4)));
+            newRows.add(RowFactory.create(row.getInt(0), row.getInt(1), row.getLong(2),base,row.getDouble(3),row.getDouble(4), row.getString(5)));
         }
 
         df = sqlContext.createDataFrame(newRows, CellSchemaProvider.CELL_SCHEMA);
@@ -110,6 +114,8 @@ public class CellProcess implements Serializable {
             partitions = params.getPartitions();
         }
         FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getBasePath() + "cell");
+        // 生成geohash和经纬度对应表
+        FileUtil.saveFile(df.select("lng","lat","geohash").dropDuplicates().repartition(1),FileUtil.FileType.CSV, params.getSavePath() + "geohash");
         return df;
     }
 }
