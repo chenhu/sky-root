@@ -1,0 +1,21 @@
+param:
+  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
+  cellFile: /user/bdoc/17/services/hdfs/132/changshu/201910/cell.csv
+  basePath: /user/bdoc/17/services/hdfs/132/changshu/201910/track_201910/
+  trackPre: dt=
+  phoneCityFile: /user/bdoc/17/services/hdfs/132/changshu/GSDZ.csv
+  baseFile: /user/bdoc/17/services/hdfs/132/changshu/save/baseArea.csv
+  userFile: /user/bdoc/17/services/hdfs/132/changshu/201910/crm_201910.csv
+  workliveBatchSize: 1
+  workliveSavePath: /user/bdoc/17/services/hdfs/132/changshu/save/201910-1/
+  validSignalFilesForWorkLive:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191002
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191004
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191005
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191006
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191007
+
+
+
