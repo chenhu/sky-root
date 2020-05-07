@@ -109,17 +109,18 @@ public class WorkLiveLoader implements Serializable {
             DataFrame workLiveDf1 = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, params.getWorkLiveFile2())
                     .select("msisdn", "work_base", "live_base",
                             "exists_days", "stay_time", "live_lng", "live_lat", "work_lng", "work_lat")
+                    .withColumnRenamed("msisdn", "msisdn1")
                     .withColumnRenamed("work_base", "work_base1")
                     .withColumnRenamed("live_base", "live_base1")
                     .withColumnRenamed("exists_days", "exists_days1")
                     .withColumnRenamed("stay_time", "stay_time1")
                     .withColumnRenamed("live_lng", "live_lng1")
                     .withColumnRenamed("live_lat", "live_lat1")
-                    .withColumnRenamed("work_lnt", "work_lnt1")
+                    .withColumnRenamed("work_lng", "work_lng1")
                     .withColumnRenamed("work_lat", "work_lat1");
 
             //左连接
-            DataFrame joinedDf = workLiveDf.join(workLiveDf1, col("msisdn"), "left_outer");
+            DataFrame joinedDf = workLiveDf.join(workLiveDf1, workLiveDf.col("msisdn").equalTo(workLiveDf1.col("msisdn1")), "left_outer");
             JavaRDD<Row> workLiveRdd = joinedDf.javaRDD().map(new Function<Row, Row>() {
                 @Override
                 public Row call(Row row) throws Exception {
