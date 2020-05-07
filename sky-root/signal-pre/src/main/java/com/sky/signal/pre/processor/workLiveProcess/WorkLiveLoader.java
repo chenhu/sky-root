@@ -13,7 +13,7 @@ import java.io.Serializable;
 /**
  * 加载职住分析的数据
  */
-@Service
+@Service("workLiveLoader")
 public class WorkLiveLoader implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(WorkLiveLoader.class);
     @Autowired

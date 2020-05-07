@@ -6,7 +6,7 @@ param:
   phoneCityFile: /user/bdoc/17/services/hdfs/132/changshu/GSDZ.csv
   baseFile: /user/bdoc/17/services/hdfs/132/changshu/save/baseArea.csv
   userFile: /user/bdoc/17/services/hdfs/132/changshu/201910/crm_201910.csv
-  workliveBatchSize: 7
+  workliveBatchSize: 4
   workliveSavePath: /user/bdoc/17/services/hdfs/132/changshu/save/201910-2/
   validSignalFilesForWorkLive:
     - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191008

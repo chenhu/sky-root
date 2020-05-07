@@ -85,6 +85,14 @@ public class ParamProperties {
     private String workLiveFile;
 
     /**
+     * 职住文件1
+     */
+    private String workLiveFile1;
+    /**
+     * 职住文件2
+     */
+    private String workLiveFile2;
+    /**
      * 停驻点
      */
     private String traceFile;

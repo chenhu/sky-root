@@ -6,4 +6,21 @@
 # 若在第二份数据中没出现则认为此人是访客人口。与第一份统计出来的结果没关系,
 # 没判断出来就按照第二份的结果统计,在第二份结果中判定为什么就是什么
 param:
-  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201910-*/work_live_his
+  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201910-1/work_live_his
+  workLiveFile2: /user/bdoc/17/services/hdfs/132/changshu/save/201910-2/work_live_his
+  validSignalFilesForStat:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191007
+  odFiles:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20191007
+  odTripStatFiles:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20191007
+  odTraceFiles:
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191001
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191003
+    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20191007
