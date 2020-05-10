@@ -36,14 +36,14 @@ public class MigrateStat implements Serializable {
                 );
         joinedDf = joinedDf.groupBy("date", "region").agg(countDistinct("msisdn")
                 .as("peo_num")).orderBy(col("date"),col("region"));
-        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/" + batchId + "/migrate-stat");
+        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getStatPathWithProfile() + batchId + "/migrate-stat");
         return joinedDf;
     }
     public DataFrame agg() {
-        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getSavePath() + "stat/*/migrate-stat");
+        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getStatPathWithProfile() + "*/migrate-stat");
         aggDf = aggDf.groupBy("date", "region").agg(sum("peo_num")
                 .as("peo_num")).orderBy(col("date"),col("region"));
-        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/migrate-stat");
+        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "migrate-stat");
         return aggDf;
     }
 }

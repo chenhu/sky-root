@@ -301,14 +301,14 @@ public class TransformFunction implements Serializable {
     }
 
     /**
-     * description: 根据归属地对性别进行分类， 非本省 性别为 -1， 否则 1: 女, 0: 男
+     * description: 根据归属地对性别进行分类， 非本省 性别为 -99， 否则 1: 女, 0: 男
      * param: [sex]
      * return: java.lang.Integer
      **/
     public static final Short transformSexClass(Short sex, Integer region) {
         Short sexClass = sex;
         if (region == null || region < 100) {
-            sexClass = -1;
+            sexClass = -99;
         }
         return sexClass;
     }

@@ -1,5 +1,6 @@
 package com.sky.signal.stat.config;
 
+import com.sky.signal.stat.util.ProfileUtil;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,5 +236,9 @@ public class ParamProperties {
             }
         }
         return fileList;
+    }
+
+    public String getStatPathWithProfile() {
+        return this.getSavePath() + "stat/" + ProfileUtil.getActiveProfile().concat("/");
     }
 }

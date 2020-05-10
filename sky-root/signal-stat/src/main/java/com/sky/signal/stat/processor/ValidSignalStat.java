@@ -33,14 +33,14 @@ public class ValidSignalStat implements Serializable {
         joinedDf = joinedDf.select(validDF.col("date"),validDF.col("msisdn"),workLiveDF.col("person_class"))
                 .groupBy("date","person_class")
                 .agg(countDistinct("msisdn").as("peo_num"));
-        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/validSignal-stat/" + batchId + "/stat");
+        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "validSignal-stat/" + batchId + "/stat");
         return joinedDf;
     }
     public DataFrame agg() {
-        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getSavePath() + "stat/validSignal-stat/*/stat");
+        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getStatPathWithProfile() + "validSignal-stat/*/stat");
         aggDf = aggDf.groupBy("date", "person_class").agg(sum("peo_num")
                 .as("peo_num")).orderBy(col("date"),col("person_class"));
-        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/valid-stat");
+        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "valid-stat");
         return aggDf;
     }
 }

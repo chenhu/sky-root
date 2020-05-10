@@ -1,5 +1,5 @@
 param:
-  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201910/work_live_his
+  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201910-*/work_live_his
   basePath: /user/bdoc/17/services/hdfs/132/changshu/201910/track_201910/
   validSignalFilesForStat:
     - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191001

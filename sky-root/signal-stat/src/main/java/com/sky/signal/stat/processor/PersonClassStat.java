@@ -57,7 +57,7 @@ public class PersonClassStat implements Serializable {
     ));
 
     public DataFrame process() {
-        DataFrame workLiveStatDf  = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getSavePath() + "stat/work-live-stat");
+        DataFrame workLiveStatDf  = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getStatPathWithProfile() + "work-live-stat");
         JavaRDD<Row> rdd = workLiveStatDf.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
@@ -77,8 +77,8 @@ public class PersonClassStat implements Serializable {
 
         DataFrame statDf1 = workLiveStatDf.groupBy("person_class").agg(sum("peo_num").as("peo_num")).orderBy("person_class");
         DataFrame statDf2 = workLiveStatDf.groupBy("uld_class","stay_time_class").agg(sum("peo_num").as("peo_num")).orderBy("uld_class","stay_time_class");
-        FileUtil.saveFile(statDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/person-class-stat1");
-        FileUtil.saveFile(statDf2.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/person-class-stat2");
+        FileUtil.saveFile(statDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "person-class-stat1");
+        FileUtil.saveFile(statDf2.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "person-class-stat2");
         workLiveStatDf.unpersist();
         return null;
     }

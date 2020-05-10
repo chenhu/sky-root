@@ -5,6 +5,7 @@ import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
 import com.sky.signal.stat.util.GeoHash;
 import com.sky.signal.stat.util.GeoUtil;
+import com.sky.signal.stat.util.ProfileUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.DataFrame;
@@ -84,15 +85,15 @@ public class BaseHourStat implements Serializable {
         joinedDf = joinedDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(countDistinct("msisdn")
                 .as("peo_num")).orderBy(col("date"),col("geohash"),col("time_inter"),col("person_class"), col("sex"), col
                 ("age_class"));
-        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getSavePath() + "stat/" + batchId + "/base-hour");
+        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getStatPathWithProfile() + batchId + "/base-hour");
         return joinedDf;
     }
     public DataFrame agg() {
-        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA1, params.getSavePath() + "stat/*/base-hour");
+        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA1,params.getStatPathWithProfile() + "*/base-hour");
         aggDf = aggDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(sum("peo_num")
                 .as("peo_num")).orderBy(col("date"),col("geohash"),col("time_inter"),col("person_class"), col("sex"), col
                 ("age_class"));
-        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/base-hour");
+        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() +  "base-hour");
         return aggDf;
     }
 }

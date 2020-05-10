@@ -27,12 +27,12 @@ public class CombineTripStatWorkLive implements Serializable {
                 statTripDf.col("has_trip"),
                 statTripDf.col("staypoint_count")
                 );
-        FileUtil.saveFile(odTripStat, FileUtil.FileType.CSV, params.getSavePath() + "stat/od_trip_stat/"+batchId+"/combine-statTrip");
+        FileUtil.saveFile(odTripStat, FileUtil.FileType.CSV, params.getSavePath() + params.getStatPathWithProfile() + "od_trip_stat/"+batchId+"/combine-statTrip");
 
         return odTripStat;
     }
 
     public DataFrame read() {
-        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRIP_STAT_SCHEMA,params.getSavePath() + "stat/od_trip_stat/*/combine-statTrip").repartition(params.getPartitions());
+        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRIP_STAT_SCHEMA,params.getStatPathWithProfile() + "od_trip_stat/*/combine-statTrip").repartition(params.getPartitions());
     }
 }

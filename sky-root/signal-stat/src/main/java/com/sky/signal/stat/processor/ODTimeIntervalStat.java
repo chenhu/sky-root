@@ -37,7 +37,7 @@ public class ODTimeIntervalStat implements Serializable{
                 .withColumn("avg_dis", floor(col("sum_dis").divide(col("trip_num")))).drop("sum_time").drop("sum_dis")
                 .orderBy("date","leave_geo", "arrive_geo", "person_class", "trip_purpose", "sex", "age_class", "leaveTime_inter", "arriveTime_inter");
 
-        FileUtil.saveFile(generalDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-interval-general-stat");
+        FileUtil.saveFile(generalDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "od-time-interval-general-stat");
         return null;
     }
 }

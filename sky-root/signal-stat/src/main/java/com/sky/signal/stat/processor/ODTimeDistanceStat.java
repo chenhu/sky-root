@@ -44,7 +44,7 @@ public class ODTimeDistanceStat implements Serializable{
                         countDistinct("msisdn").as("num_inter"))
                 .orderBy("date", "age_class", "trip_purpose", "move_time_class", "distance_class");
 
-        FileUtil.saveFile(ODDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-time-distance-stat");
+        FileUtil.saveFile(ODDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "od-time-distance-stat");
         return ODDf;
 
     }

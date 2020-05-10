@@ -28,7 +28,7 @@ public class WorkLiveStat implements Serializable {
                 "uwd", "sex", "age_class").agg(countDistinct("msisdn")
                 .as("peo_num")).orderBy(col("exists_days"), col("stay_time_class"), col("live_geo"), col("on_lsd"), col("uld"),
                 col("work_geo"), col("on_wsd"), col("uwd"), col("sex"), col("age_class"));
-        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/work-live-stat");
+        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "work-live-stat");
         return joinedDf;
     }
 }

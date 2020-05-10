@@ -51,7 +51,7 @@ public class ODTripStat implements Serializable{
         DataFrame df = odTripStat.groupBy("date", "person_class", "trip_class")
                 .agg(countDistinct("msisdn").as("peo_num"))
                 .orderBy("date","person_class", "trip_class");
-        FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getSavePath() + "stat/od-trip-class-stat");
+        FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "od-trip-class-stat");
         return df;
 
     }
