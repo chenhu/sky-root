@@ -301,7 +301,7 @@ public class TransformFunction implements Serializable {
     }
 
     /**
-     * description: 根据归属地对性别进行分类， 非本省 性别为 -99， 否则 1: 女, 0: 男
+     * description: 根据归属地对性别进行分类， 非本省 性别为 -99， 否则 1: 女, 0: 男，99: 未知
      * param: [sex]
      * return: java.lang.Integer
      **/
@@ -309,6 +309,8 @@ public class TransformFunction implements Serializable {
         Short sexClass = sex;
         if (region == null || region < 100) {
             sexClass = -99;
+        } else if(sex != 0 && sex != 1) {
+            sexClass = 99;
         }
         return sexClass;
     }
