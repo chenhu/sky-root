@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import scala.Tuple2;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,11 +30,16 @@ import static org.apache.spark.sql.functions.col;
 
 /**
  * 基站数据处理
+ * 1. 普通意义上基站预处理
+ * 2. 特定区域内基站预处理 --add by chenhu 2020/05/23
+ * <p>
+ * 同时处理两种基站数据，当文件存在的时候，则认为需要处理
  */
 @Component
 public class CellProcess implements Serializable {
 
-    private static final Logger logger = LoggerFactory.getLogger(CellProcess.class);
+    private static final Logger logger = LoggerFactory.getLogger(CellProcess
+            .class);
     @Autowired
     private transient JavaSparkContext sparkContext;
 
@@ -42,14 +49,31 @@ public class CellProcess implements Serializable {
     @Autowired
     private transient ParamProperties params;
 
-    public DataFrame process() {
-        //读取原始基站数据
-        JavaRDD<String> lines = sparkContext.textFile(params.getCellFile());
-        final Integer  cityCode = Integer.valueOf(params.getCityCode());
+    /**
+     * 处理两种基站信息，并生成对应基站信息的geohash和经纬度对照表
+     * @return
+     */
+    public Tuple2 process() {
+        DataFrame commonBaseDf = null, specialBaseDf = null;
+        // 如果配置了普通基站文件，则处理普通基站文件
+        if(!StringUtils.isEmpty(params.getCellFile())) {
+            commonBaseDf = this.processBaseFile(params.getCellFile(), "cell");
+        }
+        // 如果配置了区域基站文件，则继续处理区域基站文件
+        if(!StringUtils.isEmpty(params.getSpecifiedAreaBaseFile())) {
+            specialBaseDf = this.processBaseFile(params.getSpecifiedAreaBaseFile(),
+                    "special-cell");
+        }
+        return new Tuple2<>(commonBaseDf, specialBaseDf);
+    }
+
+    private DataFrame processBaseFile(String filePath, String dir) {
+        JavaRDD<String> lines = sparkContext.textFile(filePath);
+        final Integer cityCode = Integer.valueOf(params.getCityCode());
         JavaRDD<Row> rdd = lines.map(new Function<String, Row>() {
             @Override
             public Row call(String line) throws Exception {
-                Integer city_code=0;
+                Integer city_code = 0;
                 Integer tac = 0;
                 Long cell = 0L;
                 Double lng = 0d;
@@ -59,31 +83,34 @@ public class CellProcess implements Serializable {
                     String[] props = line.split(",");
                     if (props.length >= 4) {
                         try {
-                            city_code=cityCode;
+                            city_code = cityCode;
                             tac = Integer.valueOf(props[0]);
                             cell = Long.valueOf(props[1]);
                             lng = Double.valueOf(props[2]);
                             lat = Double.valueOf(props[3]);
                             geoHash = GeoUtil.geo(lat, lng);
-                        }catch (Exception e){
-                             city_code=0;
-                             tac = 0;
-                             cell = 0L;
-                             lng = 0d;
-                             lat = 0d;
+                        } catch (Exception e) {
+                            city_code = 0;
+                            tac = 0;
+                            cell = 0L;
+                            lng = 0d;
+                            lat = 0d;
                             geoHash = "";
                         }
                     }
                 }
-                return RowFactory.create(city_code,tac, cell, lng, lat, geoHash);
+                return RowFactory.create(city_code, tac, cell, lng, lat,
+                        geoHash);
             }
         });
 
-        DataFrame df = sqlContext.createDataFrame(rdd, CellSchemaProvider.CELL_SCHEMA_OLD);
+        DataFrame df = sqlContext.createDataFrame(rdd, CellSchemaProvider
+                .CELL_SCHEMA_OLD);
         df = df.filter(col("tac").notEqual(0).and(col("cell").notEqual(0)));
 
-        //对原始数据进行排序
-        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common.base.Function<Row, Long>() {
+        //对数据按照cell字段作升序排序，这样能保证取到最小的cell值为基站编码一部分
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf
+                (new com.google.common.base.Function<Row, Long>() {
             @Override
             public Long apply(Row row) {
                 return row.getAs("cell");
@@ -96,26 +123,33 @@ public class CellProcess implements Serializable {
         Map<String, String> cellMap = new HashMap<>();
         for (Row row : rows) {
             String base = null;
-            String position = String.format("%.6f|%.6f", row.getDouble(3), row.getDouble(4));
+            String position = String.format("%.6f|%.6f", row.getDouble(3),
+                    row.getDouble(4));
             if (cellMap.containsKey(position)) {
                 base = cellMap.get(position).toString();
             } else {
                 base = row.getAs("cell").toString();
                 cellMap.put(position, base);
             }
-            base=row.getAs("tac").toString() +'|'+base;
-            newRows.add(RowFactory.create(row.getInt(0), row.getInt(1), row.getLong(2),base,row.getDouble(3),row.getDouble(4), row.getString(5)));
+            base = row.getAs("tac").toString() + '|' + base;
+            newRows.add(RowFactory.create(row.getInt(0), row.getInt(1), row
+                    .getLong(2), base, row.getDouble(3), row.getDouble(4),
+                    row.getString(5)));
         }
 
-        df = sqlContext.createDataFrame(newRows, CellSchemaProvider.CELL_SCHEMA);
+        df = sqlContext.createDataFrame(newRows, CellSchemaProvider
+                .CELL_SCHEMA);
 
         int partitions = 1;
-        if(!ProfileUtil.getActiveProfile().equals("local")) {
+        if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getBasePath() + "cell");
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV,
+                params.getBasePath() + dir);
         // 生成geohash和经纬度对应表
-        FileUtil.saveFile(df.select("lng","lat","geohash").dropDuplicates().repartition(1),FileUtil.FileType.CSV, params.getSavePath() + "geohash");
+        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates()
+                .repartition(1), FileUtil.FileType.CSV, params.getSavePath() +
+                "geohash/" + dir);
         return df;
     }
 }

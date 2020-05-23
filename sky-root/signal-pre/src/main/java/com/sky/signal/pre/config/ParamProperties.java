@@ -49,10 +49,10 @@ public class ParamProperties {
     private String cellFile;
 
     /**
-    * description: 当前处理的地市
-    * param:
-    * return:
-    **/
+     * description: 当前处理的地市
+     * param:
+     * return:
+     **/
     private Integer cityCode;
 
     /**
@@ -99,9 +99,15 @@ public class ParamProperties {
     private String linkFile;
 
     /**
-     * 基站区域对照表
+     * 当处理的信令是在一个区域内的时候，指定的一个区域内的基站信息
      */
-    private String baseFile;
+    private String specifiedAreaBaseFile;
+
+    /**
+     * 枢纽分析中虚拟基站的经纬度
+     */
+    private Double visualLng;
+    private Double visualLat;
 
     /**
      * 用户信息
@@ -116,12 +122,13 @@ public class ParamProperties {
     /**
      * 处理日期
      */
-//    private int year, month, day;
+    //    private int year, month, day;
     public static final String YEAR = "year", MONTH = "month", DAY = "day";
     private String strYear, strMonth, strDay;
     // 服务名称注入
     private String SERVICENAME = "service";
-    private static final Logger logger = LoggerFactory.getLogger(ParamProperties.class);
+    private static final Logger logger = LoggerFactory.getLogger
+            (ParamProperties.class);
 
     // 轨迹文件路径前面统一字符，比如track_、dt= ,后面带有日期yyyyMMdd
     public String trackPre;
@@ -140,34 +147,40 @@ public class ParamProperties {
 
         //通过程序参数指定分区数: --partitions=100
         if (args.containsOption(PARTITIONS)) {
-            partitions = Integer.valueOf(args.getOptionValues(PARTITIONS).get(0).trim());
+            partitions = Integer.valueOf(args.getOptionValues(PARTITIONS).get
+                    (0).trim());
         } else {
-            logger.warn("Has not passing [PARTITIONS] argument, the partitions will be use the default value {}", partitions);
+            logger.warn("Has not passing [PARTITIONS] argument, the " +
+                    "partitions will be use the default value {}", partitions);
         }
 
         //通过程序参数指定数据年份: --year=2017
         if (args.containsOption(YEAR)) {
             strYear = args.getOptionValues(YEAR).get(0).trim();
-//            year = Integer.valueOf(strYear);
+            //            year = Integer.valueOf(strYear);
         }
 
         //通过程序参数指定数据月份: --month=9
         if (args.containsOption(MONTH)) {
-            if(args.containsOption(YEAR)) {
+            if (args.containsOption(YEAR)) {
                 strMonth = args.getOptionValues(MONTH).get(0).trim();
-//                month = Integer.valueOf(strMonth);
+                //                month = Integer.valueOf(strMonth);
             } else {
-                throw new RuntimeException("Should passing the [year] argument first if you want to use the [month] argument , using: --year --month ");
+                throw new RuntimeException("Should passing the [year] " +
+                        "argument first if you want to use the [month] " +
+                        "argument , using: --year --month ");
             }
         }
 
         //通过程序参数指定数据日期的天部分: --day=24,25,26 ,通过逗号分割的天
         if (args.containsOption(DAY)) {
-            if(args.containsOption(MONTH)) {
+            if (args.containsOption(MONTH)) {
                 strDay = args.getOptionValues(DAY).get(0).trim();
-//                day = Integer.valueOf(strDay);
+                //                day = Integer.valueOf(strDay);
             } else {
-                throw new RuntimeException("Should passing the [month] argument first if you want to use the [day] argument , using: --year --month --day");
+                throw new RuntimeException("Should passing the [month] " +
+                        "argument first if you want to use the [day] argument" +
+                        " , using: --year --month --day");
             }
         }
     }
@@ -176,6 +189,7 @@ public class ParamProperties {
      * 获取客户hdfs上面原始信令数据路径
      * 目前客户hdfs上面文件路径为 basepath/YYYYMMDD/xxxx.gz
      * 此方法后面要根据实际情况作改动
+     *
      * @return
      */
     public List<String> getTraceSignalFileFullPath() {
@@ -183,55 +197,61 @@ public class ParamProperties {
         String sep = java.io.File.separator;
         String[] days = strDay.split(",");
         List<String> fileList = new ArrayList<>();
-        for (String day: days) {
-            if(orignal.endsWith(sep)) {
+        for (String day : days) {
+            if (orignal.endsWith(sep)) {
                 fileList.add(orignal + trackPre + strYear + strMonth + day);
             } else {
-                fileList.add(orignal + sep + trackPre + strYear + strMonth + day);
+                fileList.add(orignal + sep + trackPre + strYear + strMonth +
+                        day);
             }
         }
         return fileList;
     }
 
     /**
-    * description: 获取有效信令文件路径
-    * param: []
-    * return: java.lang.String
-    **/
+     * description: 获取有效信令文件路径
+     * param: []
+     * return: java.lang.String
+     **/
     public List<String> getValidSignalFileFullPath() {
         String orignal = this.getSavePath();
         String sep = java.io.File.separator;
         String[] days = strDay.split(",");
         List<String> fileList = new ArrayList<>();
-        for (String day: days) {
-            if(orignal.endsWith(sep)) {
-                fileList.add(orignal + "validSignal" + sep + strYear + strMonth + day);
+        for (String day : days) {
+            if (orignal.endsWith(sep)) {
+                fileList.add(orignal + "validSignal" + sep + strYear +
+                        strMonth + day);
             } else {
-                fileList.add(orignal + sep + "validSignal" + sep + strYear + strMonth + day);
+                fileList.add(orignal + sep + "validSignal" + sep + strYear +
+                        strMonth + day);
             }
         }
         return fileList;
     }
 
     /**
-    * description: 返回根据日期参数拼接成的 日期、有效数据路径、原始数据路径 的 map
-    * param: []
-    * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,java.lang.String>>
-    **/
+     * description: 返回根据日期参数拼接成的 日期、有效数据路径、原始数据路径 的 map
+     * param: []
+     * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,
+     * java.lang.String>>
+     **/
     public Map<String, Tuple2<String, String>> getSignalFilePathTuple2() {
         String basePath = this.getBasePath();
         String savePath = this.getSavePath();
         String sep = java.io.File.separator;
         String[] days = strDay.split(",");
         Map<String, Tuple2<String, String>> resultMap = new HashMap<>();
-        for (String day: days) {
+        for (String day : days) {
             String date = strYear + strMonth + day;
-            if(basePath.endsWith(sep)) {
-                String orginalPath =  basePath + trackPre;
-                resultMap.put(date, new Tuple2<>(savePath + "validSignal" + sep + date, orginalPath + date )) ;
+            if (basePath.endsWith(sep)) {
+                String orginalPath = basePath + trackPre;
+                resultMap.put(date, new Tuple2<>(savePath + "validSignal" +
+                        sep + date, orginalPath + date));
             } else {
-                String orginalPath =  basePath + sep + trackPre;
-                resultMap.put(date, new Tuple2<>(savePath + sep + "validSignal" + sep + date, orginalPath + date )) ;
+                String orginalPath = basePath + sep + trackPre;
+                resultMap.put(date, new Tuple2<>(savePath + sep +
+                        "validSignal" + sep + date, orginalPath + date));
             }
         }
         return resultMap;
