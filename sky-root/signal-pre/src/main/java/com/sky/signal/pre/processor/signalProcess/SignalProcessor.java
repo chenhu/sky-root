@@ -3,6 +3,7 @@ package com.sky.signal.pre.processor.signalProcess;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
@@ -10,6 +11,7 @@ import com.sky.signal.pre.processor.crmAnalyze.CrmSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
+import com.sky.signal.pre.util.SignaProcesslUtil;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -42,7 +44,8 @@ import java.util.Map;
  */
 @Component
 public class SignalProcessor implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(SignalProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger
+            (SignalProcessor.class);
 
     @Autowired
     private transient SQLContext sqlContext;
@@ -81,7 +84,8 @@ public class SignalProcessor implements Serializable {
                 if (prev.getAs("base").equals(current.getAs("base"))) {
                     last_time = current.getAs("last_time");
                 } else {
-                    result.add(calcSignal(prev, current, begin_time, last_time));
+                    result.add(calcSignal(prev, current, begin_time,
+                            last_time));
                     prev = current;
                     begin_time = prev.getAs("begin_time");
                     last_time = prev.getAs("last_time");
@@ -104,24 +108,30 @@ public class SignalProcessor implements Serializable {
     /**
      * 计算信令数据 distance move_time speed
      */
-    private static Row calcSignal(Row prior, Row current, Timestamp beginTime, Timestamp lastTime) {
+    private static Row calcSignal(Row prior, Row current, Timestamp
+            beginTime, Timestamp lastTime) {
         int distance = 0;
         int moveTime = (int) (lastTime.getTime() - beginTime.getTime()) / 1000;
         double speed = 0d;
         if (prior != null && current != null) {
             //基站与下一基站距离
-            distance = MapUtil.getDistance((double) current.getAs("lng"), (double) current.getAs("lat"), (double) prior.getAs("lng"), (double) prior.getAs("lat"));
+            distance = MapUtil.getDistance((double) current.getAs("lng"),
+                    (double) current.getAs("lat"), (double) prior.getAs
+                            ("lng"), (double) prior.getAs("lat"));
             //基站移动到下一基站速度
-            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 :  distance / moveTime * 3.6, 2);
+            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance /
+                    moveTime * 3.6, 2);
         }
-        return new GenericRowWithSchema(new Object[]{prior.getAs("date"), prior.getAs("msisdn"), prior.getAs("region"),prior.getAs("city_code"), prior.getAs("tac"),
-                prior.getAs("cell"),prior.getAs("base"),prior.getAs("lng"),prior.getAs("lat"),beginTime, lastTime,
-                distance, moveTime, speed}, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+        return new GenericRowWithSchema(new Object[]{prior.getAs("date"),
+                prior.getAs("msisdn"), prior.getAs("region"), prior.getAs
+                ("city_code"), prior.getAs("tac"), prior.getAs("cell"), prior
+                .getAs("base"), prior.getAs("lng"), prior.getAs("lat"),
+                beginTime, lastTime, distance, moveTime, speed},
+                SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
     }
 
     /**
      * 合并同一手机连续不同基站信令数据, 根据连续2/3/4/5笔处理不同的情况
-     *
      */
     private static List<Row> mergeDifferentBase(List<Row> rows) {
         List<Row> result = rows;
@@ -157,19 +167,25 @@ public class SignalProcessor implements Serializable {
                 begin_time = prev.getAs("begin_time");
             } else {
                 current = rows.get(i);
-                if ((int) prev.getAs("distance") < 100 || prev.getAs("base").equals(current.getAs("base"))) {
+                if ((int) prev.getAs("distance") < 100 || prev.getAs("base")
+                        .equals(current.getAs("base"))) {
                     last_time = current.getAs("last_time");
-                    if ((int) prev.getAs("move_time") >= (int) current.getAs("move_time")) {
+                    if ((int) prev.getAs("move_time") >= (int) current.getAs
+                            ("move_time")) {
                         if (i + 1 < rows.size()) {
-                            prev = calcSignal(prev, rows.get(i + 1), begin_time, last_time);
+                            prev = calcSignal(prev, rows.get(i + 1),
+                                    begin_time, last_time);
                         } else {
-                            prev = calcSignal(prev, null, begin_time, last_time);
+                            prev = calcSignal(prev, null, begin_time,
+                                    last_time);
                         }
                     } else {
                         if (i + 1 < rows.size()) {
-                            prev = calcSignal(current, rows.get(i + 1), begin_time, last_time);
+                            prev = calcSignal(current, rows.get(i + 1),
+                                    begin_time, last_time);
                         } else {
-                            prev = calcSignal(current, null, begin_time, last_time);
+                            prev = calcSignal(current, null, begin_time,
+                                    last_time);
                         }
                     }
                 } else {
@@ -192,7 +208,8 @@ public class SignalProcessor implements Serializable {
     /**
      * 合并同一手机连续3笔不同基站的信令数据 (A-B-C)
      * 情况1: A-C距离<=100，三种情况分别合并
-     * 情况2: A-B距离移动时间正常(距离<=5000 或 移动时间>120), B-C距离移动时间不正常(距离>5000 并 移动时间<120), 将C合并到B
+     * 情况2: A-B距离移动时间正常(距离<=5000 或 移动时间>120), B-C距离移动时间不正常(距离>5000 并
+     * 移动时间<120), 将C合并到B
      *
      * @param rows
      * @param row1
@@ -201,24 +218,42 @@ public class SignalProcessor implements Serializable {
      * @param current
      * @return
      */
-    private static Tuple3<Row, Row, Row> calcForRow3(List<Row> rows, Row row1, Row row2, Row row3, Row current) {
+    private static Tuple3<Row, Row, Row> calcForRow3(List<Row> rows, Row
+            row1, Row row2, Row row3, Row current) {
         if (row1 != null && row2 != null && row3 != null) {
-            if (MapUtil.getDistance((double) row3.getAs("lng"), (double) row3.getAs("lat"), (double) row1.getAs("lng"), (double) row1.getAs("lat")) <= 100) {
-                if ((int) row2.getAs("move_time") < 120 && (int) row1.getAs("move_time") + (int) row3.getAs("move_time") >= (int) row2.getAs("move_time")) {
-                    row1 = calcSignal(row1, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
+            if (MapUtil.getDistance((double) row3.getAs("lng"), (double) row3
+                    .getAs("lat"), (double) row1.getAs("lng"), (double) row1
+                    .getAs("lat")) <= 100) {
+                if ((int) row2.getAs("move_time") < 120 && (int) row1.getAs
+                        ("move_time") + (int) row3.getAs("move_time") >=
+                        (int) row2.getAs("move_time")) {
+                    row1 = calcSignal(row1, current, (Timestamp) row1.getAs
+                            ("begin_time"), (Timestamp) row3.getAs
+                            ("last_time"));
                     row2 = current;
                     row3 = null;
-                } else if ((int) row1.getAs("move_time") < 120 && (int) row3.getAs("move_time") < 120 && (int) row1.getAs("move_time") + (int) row3.getAs("move_time") < (int) row2.getAs("move_time")) {
-                    row1 = calcSignal(row2, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
+                } else if ((int) row1.getAs("move_time") < 120 && (int) row3
+                        .getAs("move_time") < 120 && (int) row1.getAs
+                        ("move_time") + (int) row3.getAs("move_time") < (int)
+                        row2.getAs("move_time")) {
+                    row1 = calcSignal(row2, current, (Timestamp) row1.getAs
+                            ("begin_time"), (Timestamp) row3.getAs
+                            ("last_time"));
                     row2 = current;
                     row3 = null;
                 } else if ((int) row2.getAs("move_time") > 120) {
-                    if ((int) row1.getAs("move_time") <= 120 && (int) row3.getAs("move_time") > 120) {
-                        row1 = calcSignal(row2, row3, (Timestamp) row1.getAs("begin_time"), (Timestamp) row2.getAs("last_time"));
+                    if ((int) row1.getAs("move_time") <= 120 && (int) row3
+                            .getAs("move_time") > 120) {
+                        row1 = calcSignal(row2, row3, (Timestamp) row1.getAs
+                                ("begin_time"), (Timestamp) row2.getAs
+                                ("last_time"));
                         row2 = row3;
                         row3 = current;
-                    } else if ((int) row1.getAs("move_time") > 120 && (int) row3.getAs("move_time") <= 120) {
-                        row2 = calcSignal(row2, current, (Timestamp) row2.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
+                    } else if ((int) row1.getAs("move_time") > 120 && (int)
+                            row3.getAs("move_time") <= 120) {
+                        row2 = calcSignal(row2, current, (Timestamp) row2
+                                .getAs("begin_time"), (Timestamp) row3.getAs
+                                ("last_time"));
                         row3 = current;
                     } else {
                         rows.add(row1);
@@ -232,10 +267,14 @@ public class SignalProcessor implements Serializable {
                     row2 = row3;
                     row3 = current;
                 }
-            } else if (((int) row1.getAs("distance") <= 5000 || (int) row1.getAs("move_time") >= 120) && (int) row2.getAs("distance") > 5000 && (int) row2.getAs("move_time") < 120) {
+            } else if (((int) row1.getAs("distance") <= 5000 || (int) row1
+                    .getAs("move_time") >= 120) && (int) row2.getAs
+                    ("distance") > 5000 && (int) row2.getAs("move_time") <
+                    120) {
                 //第1/2笔距离<=5000 或 移动时间>120, 表示第1/2笔正常
                 //第2/3笔距离>5000 并 第2/3笔移动时间<=120, 表示第3笔不正常, 将3合并到2
-                row2 = calcSignal(row2, current, (Timestamp) row2.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
+                row2 = calcSignal(row2, current, (Timestamp) row2.getAs
+                        ("begin_time"), (Timestamp) row3.getAs("last_time"));
                 row3 = current;
             } else {
                 rows.add(row1);
@@ -249,11 +288,11 @@ public class SignalProcessor implements Serializable {
 
     /**
      * 合并同一手机连续3笔不同基站的信令数据
-     *
      */
     private static List<Row> mergeDifferentBaseByRow3(List<Row> rows) {
         List<Row> result = new ArrayList<>();
         Row row1 = null, row2 = null, row3 = null;
+
         for (int i = 0; i < rows.size(); i++) {
             Row current = rows.get(i);
             if (row1 == null) {
@@ -263,14 +302,16 @@ public class SignalProcessor implements Serializable {
             } else if (row3 == null) {
                 row3 = current;
             } else {
-                Tuple3<Row, Row, Row> tuple = calcForRow3(result, row1, row2, row3, current);
+                Tuple3<Row, Row, Row> tuple = calcForRow3(result, row1, row2,
+                        row3, current);
                 row1 = tuple._1();
                 row2 = tuple._2();
                 row3 = tuple._3();
             }
         }
         //最后几笔
-        Tuple3<Row, Row, Row> tuple = calcForRow3(result, row1, row2, row3, null);
+        Tuple3<Row, Row, Row> tuple = calcForRow3(result, row1, row2, row3,
+                null);
         if (tuple._1() != null)
             result.add(tuple._1());
         if (tuple._2() != null)
@@ -293,12 +334,20 @@ public class SignalProcessor implements Serializable {
      * @param current
      * @return
      */
-    private static Tuple4<Row, Row, Row, Row> calcForRow4(List<Row> rows, Row row1, Row row2, Row row3, Row row4, Row current) {
+    private static Tuple4<Row, Row, Row, Row> calcForRow4(List<Row> rows, Row
+            row1, Row row2, Row row3, Row row4, Row current) {
         if (row1 != null && row2 != null && row3 != null && row4 != null) {
-            //第2+3笔移动时间<=120, 第1+4笔移动时间>=第2+3笔移动时间, 第1/4笔基站相同或第1/4笔基站距离<=100米, 合并第2/3/4笔到第1笔
-            if ((int) row2.getAs("move_time") + (int) row3.getAs("move_time") <= 120 && (int) row1.getAs("move_time") + (int) row4.getAs("move_time") >= (int) row2.getAs("move_time") + (int) row3.getAs("move_time") &&
-                    MapUtil.getDistance((double) row1.getAs("lng"), (double) row1.getAs("lat"), (double) row4.getAs("lng"), (double) row4.getAs("lat")) <= 100) {
-                row1 = calcSignal(row1, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row4.getAs("last_time"));
+            //第2+3笔移动时间<=120, 第1+4笔移动时间>=第2+3笔移动时间,
+            // 第1/4笔基站相同或第1/4笔基站距离<=100米, 合并第2/3/4笔到第1笔
+            if ((int) row2.getAs("move_time") + (int) row3.getAs("move_time")
+                    <= 120 && (int) row1.getAs("move_time") + (int) row4
+                    .getAs("move_time") >= (int) row2.getAs("move_time") +
+                    (int) row3.getAs("move_time") &&
+                    MapUtil.getDistance((double) row1.getAs("lng"), (double)
+                            row1.getAs("lat"), (double) row4.getAs("lng"),
+                            (double) row4.getAs("lat")) <= 100) {
+                row1 = calcSignal(row1, current, (Timestamp) row1.getAs
+                        ("begin_time"), (Timestamp) row4.getAs("last_time"));
                 row2 = current;
                 row3 = null;
                 row4 = null;
@@ -333,18 +382,24 @@ public class SignalProcessor implements Serializable {
             } else if (row4 == null) {
                 row4 = current;
             } else {
-                Tuple4<Row, Row, Row, Row> tuple = calcForRow4(result, row1, row2, row3, row4, current);
+                Tuple4<Row, Row, Row, Row> tuple = calcForRow4(result, row1,
+                        row2, row3, row4, current);
                 row1 = tuple._1();
                 row2 = tuple._2();
                 row3 = tuple._3();
                 row4 = tuple._4();
             }
         }
-        Tuple4<Row, Row, Row, Row> tuple = calcForRow4(result, row1, row2, row3, row4, null);
-        if (tuple._1() != null) result.add(tuple._1());
-        if (tuple._2() != null) result.add(tuple._2());
-        if (tuple._3() != null) result.add(tuple._3());
-        if (tuple._4() != null) result.add(tuple._4());
+        Tuple4<Row, Row, Row, Row> tuple = calcForRow4(result, row1, row2,
+                row3, row4, null);
+        if (tuple._1() != null)
+            result.add(tuple._1());
+        if (tuple._2() != null)
+            result.add(tuple._2());
+        if (tuple._3() != null)
+            result.add(tuple._3());
+        if (tuple._4() != null)
+            result.add(tuple._4());
 
         return result;
     }
@@ -352,15 +407,29 @@ public class SignalProcessor implements Serializable {
     /**
      * 合并同一手机连续5笔不同基站的信令数据
      * 情况1: A-B-C-D-A, B+C+D移动时间<=120, 并 A+A移动时间>=B+C+D移动时间, 将5笔合并到A
-     *
      */
-    private static Tuple5<Row, Row, Row, Row, Row> calcForRow5(List<Row> rows, Row row1, Row row2, Row row3, Row row4, Row row5, Row current) {
-        if (row1 != null && row2 != null && row3 != null && row4 != null && row5 != null) {
-            //2+3+4笔移动时间<=120, 第1+5笔移动时间>=第2+3+4笔移动时间, 第1/5笔基站相同或第1/5笔基站距离<=100, 合并第2/3/4/5笔到第1笔
-            if ((int) row2.getAs("move_time") + (int) row3.getAs("move_time") + (int) row4.getAs("move_time") <= 120
-                    && (int) row1.getAs("move_time") + (int) row5.getAs("move_time") >= (int) row2.getAs("move_time") + (int) row3.getAs("move_time") + (int) row4.getAs("move_time")
-                    && MapUtil.getDistance((double) row1.getAs("lng"), (double) row1.getAs("lat"), (double) row5.getAs("lng"), (double) row5.getAs("lat")) <= 100) {
-                row1 = calcSignal(row1, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row5.getAs("last_time"));
+    private static Tuple5<Row, Row, Row, Row, Row> calcForRow5(List<Row>
+                                                                       rows,
+                                                               Row row1, Row
+                                                                       row2,
+                                                               Row row3, Row
+                                                                       row4,
+                                                               Row row5, Row
+                                                                       current) {
+        if (row1 != null && row2 != null && row3 != null && row4 != null &&
+                row5 != null) {
+            //2+3+4笔移动时间<=120, 第1+5笔移动时间>=第2+3+4笔移动时间,
+            // 第1/5笔基站相同或第1/5笔基站距离<=100, 合并第2/3/4/5笔到第1笔
+            if ((int) row2.getAs("move_time") + (int) row3.getAs("move_time")
+                    + (int) row4.getAs("move_time") <= 120 && (int) row1
+                    .getAs("move_time") + (int) row5.getAs("move_time") >=
+                    (int) row2.getAs("move_time") + (int) row3.getAs
+                            ("move_time") + (int) row4.getAs("move_time") &&
+                    MapUtil.getDistance((double) row1.getAs("lng"), (double)
+                            row1.getAs("lat"), (double) row5.getAs("lng"),
+                            (double) row5.getAs("lat")) <= 100) {
+                row1 = calcSignal(row1, current, (Timestamp) row1.getAs
+                        ("begin_time"), (Timestamp) row5.getAs("last_time"));
                 row2 = current;
                 row3 = null;
                 row4 = null;
@@ -379,7 +448,6 @@ public class SignalProcessor implements Serializable {
 
     /**
      * 合并同一手机连续5笔不同基站的信令数据
-     *
      */
     private static List<Row> mergeDifferentBaseByRow5(List<Row> rows) {
         List<Row> result = new ArrayList<>();
@@ -397,7 +465,8 @@ public class SignalProcessor implements Serializable {
             } else if (row5 == null) {
                 row5 = current;
             } else {
-                Tuple5<Row, Row, Row, Row, Row> tuple = calcForRow5(result, row1, row2, row3, row4, row5, current);
+                Tuple5<Row, Row, Row, Row, Row> tuple = calcForRow5(result,
+                        row1, row2, row3, row4, row5, current);
                 row1 = tuple._1();
                 row2 = tuple._2();
                 row3 = tuple._3();
@@ -405,12 +474,18 @@ public class SignalProcessor implements Serializable {
                 row5 = tuple._5();
             }
         }
-        Tuple5<Row, Row, Row, Row, Row> tuple = calcForRow5(result, row1, row2, row3, row4, row5, null);
-        if (tuple._1() != null) result.add(tuple._1());
-        if (tuple._2() != null) result.add(tuple._2());
-        if (tuple._3() != null) result.add(tuple._3());
-        if (tuple._4() != null) result.add(tuple._4());
-        if (tuple._5() != null) result.add(tuple._5());
+        Tuple5<Row, Row, Row, Row, Row> tuple = calcForRow5(result, row1,
+                row2, row3, row4, row5, null);
+        if (tuple._1() != null)
+            result.add(tuple._1());
+        if (tuple._2() != null)
+            result.add(tuple._2());
+        if (tuple._3() != null)
+            result.add(tuple._3());
+        if (tuple._4() != null)
+            result.add(tuple._4());
+        if (tuple._5() != null)
+            result.add(tuple._5());
 
         return result;
     }
@@ -418,18 +493,26 @@ public class SignalProcessor implements Serializable {
     /**
      * 合并移动时间小于5秒的信令数据
      * A-B-C, 如果B移动时间小于等于5秒, 则将B合并到A/C两笔中移动时间长的那笔
-     *
      */
-    private static Tuple3<Row, Row, Row> calcForTransferSecs(List<Row> rows, Row row1, Row row2, Row row3, Row current) {
+    private static Tuple3<Row, Row, Row> calcForTransferSecs(List<Row> rows,
+                                                             Row row1, Row
+                                                                     row2,
+                                                             Row row3, Row
+                                                                     current) {
         if (row1 != null && row2 != null && row3 != null) {
             if ((int) row2.getAs("move_time") <= 5) {
                 //将第2笔合并到第1/3笔中时间较长的那笔
-                if ((int) row1.getAs("move_time") > (int) row3.getAs("move_time")) {
-                    row1 = calcSignal(row1, row3, (Timestamp) row1.getAs("begin_time"), (Timestamp) row2.getAs("last_time"));
+                if ((int) row1.getAs("move_time") > (int) row3.getAs
+                        ("move_time")) {
+                    row1 = calcSignal(row1, row3, (Timestamp) row1.getAs
+                            ("begin_time"), (Timestamp) row2.getAs
+                            ("last_time"));
                     row2 = row3;
                     row3 = current;
                 } else {
-                    row2 = calcSignal(row3, current, (Timestamp) row2.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
+                    row2 = calcSignal(row3, current, (Timestamp) row2.getAs
+                            ("begin_time"), (Timestamp) row3.getAs
+                            ("last_time"));
                     row3 = current;
                 }
             } else {
@@ -462,65 +545,50 @@ public class SignalProcessor implements Serializable {
             } else if (row3 == null) {
                 row3 = current;
             } else {
-                Tuple3<Row, Row, Row> tuple = calcForTransferSecs(result, row1, row2, row3, current);
+                Tuple3<Row, Row, Row> tuple = calcForTransferSecs(result,
+                        row1, row2, row3, current);
                 row1 = tuple._1();
                 row2 = tuple._2();
                 row3 = tuple._3();
             }
         }
-        Tuple3<Row, Row, Row> tuple = calcForTransferSecs(result, row1, row2, row3, null);
-        if (tuple._1() != null) result.add(tuple._1());
-        if (tuple._2() != null) result.add(tuple._2());
-        if (tuple._3() != null) result.add(tuple._3());
+        Tuple3<Row, Row, Row> tuple = calcForTransferSecs(result, row1, row2,
+                row3, null);
+        if (tuple._1() != null)
+            result.add(tuple._1());
+        if (tuple._2() != null)
+            result.add(tuple._2());
+        if (tuple._3() != null)
+            result.add(tuple._3());
 
         return result;
     }
 
     /**
-     *对一天的信令数据进行预处理
+     * 对一天的信令数据进行预处理
      */
-    public void oneProcess(String path,final Broadcast<Map<String, Row>> cellVar,final Broadcast<Map<String, Row>> userVar,
-                           final Broadcast<Map<String, Row>> areaVar,final Broadcast< Map<Integer,Row>> regionVar){
+    public void oneProcess(String path, final Broadcast<Map<String, Row>>
+            cellVar, final Broadcast<Map<String, Row>> userVar, final
+    Broadcast<Map<String, Row>> areaVar, final Broadcast<Map<Integer, Row>>
+            regionVar) {
 
         int partitions = 1;
-        if(!ProfileUtil.getActiveProfile().equals("local")) {
+        if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
 
-        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
+        SQLContext sqlContext = new org.apache.spark.sql.SQLContext
+                (sparkContext);
         //补全基站信息并删除重复信令
-        DataFrame df=signalLoader.cell(cellVar).mergeCell(sqlContext.read().parquet(path));
-
-        //手机号码->信令数据
-        JavaPairRDD<String, Row> rdd1 = df.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {
-            public Tuple2<String, Row> call(Row row) throws Exception {
-                String msisdn = row.getAs("msisdn");
-                return new Tuple2<>(msisdn, row);
-            }
-        });
-
-        //对数据进行分组，相同手机号放到一个集合里面
-        List<Row> rows = new ArrayList<>();
-        JavaPairRDD<String, List<Row>> rdd2 = rdd1.aggregateByKey(rows, params.getPartitions(), new Function2<List<Row>, Row, List<Row>>() {
-            @Override
-            public List<Row> call(List<Row> rows, Row row) throws Exception {
-                rows.add(row);
-                return rows;
-            }
-        }, new Function2<List<Row>, List<Row>, List<Row>>() {
-            @Override
-            public List<Row> call(List<Row> rows1, List<Row> rows2) throws Exception {
-                rows1.addAll(rows2);
-                return rows1;
-            }
-        });
-        JavaRDD<List<Row>> rdd3 = rdd2.values();
-//        rdd3 = rdd3.persist(StorageLevel.DISK_ONLY());
+        DataFrame validSignalDf = signalLoader.cell(cellVar).mergeCell
+                (sqlContext.read().parquet(path));
         //按手机号码对信令数据预处理
-        JavaRDD<Row> rdd4 = rdd3.flatMap(new FlatMapFunction<List<Row>, Row>() {
+        JavaRDD<Row> rdd4 = SignaProcesslUtil.signalToJavaPairRDD
+                (validSignalDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {
-                Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
+                Ordering<Row> ordering = Ordering.natural().nullsFirst()
+                        .onResultOf(new Function<Row, Timestamp>() {
                     @Override
                     public Timestamp apply(Row row) {
                         return row.getAs("begin_time");
@@ -540,20 +608,28 @@ public class SignalProcessor implements Serializable {
                 return rows;
             }
         });
-        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4,
+                SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
 
-        signalBaseDf=signalBaseDf.persist(StorageLevel.DISK_ONLY());
+        signalBaseDf = signalBaseDf.persist(StorageLevel.DISK_ONLY());
 
         // 补全CRM数据、替换外省归属地
-        JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
-        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
+        JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar)
+                .mergeCRM(signalBaseDf.javaRDD());
+        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame
+                (signalBaseWithCRMRDD, SignalSchemaProvider
+                        .SIGNAL_SCHEMA_BASE_2);
         // 补全归属地信息
-        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
-        DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
-//        String date=signalMerged.first().getAs("date").toString();
+        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar)
+                .mergeAttribution(signalBaseWithCRMDf.javaRDD());
+        DataFrame signalMerged = sqlContext.createDataFrame
+                (signalBaseWithRegionRDD, SignalSchemaProvider
+                        .SIGNAL_SCHEMA_NO_AREA);
+        //        String date=signalMerged.first().getAs("date").toString();
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
-        String date=path.substring(path.length() - 8);
-        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "validSignal/"+date);
+        String date = path.substring(path.length() - 8);
+        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil
+                .FileType.CSV, params.getSavePath() + "validSignal/" + date);
         signalBaseDf.unpersist();
 
     }
@@ -563,18 +639,20 @@ public class SignalProcessor implements Serializable {
      */
     public void process() {
 
-//        //基站信息
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load();
+        //普通基站信息
+        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params
+                .getBasePath() + PathConfig.CELL_PATH);
 
         //CRM信息
         final Broadcast<Map<String, Row>> userVar = crmProcess.load();
 
         // 手机号码归属地信息
-        final Broadcast< Map<Integer,Row>> regionVar = phoneAttributionProcess.process();
+        final Broadcast<Map<Integer, Row>> regionVar =
+                phoneAttributionProcess.process();
 
         //对轨迹数据预处理
-        for(String traceFile: params.getTraceSignalFileFullPath()) {
-            oneProcess(traceFile,cellVar,userVar,null,regionVar);
+        for (String traceFile : params.getTraceSignalFileFullPath()) {
+            oneProcess(traceFile, cellVar, userVar, null, regionVar);
         }
     }
 }

@@ -3,6 +3,7 @@ package com.sky.signal.pre.processor.baseAnalyze;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.GeoUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -51,18 +52,20 @@ public class CellProcess implements Serializable {
 
     /**
      * 处理两种基站信息，并生成对应基站信息的geohash和经纬度对照表
+     *
      * @return
      */
     public Tuple2 process() {
         DataFrame commonBaseDf = null, specialBaseDf = null;
         // 如果配置了普通基站文件，则处理普通基站文件
-        if(!StringUtils.isEmpty(params.getCellFile())) {
-            commonBaseDf = this.processBaseFile(params.getCellFile(), "cell");
+        if (!StringUtils.isEmpty(params.getCellFile())) {
+            commonBaseDf = this.processBaseFile(params.getCellFile(),
+                    PathConfig.CELL_PATH);
         }
         // 如果配置了区域基站文件，则继续处理区域基站文件
-        if(!StringUtils.isEmpty(params.getSpecifiedAreaBaseFile())) {
-            specialBaseDf = this.processBaseFile(params.getSpecifiedAreaBaseFile(),
-                    "special-cell");
+        if (!StringUtils.isEmpty(params.getSpecifiedAreaBaseFile())) {
+            specialBaseDf = this.processBaseFile(params
+                    .getSpecifiedAreaBaseFile(), PathConfig.STATION_CELL_PATH);
         }
         return new Tuple2<>(commonBaseDf, specialBaseDf);
     }
@@ -149,7 +152,7 @@ public class CellProcess implements Serializable {
         // 生成geohash和经纬度对应表
         FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates()
                 .repartition(1), FileUtil.FileType.CSV, params.getSavePath() +
-                "geohash/" + dir);
+                PathConfig.GEOHASH_PATH + "/" + dir);
         return df;
     }
 }
