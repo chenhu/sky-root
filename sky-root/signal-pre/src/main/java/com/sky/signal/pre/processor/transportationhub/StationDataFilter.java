@@ -4,7 +4,11 @@ import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
+import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
+import com.sky.signal.pre.processor.signalProcess.SignalLoader;
 import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
+import com.sky.signal.pre.util.FileUtil;
+import com.sky.signal.pre.util.ProfileUtil;
 import com.sky.signal.pre.util.SignaProcesslUtil;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -42,17 +46,24 @@ public class StationDataFilter implements Serializable {
     // 基站加载
     @Autowired
     private transient CellLoader cellLoader;
+    @Autowired
+    private transient SignalLoader signalLoader;
 
 
     /**
      * 过滤有效信令，把经过枢纽基站的用户当天轨迹保留下来
      * 每次只处理一天的数据
      *
-     * @param validSignalDf 一天的有效信令
+     * @param validSignalFile 一天的有效信令路径
      * @return 当天经过枢纽基站的用户全部轨迹
      */
-    public DataFrame filterData(DataFrame validSignalDf) {
+    public DataFrame filterData(String validSignalFile) {
 
+        int partitions = 1;
+        if (!ProfileUtil.getActiveProfile().equals("local")) {
+            partitions = params.getPartitions();
+        }
+        DataFrame validSignalDf = signalLoader.load(validSignalFile);
         //遍历有效信令，找到每个用户哪些天经过枢纽基站，并替换有效信令中位置信息为虚拟基站
         //信令数据转换为手机号码和记录的键值对
         JavaPairRDD<String, List<Row>> validSignalPairRDD = SignaProcesslUtil
@@ -60,9 +71,6 @@ public class StationDataFilter implements Serializable {
         // 加载枢纽基站
         final Broadcast<Map<String, Row>> stationCell = cellLoader.load
                 (params.getBasePath() + PathConfig.STATION_CELL_PATH);
-        // 取到枢纽基站的虚拟基站
-        final String position = String.format("%.6f|%.6f", params
-                .getVisualLng(), params.getVisualLat());
         // 过滤信令数据，如果用户信令中出现枢纽基站，则保留这个用户的数据
         validSignalPairRDD = validSignalPairRDD.filter(new Function<Tuple2<String, List<Row>>, Boolean>() {
             @Override
@@ -95,7 +103,12 @@ public class StationDataFilter implements Serializable {
 
                 //按startTime排序
                 rows = ordering.sortedCopy(rows);
+                //合并枢纽基站
                 rows = mergeStationBase(rows);
+                //重新排序
+                rows = ordering.sortedCopy(rows);
+                //判定停留点类型
+                rows = stayPointDecision(rows);
 
                 return rows;
             }
@@ -106,8 +119,40 @@ public class StationDataFilter implements Serializable {
                 return rows;
             }
         });
-        return sqlContext.createDataFrame(resultRDD, SignalSchemaProvider
-                .SIGNAL_SCHEMA_NO_AREA);
+        DataFrame resultDf = sqlContext.createDataFrame(resultRDD,
+                SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
+        String date = validSignalFile.substring(validSignalFile.length() - 8);
+        FileUtil.saveFile(resultDf.repartition(partitions), FileUtil.FileType
+                .CSV, params.getSavePath() + PathConfig.STATION_DATA_PATH +
+                date);
+        return resultDf;
+
+    }
+
+    /**
+     * 增加并判定停留点类型
+     * 针对每一条手机数据，计算当前位置点与后一位置点的时间差t及空间点位移速度v; 若该数据所占用的基站是枢纽站，t >= 10min
+     * 则判断当前位置为停留点，t < 10min 则为位移点；若当前数据为非枢纽站数据，t >= 40min则当前位置点为确定停留点,若10min
+     * <= t < 40min 且 v < 8km/h 则为可能停留点，否则为位移点。
+     *
+     * @param rows 每个用户一天的信令，并已经按照开始时间升序排列
+     * @return 增加了停留点的用户信令数据
+     */
+    private List<Row> stayPointDecision(List<Row> rows) {
+        // 带停留点类型的结果列表数据
+        List<Row> resultSignalList = new ArrayList<>(rows.size());
+        // 前一条信令
+        Row prior = null;
+        for (int i = 0; i < rows.size(); i++) {
+            // 当前信令
+            Row current = rows.get(i);
+            if (prior == null) {
+                prior = current;
+            } else {
+
+            }
+        }
+        return null;
     }
 
     /**
@@ -116,6 +161,7 @@ public class StationDataFilter implements Serializable {
      * 则合并A和B为新的虚拟基站X，记录A的start_time为X的start_time，
      * B的last_time为X的last_time，并计算新基站X
      * 与下一条轨迹数据所在基站的distance、move_time、speed
+     *
      * @param rows 用户一天的手机信令数据
      * @return 合并后的手机信令数据
      */
@@ -149,14 +195,10 @@ public class StationDataFilter implements Serializable {
                         //合并,默认为最后一条记录，距离和速度均为0
                         visualBaseRow = new GenericRowWithSchema(new
                                 Object[]{prior.getAs("date"), prior.getAs
-                                ("msisdn"), prior.getAs("region"), prior
-                                .getAs("city_code"), prior.getAs
-                                ("cen_region"), prior.getAs("sex"), prior
-                                .getAs("age"), prior.getAs("tac"), prior
-                                .getAs("cell"), position, params.getVisualLng
-                                (), params.getVisualLat(), beginTime,
-                                lastTime, 0d, prior.getAs("move_time"), 0d},
-                                SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
+                                ("msisdn"), position, params.getVisualLng(),
+                                params.getVisualLat(), beginTime, lastTime,
+                                0d, prior.getAs("move_time"), 0d},
+                                ODSchemaProvider.STATION_TRACE_SCHEMA);
                         if (i < rows.size() - 1) {// 不是最后一条记录,
                             // 取出下条记录，并重新计算与下个点的距离、移动时间、速度
                             Row next = rows.get(i + 1);
@@ -169,29 +211,21 @@ public class StationDataFilter implements Serializable {
                             //重新计算距离、逗留时间、速度
                             visualBaseRow = new GenericRowWithSchema(new
                                     Object[]{prior.getAs("date"), prior.getAs
-                                    ("msisdn"), prior.getAs("region"), prior
-                                    .getAs("city_code"), prior.getAs
-                                    ("cen_region"), prior.getAs("sex"), prior
-                                    .getAs("age"), prior.getAs("tac"), prior
-                                    .getAs("cell"), position, params
-                                    .getVisualLng(), params.getVisualLat(),
-                                    beginTime, lastTime, tuple3._1(), tuple3
-                                    ._2(), tuple3._3()}, SignalSchemaProvider
-                                    .SIGNAL_SCHEMA_NO_AREA);
+                                    ("msisdn"), position, params.getVisualLng
+                                    (), params.getVisualLat(), beginTime,
+                                    lastTime, tuple3._1(), tuple3._2(),
+                                    tuple3._3()}, ODSchemaProvider
+                                    .STATION_TRACE_SCHEMA);
                         }
                     } else { //非连续的枢纽基站，把枢纽基站替换为虚拟基站,并重新计算与下个点的的距离、移动时间、速度
                         visualBaseRow = new GenericRowWithSchema(new
                                 Object[]{prior.getAs("date"), prior.getAs
-                                ("msisdn"), prior.getAs("region"), prior
-                                .getAs("city_code"), prior.getAs
-                                ("cen_region"), prior.getAs("sex"), prior
-                                .getAs("age"), prior.getAs("tac"), prior
-                                .getAs("cell"), position, params.getVisualLng
-                                (), params.getVisualLat(), prior.getAs
+                                ("msisdn"), position, params.getVisualLng(),
+                                params.getVisualLat(), prior.getAs
                                 ("begin_time"), prior.getAs("last_time"),
                                 prior.getAs("distance"), prior.getAs
                                 ("move_time"), prior.getAs("speed")},
-                                SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
+                                ODSchemaProvider.STATION_TRACE_SCHEMA);
                     }
                     // 设置前条信令指向新计算的信令
                     prior = visualBaseRow;
@@ -206,15 +240,11 @@ public class StationDataFilter implements Serializable {
                     //默认为最后一条记录，距离和速度均为0
                     Row lastRow = new GenericRowWithSchema(new
                             Object[]{current.getAs("date"), current.getAs
-                            ("msisdn"), current.getAs("region"), current
-                            .getAs("city_code"), current.getAs("cen_region"),
-                            current.getAs("sex"), current.getAs("age"),
-                            current.getAs("tac"), current.getAs("cell"),
-                            position, params.getVisualLng(), params
-                            .getVisualLat(), current.getAs("last_time"),
-                            current.getAs("distance"), current.getAs
+                            ("msisdn"), position, params.getVisualLng(),
+                            params.getVisualLat(), current.getAs("last_time")
+                            , current.getAs("distance"), current.getAs
                             ("move_time"), current.getAs("speed")},
-                            SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
+                            ODSchemaProvider.STATION_TRACE_SCHEMA);
                     mergedBaseSignalList.add(lastRow);
                 } else {
                     mergedBaseSignalList.add(current);
