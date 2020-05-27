@@ -1,7 +1,10 @@
 package com.sky.signal.pre.processor.transportationhub;
 
+import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.util.ProfileUtil;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -13,24 +16,14 @@ import java.util.List;
  */
 @Component
 public class StationPersonClassification implements Serializable {
+    @Autowired
+    private transient ParamProperties params;
+    public void process(String validSignalFile) {
 
-    public void process(DataFrame stationValidSignal) {
-        // 停留点类型判定
-        DataFrame stayPointValidSignal = stayPointType(stationValidSignal);
-
-    }
-
-    /**
-     * 确定停留点类型
-     * 针对每一条手机数据，计算当前位置点与后一位置点的时间差t及空间点位移速度v; 若该数据所占用的基站是枢纽站，t >= 10min
-     * 则判断当前位置为停留点，t < 10min 则为位移点；若当前数据为非枢纽站数据，t >= 40min则当前位置点为确定停留点,若10min
-     * <= t < 40min 且 v < 8km/h 则为可能停留点，否则为位移点。（0=确定停留点，1=可能停留点，2=位移点）
-     *
-     * @param df 待分类的有效信令
-     * @return
-     */
-    private DataFrame stayPointType(DataFrame df) {
-        return null;
+        int partitions = 1;
+        if (!ProfileUtil.getActiveProfile().equals("local")) {
+            partitions = params.getPartitions();
+        }
     }
 
     /**

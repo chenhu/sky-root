@@ -104,10 +104,11 @@ public class ParamProperties {
     private String specifiedAreaBaseFile;
 
     /**
-     * 枢纽分析中虚拟基站的经纬度
+     * 枢纽分析中虚拟基站的经纬度，以及虚拟基站的Base(tac|cell)
      */
     private Double visualLng;
     private Double visualLat;
+    private String visualStationBase;
 
     /**
      * 用户信息
