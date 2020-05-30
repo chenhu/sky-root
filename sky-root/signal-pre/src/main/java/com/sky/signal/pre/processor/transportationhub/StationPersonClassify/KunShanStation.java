@@ -1,7 +1,13 @@
 package com.sky.signal.pre.processor.transportationhub.StationPersonClassify;
 
-import org.apache.spark.sql.DataFrame;
+import com.google.common.collect.Ordering;
+import org.apache.spark.sql.Row;
+import org.joda.time.LocalTime;
 import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Created by Chenhu on 2020/5/27.
@@ -15,12 +21,23 @@ import org.springframework.stereotype.Component;
  * Pn之中）有停留点或该用户在后一天有停留点，则判断该用户为铁路到达人口；其他用户则判断为铁路过境人口
  */
 @Component
-public class KunShanStation implements Station {
-
-
+public class KunShanStation implements Station, Serializable {
+    private static final LocalTime time0000 = new LocalTime(0, 0);
+    private static final LocalTime time0035 = new LocalTime(0, 35);
+    private static final LocalTime time2230 = new LocalTime(22, 30);
+    private static final LocalTime time2359 = new LocalTime(23, 59);
 
     @Override
-    public DataFrame classify(DataFrame df) {
+    public List<Row> classify(List<Row> rows) {
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf
+                (new com.google.common.base.Function<Row, Timestamp>() {
+            @Override
+            public Timestamp apply(Row row) {
+                return row.getAs("begin_time");
+            }
+        });
+        //按startTime排序
+        rows = ordering.sortedCopy(rows);
         return null;
     }
 }

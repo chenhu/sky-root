@@ -1,9 +1,20 @@
 package com.sky.signal.pre.processor.transportationhub;
 
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.config.PathConfig;
+import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
+import com.sky.signal.pre.processor.transportationhub.StationPersonClassify
+        .KunShanStation;
+import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.ProfileUtil;
+import com.sky.signal.pre.util.SignaProcesslUtil;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +29,49 @@ import java.util.List;
 public class StationPersonClassification implements Serializable {
     @Autowired
     private transient ParamProperties params;
-    public void process(String validSignalFile) {
+    @Autowired
+    private transient SQLContext sqlContext;
+    //60分钟
+    private static final Integer ONE_HOUR = 60 * 60;
+
+    @Autowired
+    private transient KunShanStation kunShanStation;
+
+    public void process(String stationTraceFilePath) {
 
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
+        final String date = stationTraceFilePath.substring(stationTraceFilePath
+                .length() - 8);
+
+        DataFrame stationTraceDf = FileUtil.readFile(FileUtil.FileType.CSV,
+                ODSchemaProvider.TRACE_SCHEMA, stationTraceFilePath)
+                .repartition(params.getPartitions());
+        // 数据转化为以手机号为key，整行数据为value的KeyPair数据
+        JavaPairRDD<String, List<Row>> stationTracePairRDD =
+                SignaProcesslUtil.signalToJavaPairRDD(stationTraceDf, params);
+        JavaRDD<List<Row>> stationTraceRDD = stationTracePairRDD.values().map
+                (new Function<List<Row>, List<Row>>() {
+            @Override
+            public List<Row> call(List<Row> rows) throws Exception {
+                return personClassification(rows);
+            }
+        });
+
+        JavaRDD<Row> resultRDD = stationTraceRDD.flatMap(new FlatMapFunction<List<Row>, Row>() {
+            @Override
+            public Iterable<Row> call(List<Row> rows) throws Exception {
+                return rows;
+            }
+        });
+        DataFrame resultDf = sqlContext.createDataFrame(resultRDD,
+                ODSchemaProvider.STATION_TRACE_CLASSIC_SCHEMA);
+
+        FileUtil.saveFile(resultDf.repartition(partitions), FileUtil.FileType
+                .CSV, params.getSavePath() + PathConfig.STATION_CLASSIC_PATH +
+                date);
     }
 
     /**
@@ -31,26 +79,22 @@ public class StationPersonClassification implements Serializable {
      * 针对每个用户（以MSISDN字段为区分），对move_time进行求和，计算其当天全部的逗留时间；对于逗留时间 >=
      * 60min的用户，直接进入第⑤步，对于逗留时间 < 60min的用户，直接进入步骤④进行铁路过境人口判断
      *
-     * @param df 待分类的有效信令
+     * @param rows 用户一天的信令数据
      * @return
      */
-    private DataFrame personClassification(DataFrame df) {
-        return null;
-    }
-
-    /**
-     * 铁路过境人口分类
-     * 针对当天逗留时间 < 60min的用户（同一MSISDN），按照字段（start_time）排序，得到其轨迹
-     * ，找出其中的枢纽点Pj，若Pj的start_time在0:00 – 0:35之间，且Pj的move_time >=
-     * 3min，且在Pj之前（P1,P2,…,Pj-1之中）有停留点或该用户在前一天有停留点，则判断该用户为铁路出发人口；若Pj
-     * 的start_time在22:30 – 24:00之间，且Pj的move_time >= 76s，且在Pj之后（Pj+1, …,
-     * Pn之中）有停留点或该用户在后一天有停留点，则判断该用户为铁路到达人口；其他用户则判断为铁路过境人口。
-     *
-     * @param rows 用户一条的信令
-     * @return 增加分类后的用户数据
-     */
-    private List<Row> railwayPassPerson(List<Row> rows) {
-        return null;
+    private List<Row> personClassification(List<Row> rows) {
+        List<Row> resultList;
+        Long sumMoveTime = 0L;
+        for (Row row : rows) {
+            Integer moveTime = row.getAs("move_time");
+            sumMoveTime += moveTime;
+        }
+        if (sumMoveTime >= ONE_HOUR) {
+            resultList = stationPersionClassification(rows);
+        } else {
+            resultList = kunShanStation.classify(rows);
+        }
+        return resultList;
     }
 
     /**

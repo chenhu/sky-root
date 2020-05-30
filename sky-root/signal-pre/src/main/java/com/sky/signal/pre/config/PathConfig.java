@@ -11,6 +11,10 @@ public class PathConfig {
     public static final String STATION_CELL_PATH = "station_cell";
     //基站经纬度和geohash对照表数据保存文件夹名称
     public static final String GEOHASH_PATH = "geohash";
-    //枢纽站预处理后保存文件夹名称
+    //枢纽站预处理后带停留点类型的文件保存文件夹名称
     public static final String STATION_DATA_PATH = "station-data/";
+
+    //枢纽站预处理后带停人口分类的文件保存文件夹名称
+    public static final String STATION_CLASSIC_PATH = "station-classic/";
+
 }

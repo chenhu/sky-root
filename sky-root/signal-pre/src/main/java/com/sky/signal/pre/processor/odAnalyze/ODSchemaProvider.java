@@ -10,6 +10,28 @@ import org.apache.spark.sql.types.StructType;
  * description: OD分析相关的Schema定义
  */
 public class ODSchemaProvider {
+    //带人口分类的枢纽人口轨迹
+    public static final StructType STATION_TRACE_CLASSIC_SCHEMA = DataTypes
+            .createStructType(Lists.newArrayList(DataTypes.createStructField
+                            ("date", DataTypes.IntegerType, false), DataTypes
+                            .createStructField("msisdn", DataTypes.StringType, false)
+                    , DataTypes.createStructField("base", DataTypes
+                            .StringType, false), DataTypes.createStructField
+                            ("lng", DataTypes.DoubleType, false), DataTypes
+                            .createStructField("lat", DataTypes.DoubleType,
+                                    false), DataTypes.createStructField
+                            ("begin_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("last_time", DataTypes
+                            .TimestampType, false), DataTypes
+                            .createStructField("distance", DataTypes
+                                    .IntegerType, false), DataTypes
+                            .createStructField("move_time", DataTypes
+                                    .IntegerType, false), DataTypes
+                            .createStructField("speed", DataTypes.DoubleType,
+                                    false), DataTypes.createStructField
+                            ("point_type", DataTypes.ByteType, false),
+                    DataTypes.createStructField("station_person_classic",
+                            DataTypes.ByteType, false)));
     //枢纽站轨迹
     public static final StructType STATION_TRACE_SCHEMA = DataTypes
             .createStructType(Lists.newArrayList(DataTypes.createStructField
@@ -49,6 +71,7 @@ public class ODSchemaProvider {
                             .createStructField("speed", DataTypes.DoubleType,
                                     false), DataTypes.createStructField
                             ("point_type", DataTypes.ByteType, false)));
+
     public static final StructType OD_TRACE_SCHEMA = DataTypes
             .createStructType(Lists.newArrayList(DataTypes.createStructField
                     ("date", DataTypes.IntegerType, false), DataTypes

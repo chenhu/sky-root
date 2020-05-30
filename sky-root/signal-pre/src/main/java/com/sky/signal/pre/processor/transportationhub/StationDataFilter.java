@@ -6,7 +6,6 @@ import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
 import com.sky.signal.pre.processor.signalProcess.SignalLoader;
-import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -104,28 +103,28 @@ public class StationDataFilter implements Serializable {
 
         JavaRDD<List<Row>> stationBaseRDD = validSignalPairRDD.values().map
                 (new Function<List<Row>, List<Row>>() {
+            @Override
+            public List<Row> call(List<Row> rows) throws Exception {
+                Ordering<Row> ordering = Ordering.natural().nullsFirst()
+                        .onResultOf(new com.google.common.base.Function<Row,
+                                Timestamp>() {
                     @Override
-                    public List<Row> call(List<Row> rows) throws Exception {
-                        Ordering<Row> ordering = Ordering.natural().nullsFirst()
-                                .onResultOf(new com.google.common.base.Function<Row,
-                                        Timestamp>() {
-                                    @Override
-                                    public Timestamp apply(Row row) {
-                                        return row.getAs("begin_time");
-                                    }
-                                });
-
-                        //按startTime排序
-                        rows = ordering.sortedCopy(rows);
-                        //合并枢纽基站
-                        rows = mergeStationBase(rows);
-                        //重新排序
-                        rows = ordering.sortedCopy(rows);
-                        //判定停留点类型
-                        rows = stayPointDecision(rows);
-                        return rows;
+                    public Timestamp apply(Row row) {
+                        return row.getAs("begin_time");
                     }
                 });
+
+                //按startTime排序
+                rows = ordering.sortedCopy(rows);
+                //合并枢纽基站
+                rows = mergeStationBase(rows);
+                //重新排序
+                rows = ordering.sortedCopy(rows);
+                //判定停留点类型
+                rows = stayPointDecision(rows);
+                return rows;
+            }
+        });
         JavaRDD<Row> resultRDD = stationBaseRDD.flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {
@@ -133,7 +132,7 @@ public class StationDataFilter implements Serializable {
             }
         });
         DataFrame resultDf = sqlContext.createDataFrame(resultRDD,
-                SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
+                ODSchemaProvider.TRACE_SCHEMA);
         String date = validSignalFile.substring(validSignalFile.length() - 8);
         FileUtil.saveFile(resultDf.repartition(partitions), FileUtil.FileType
                 .CSV, params.getSavePath() + PathConfig.STATION_DATA_PATH +
@@ -172,8 +171,15 @@ public class StationDataFilter implements Serializable {
             //1. 如果信令在枢纽基站，则修改后，加入结果列表，并跳出循环
             //2. 如果信令不在枢纽基站，加入结果列表，并跳出循环
             if (i == rows.size() - 1) {
-                //TODO 考虑最后一条数据或者只有一条应该是什么类型
+                Timestamp beginTime = prior.getAs("begin_time");
+                Timestamp endTime = prior.getAs("last_time");
+                stayPointRow = calcRow(prior, null, beginTime, endTime);
+                resultSignalList.add(stayPointRow);
+                break;
             }
+            // 为下次循环重新设置前一个记录指向当前记录
+            prior = current;
+            // 增加了停留点字段的记录增加到结果集
             resultSignalList.add(stayPointRow);
         }
         return resultSignalList;
@@ -198,8 +204,7 @@ public class StationDataFilter implements Serializable {
                     distance / moveTime * 3.6, 2);
         }
         String base = prior.getAs("base");
-        byte pointType = getPointType(base, moveTime,
-                speed);
+        byte pointType = getPointType(base, moveTime, speed);
         return new GenericRowWithSchema(new Object[]{prior.getAs("date"),
                 prior.getAs("msisdn"), prior.getAs("base"), prior.getAs
                 ("lng"), prior.getAs("lat"), startTime, lastTime, distance,
@@ -262,10 +267,11 @@ public class StationDataFilter implements Serializable {
                         //合并,默认为最后一条记录，距离和速度均为0
                         visualBaseRow = new GenericRowWithSchema(new
                                 Object[]{prior.getAs("date"), prior.getAs
-                                ("msisdn"), params.getVisualStationBase(), params.getVisualLng(),
-                                params.getVisualLat(), beginTime, lastTime,
-                                0d, prior.getAs("move_time"), 0d},
-                                ODSchemaProvider.STATION_TRACE_SCHEMA);
+                                ("msisdn"), params.getVisualStationBase(),
+                                params.getVisualLng(), params.getVisualLat(),
+                                beginTime, lastTime, 0d, prior.getAs
+                                ("move_time"), 0d}, ODSchemaProvider
+                                .STATION_TRACE_SCHEMA);
                         if (i < rows.size() - 1) {// 不是最后一条记录,
                             // 取出下条记录，并重新计算与下个点的距离、移动时间、速度
                             Row next = rows.get(i + 1);
@@ -278,20 +284,20 @@ public class StationDataFilter implements Serializable {
                             //重新计算距离、逗留时间、速度
                             visualBaseRow = new GenericRowWithSchema(new
                                     Object[]{prior.getAs("date"), prior.getAs
-                                    ("msisdn"), params.getVisualStationBase(), params.getVisualLng
-                                    (), params.getVisualLat(), beginTime,
-                                    lastTime, tuple3._1(), tuple3._2(),
-                                    tuple3._3()}, ODSchemaProvider
-                                    .STATION_TRACE_SCHEMA);
+                                    ("msisdn"), params.getVisualStationBase()
+                                    , params.getVisualLng(), params
+                                    .getVisualLat(), beginTime, lastTime,
+                                    tuple3._1(), tuple3._2(), tuple3._3()},
+                                    ODSchemaProvider.STATION_TRACE_SCHEMA);
                         }
                     } else { //非连续的枢纽基站，把枢纽基站替换为虚拟基站,并重新计算与下个点的的距离、移动时间、速度
                         visualBaseRow = new GenericRowWithSchema(new
                                 Object[]{prior.getAs("date"), prior.getAs
-                                ("msisdn"), params.getVisualStationBase(), params.getVisualLng(),
-                                params.getVisualLat(), prior.getAs
-                                ("begin_time"), prior.getAs("last_time"),
-                                prior.getAs("distance"), prior.getAs
-                                ("move_time"), prior.getAs("speed")},
+                                ("msisdn"), params.getVisualStationBase(),
+                                params.getVisualLng(), params.getVisualLat(),
+                                prior.getAs("begin_time"), prior.getAs
+                                ("last_time"), prior.getAs("distance"), prior
+                                .getAs("move_time"), prior.getAs("speed")},
                                 ODSchemaProvider.STATION_TRACE_SCHEMA);
                     }
                     // 设置前条信令指向新计算的信令
@@ -307,11 +313,11 @@ public class StationDataFilter implements Serializable {
                     //默认为最后一条记录，距离和速度均为0
                     Row lastRow = new GenericRowWithSchema(new
                             Object[]{current.getAs("date"), current.getAs
-                            ("msisdn"), params.getVisualStationBase(), params.getVisualLng(),
-                            params.getVisualLat(), current.getAs("last_time")
-                            , current.getAs("distance"), current.getAs
-                            ("move_time"), current.getAs("speed")},
-                            ODSchemaProvider.STATION_TRACE_SCHEMA);
+                            ("msisdn"), params.getVisualStationBase(), params
+                            .getVisualLng(), params.getVisualLat(), current
+                            .getAs("last_time"), current.getAs("distance"),
+                            current.getAs("move_time"), current.getAs
+                            ("speed")}, ODSchemaProvider.STATION_TRACE_SCHEMA);
                     mergedBaseSignalList.add(lastRow);
                 } else {
                     mergedBaseSignalList.add(current);

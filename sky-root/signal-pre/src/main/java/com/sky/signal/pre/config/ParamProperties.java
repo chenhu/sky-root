@@ -232,6 +232,30 @@ public class ParamProperties {
     }
 
     /**
+     * description: 获取枢纽有效信令文件路径,文件内容带有停留点类型
+     * param: []
+     * return: java.lang.String
+     **/
+    public List<String> getStationTraceFileFullPath() {
+        String orignal = this.getSavePath();
+        String sep = java.io.File.separator;
+        String[] days = strDay.split(",");
+        List<String> fileList = new ArrayList<>();
+        for (String day : days) {
+            if (orignal.endsWith(sep)) {
+                fileList.add(orignal + PathConfig.STATION_DATA_PATH + strYear +
+                        strMonth + day);
+            } else {
+                fileList.add(orignal + sep + PathConfig.STATION_DATA_PATH +
+                        strYear +
+                        strMonth + day);
+            }
+        }
+        return fileList;
+    }
+
+
+    /**
      * description: 返回根据日期参数拼接成的 日期、有效数据路径、原始数据路径 的 map
      * param: []
      * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,
