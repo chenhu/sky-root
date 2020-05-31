@@ -7,17 +7,13 @@ import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
-import com.sky.signal.pre.processor.crmAnalyze.CrmSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
-import com.sky.signal.pre.util.SignaProcesslUtil;
-import org.apache.spark.api.java.JavaPairRDD;
+import com.sky.signal.pre.util.SignalProcessUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
@@ -28,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import scala.Tuple2;
 import scala.Tuple3;
 import scala.Tuple4;
 import scala.Tuple5;
@@ -583,7 +578,7 @@ public class SignalProcessor implements Serializable {
         DataFrame validSignalDf = signalLoader.cell(cellVar).mergeCell
                 (sqlContext.read().parquet(path));
         //按手机号码对信令数据预处理
-        JavaRDD<Row> rdd4 = SignaProcesslUtil.signalToJavaPairRDD
+        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD
                 (validSignalDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {

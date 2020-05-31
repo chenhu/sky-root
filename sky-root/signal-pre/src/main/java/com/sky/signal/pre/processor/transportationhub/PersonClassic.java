@@ -42,5 +42,9 @@ public enum PersonClassic {
         this.index = index;
     }
 
+    public static void main(String... args) {
+        System.out.println(PersonClassic.TransportationHubPassBy.getIndex());
+    }
+
 
 }

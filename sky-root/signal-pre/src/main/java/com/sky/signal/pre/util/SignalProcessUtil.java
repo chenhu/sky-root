@@ -17,7 +17,7 @@ import java.util.List;
  * Created by Chenhu on 2020/5/25.
  * 用于把信令处理中常用的代码块统一管理，进行复用
  */
-public class SignaProcesslUtil {
+public class SignalProcessUtil {
     // 位移点
     public static final byte MOVE_POINT = 0;
     // 可能停留点

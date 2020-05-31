@@ -74,12 +74,12 @@ public class StayPointProcessor implements Serializable {
      * return: byte
      **/
     private static byte getPointType(int moveTime, double speed) {
-        byte pointType = SignaProcesslUtil.MOVE_POINT;
+        byte pointType = SignalProcessUtil.MOVE_POINT;
         if (moveTime >= STAY_TIME_MAX) {
-            pointType = SignaProcesslUtil.STAY_POINT;
+            pointType = SignalProcessUtil.STAY_POINT;
         } else if (moveTime >= STAY_TIME_MIN && moveTime < STAY_TIME_MAX &&
                 speed < MOVE_SPEED) {
-            pointType = SignaProcesslUtil.UNCERTAIN_POINT;
+            pointType = SignalProcessUtil.UNCERTAIN_POINT;
         }
         return pointType;
     }
@@ -108,7 +108,7 @@ public class StayPointProcessor implements Serializable {
             speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : (double)
                     distance / moveTime * 3.6, 2);
         }
-        pointType = pointType == SignaProcesslUtil.UNCERTAIN_POINT ? getPointType(moveTime,
+        pointType = pointType == SignalProcessUtil.UNCERTAIN_POINT ? getPointType(moveTime,
                 speed) : pointType;
         return new GenericRowWithSchema(new Object[]{prior.getAs("date"),
                 prior.getAs("msisdn"), prior.getAs("base"), prior.getAs
@@ -135,14 +135,14 @@ public class StayPointProcessor implements Serializable {
                 int distance = MapUtil.getDistance((double) current.getAs
                         ("lng"), (double) current.getAs("lat"), (double)
                         prior.getAs("lng"), (double) prior.getAs("lat"));
-                if ((priorType == SignaProcesslUtil.STAY_POINT && currentType == SignaProcesslUtil.STAY_POINT &&
+                if ((priorType == SignalProcessUtil.STAY_POINT && currentType == SignalProcessUtil.STAY_POINT &&
                         distance <= RANGE_I) ||
-                        (((priorType == SignaProcesslUtil.STAY_POINT && currentType ==
-                                SignaProcesslUtil.UNCERTAIN_POINT) || (priorType ==
-                                SignaProcesslUtil.UNCERTAIN_POINT && currentType == SignaProcesslUtil.STAY_POINT)
+                        (((priorType == SignalProcessUtil.STAY_POINT && currentType ==
+                                SignalProcessUtil.UNCERTAIN_POINT) || (priorType ==
+                                SignalProcessUtil.UNCERTAIN_POINT && currentType == SignalProcessUtil.STAY_POINT)
                         ) && distance <= RANGE_II) ||
-                        (priorType == SignaProcesslUtil.UNCERTAIN_POINT &&
-                                currentType == SignaProcesslUtil.UNCERTAIN_POINT &&
+                        (priorType == SignalProcessUtil.UNCERTAIN_POINT &&
+                                currentType == SignalProcessUtil.UNCERTAIN_POINT &&
                                 distance <= RANGE_III)) {
                     int moveTime1 = prior.getAs("move_time");
                     int moveTime2 = current.getAs("move_time");
@@ -195,7 +195,7 @@ public class StayPointProcessor implements Serializable {
         Row prior = null;
         for (int i = 0; i < rows.size(); i++) {
             Row current = rows.get(i);
-            if ((Byte) current.getAs("point_type") == SignaProcesslUtil.MOVE_POINT) {
+            if ((Byte) current.getAs("point_type") == SignalProcessUtil.MOVE_POINT) {
                 moveList.add(current);
                 continue;
             }
@@ -205,8 +205,8 @@ public class StayPointProcessor implements Serializable {
                 int distance = MapUtil.getDistance((double) current.getAs
                         ("lng"), (double) current.getAs("lat"), (double)
                         prior.getAs("lng"), (double) prior.getAs("lat"));
-                if ((Byte) prior.getAs("point_type") == SignaProcesslUtil.STAY_POINT && (Byte)
-                        current.getAs("point_type") == SignaProcesslUtil.STAY_POINT && distance
+                if ((Byte) prior.getAs("point_type") == SignalProcessUtil.STAY_POINT && (Byte)
+                        current.getAs("point_type") == SignalProcessUtil.STAY_POINT && distance
                         <= RANGE_I) {
                     int moveTime1 = prior.getAs("move_time");
                     int moveTime2 = current.getAs("move_time");
@@ -253,14 +253,14 @@ public class StayPointProcessor implements Serializable {
         for (int i = pos - 1; i >= 0; i--) {
             Row result = rows.get(i);
             byte pointType = result.getAs("point_type");
-            if (pointType == SignaProcesslUtil.STAY_POINT) {
+            if (pointType == SignalProcessUtil.STAY_POINT) {
                 return result;
             }
         }
         for (int i = pos + 1; i < rows.size(); i++) {
             Row result = rows.get(i);
             byte pointType = result.getAs("point_type");
-            if (pointType == SignaProcesslUtil.STAY_POINT) {
+            if (pointType == SignalProcessUtil.STAY_POINT) {
                 return result;
             }
         }
@@ -277,19 +277,19 @@ public class StayPointProcessor implements Serializable {
         Row nearest_stayPoint = null;
         for (int i = 0; i < rows.size(); i++) {
             Row current = rows.get(i);
-            if ((Byte) current.getAs("point_type") == SignaProcesslUtil.STAY_POINT) {
+            if ((Byte) current.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
                 nearest_stayPoint = current;
                 result.add(current);
             } else if (nearest_stayPoint == null) {
                 Row stayPointRow = getNearestStayPoint(rows, i);
-                byte newType = SignaProcesslUtil.MOVE_POINT;
+                byte newType = SignalProcessUtil.MOVE_POINT;
                 if (stayPointRow != null) {
                     int distance = MapUtil.getDistance((double) current.getAs
                             ("lng"), (double) current.getAs("lat"), (double)
                             stayPointRow.getAs("lng"), (double) stayPointRow
                             .getAs("lat"));
                     if (distance > RANGE_II) {
-                        newType = SignaProcesslUtil.STAY_POINT;
+                        newType = SignalProcessUtil.STAY_POINT;
                         nearest_stayPoint = new GenericRowWithSchema(new
                                 Object[]{current.getAs("date"), current.getAs
                                 ("msisdn"), current.getAs("base"), current
@@ -321,7 +321,7 @@ public class StayPointProcessor implements Serializable {
                             .getAs("lat"), current.getAs("begin_time"),
                             current.getAs("last_time"), current.getAs
                             ("distance"), current.getAs("move_time"), current
-                            .getAs("speed"), SignaProcesslUtil.STAY_POINT}, ODSchemaProvider
+                            .getAs("speed"), SignalProcessUtil.STAY_POINT}, ODSchemaProvider
                             .TRACE_SCHEMA);
                     nearest_stayPoint = temp;
                     result.add(temp);
@@ -332,7 +332,7 @@ public class StayPointProcessor implements Serializable {
                             .getAs("lat"), current.getAs("begin_time"),
                             current.getAs("last_time"), current.getAs
                             ("distance"), current.getAs("move_time"), current
-                            .getAs("speed"), SignaProcesslUtil.MOVE_POINT}, ODSchemaProvider
+                            .getAs("speed"), SignalProcessUtil.MOVE_POINT}, ODSchemaProvider
                             .TRACE_SCHEMA));
                 }
             }
@@ -528,7 +528,7 @@ public class StayPointProcessor implements Serializable {
         Row prior = null;
         LinkedList<Row> linked = new LinkedList<>();
         for (Row row : rows) {
-            if ((Byte) row.getAs("point_type") == SignaProcesslUtil.STAY_POINT) {
+            if ((Byte) row.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
                 current = row;
                 if (prior == null) {
                     prior = current;
@@ -733,7 +733,7 @@ public class StayPointProcessor implements Serializable {
                 Timestamp destBegin = current.getAs("begin_time");
 
                 // D点之间加入
-                if ((Byte) current.getAs("point_type") == SignaProcesslUtil.STAY_POINT) {
+                if ((Byte) current.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
                     result.add(calcRow(prior, current, originEnd, destBegin));
                     result.add(current);
                     continue;
@@ -771,7 +771,7 @@ public class StayPointProcessor implements Serializable {
         String msisdn = rows.get(0).getAs("msisdn");
         Integer date = rows.get(0).getAs("date");
         for (Row row : rows) {
-            if ((Byte) row.getAs("point_type") == SignaProcesslUtil.STAY_POINT) {
+            if ((Byte) row.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
                 stayPointCount++;
             }
         }

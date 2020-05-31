@@ -9,7 +9,7 @@ import com.sky.signal.pre.processor.signalProcess.SignalLoader;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
-import com.sky.signal.pre.util.SignaProcesslUtil;
+import com.sky.signal.pre.util.SignalProcessUtil;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -79,7 +79,7 @@ public class StationDataFilter implements Serializable {
         DataFrame validSignalDf = signalLoader.load(validSignalFile);
         //遍历有效信令，找到每个用户哪些天经过枢纽基站，并替换有效信令中位置信息为虚拟基站
         //信令数据转换为手机号码和记录的键值对
-        JavaPairRDD<String, List<Row>> validSignalPairRDD = SignaProcesslUtil
+        JavaPairRDD<String, List<Row>> validSignalPairRDD = SignalProcessUtil
                 .signalToJavaPairRDD(validSignalDf, params);
         // 加载枢纽基站
         final Broadcast<Map<String, Row>> stationCell = cellLoader.load
@@ -213,17 +213,17 @@ public class StationDataFilter implements Serializable {
 
 
     private byte getPointType(String base, int moveTime, double speed) {
-        byte pointType = SignaProcesslUtil.MOVE_POINT;
+        byte pointType = SignalProcessUtil.MOVE_POINT;
         if (base.equals(params.getVisualStationBase())) {
             if (moveTime >= STAY_TIME_MAX) {
-                pointType = SignaProcesslUtil.STAY_POINT;
+                pointType = SignalProcessUtil.STAY_POINT;
             }
         } else {
             if (moveTime >= STAY_TIME_MIN && moveTime < STAY_TIME_MAX &&
                     speed < MOVE_SPEED) {
-                pointType = SignaProcesslUtil.UNCERTAIN_POINT;
+                pointType = SignalProcessUtil.UNCERTAIN_POINT;
             } else if (moveTime >= STAY_TIME_MAX) {
-                pointType = SignaProcesslUtil.STAY_POINT;
+                pointType = SignalProcessUtil.STAY_POINT;
             }
         }
 
@@ -276,7 +276,7 @@ public class StationDataFilter implements Serializable {
                             // 取出下条记录，并重新计算与下个点的距离、移动时间、速度
                             Row next = rows.get(i + 1);
                             Tuple3<Integer, Integer, Double> tuple3 =
-                                    SignaProcesslUtil
+                                    SignalProcessUtil
                                             .getDistanceMovetimeSpeed
                                                     (visualBaseRow, next,
                                                             beginTime,
