@@ -138,7 +138,7 @@ public class KunShanStation implements Serializable {
                                                 (SignalProcessUtil
                                                         .STAY_POINT));
                         //昨天基站轨迹信令中有停留点,结束循环
-                        if (yesterDayDf.count() > 0l) {
+                        if (yesterDayDf.count() > 0L) {
                             personClassic = PersonClassic.Leave
                                     .getIndex();
                             break;
@@ -175,7 +175,7 @@ public class KunShanStation implements Serializable {
                                                 (SignalProcessUtil
                                                         .STAY_POINT));
                         //明天基站轨迹信令中有停留点,结束循环
-                        if (tomorrowDayDf.count() > 0l) {
+                        if (tomorrowDayDf.count() > 0) {
                             personClassic = PersonClassic.Arrive
                                     .getIndex();
                             break;
@@ -183,8 +183,6 @@ public class KunShanStation implements Serializable {
                         }
                     }
 
-                } else {//不在上述情况
-                    continue;
                 }
 
             }

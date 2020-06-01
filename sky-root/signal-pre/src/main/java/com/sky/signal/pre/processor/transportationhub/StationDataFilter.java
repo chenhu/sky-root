@@ -41,15 +41,6 @@ import java.util.Map;
 @Component
 public class StationDataFilter implements Serializable {
 
-    /************
-     * 停留点类型参数
-     ***************/
-    //40分钟
-    private static final int STAY_TIME_MAX = 40 * 60;
-    //10分钟
-    private static final int STAY_TIME_MIN = 10 * 60;
-    //8KM/h
-    private static final int MOVE_SPEED = 8;
     @Autowired
     private transient ParamProperties params;
     @Autowired
@@ -165,7 +156,8 @@ public class StationDataFilter implements Serializable {
             } else {
                 Timestamp beginTime = prior.getAs("begin_time");
                 Timestamp endTime = current.getAs("last_time");
-                stayPointRow = calcRow(prior, current, beginTime, endTime);
+                stayPointRow = SignalProcessUtil.getNewRowWithStayPoint(prior, current, beginTime,
+                        endTime);
             }
             //最后一条信令,或者只有一条信令
             //1. 如果信令在枢纽基站，则修改后，加入结果列表，并跳出循环
@@ -173,7 +165,7 @@ public class StationDataFilter implements Serializable {
             if (i == rows.size() - 1) {
                 Timestamp beginTime = prior.getAs("begin_time");
                 Timestamp endTime = prior.getAs("last_time");
-                stayPointRow = calcRow(prior, null, beginTime, endTime);
+                stayPointRow = SignalProcessUtil.getNewRowWithStayPoint(prior, null, beginTime, endTime);
                 resultSignalList.add(stayPointRow);
                 break;
             }
@@ -183,51 +175,6 @@ public class StationDataFilter implements Serializable {
             resultSignalList.add(stayPointRow);
         }
         return resultSignalList;
-    }
-
-    private Row calcRow(Row prior, Row current, Timestamp startTime,
-                        Timestamp lastTime) {
-        int distance = 0;
-        int moveTime = (int) (lastTime.getTime() - startTime.getTime()) / 1000;
-        double speed = 0d;
-        if (prior != current && current != null) {
-            //基站与下一基站距离
-            distance = MapUtil.getDistance((double) current.getAs("lng"),
-                    (double) current.getAs("lat"), (double) prior.getAs
-                            ("lng"), (double) prior.getAs("lat"));
-            //移动到下一基站时间 = 下一基站startTime - 基站startTime
-            moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
-                    .getAs("begin_time")), new DateTime(prior.getAs
-                    ("begin_time"))).getSeconds());
-            //基站移动到下一基站速度
-            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : (double)
-                    distance / moveTime * 3.6, 2);
-        }
-        String base = prior.getAs("base");
-        byte pointType = getPointType(base, moveTime, speed);
-        return new GenericRowWithSchema(new Object[]{prior.getAs("date"),
-                prior.getAs("msisdn"), prior.getAs("base"), prior.getAs
-                ("lng"), prior.getAs("lat"), startTime, lastTime, distance,
-                moveTime, speed, pointType}, ODSchemaProvider.TRACE_SCHEMA);
-    }
-
-
-    private byte getPointType(String base, int moveTime, double speed) {
-        byte pointType = SignalProcessUtil.MOVE_POINT;
-        if (base.equals(params.getVisualStationBase())) {
-            if (moveTime >= STAY_TIME_MAX) {
-                pointType = SignalProcessUtil.STAY_POINT;
-            }
-        } else {
-            if (moveTime >= STAY_TIME_MIN && moveTime < STAY_TIME_MAX &&
-                    speed < MOVE_SPEED) {
-                pointType = SignalProcessUtil.UNCERTAIN_POINT;
-            } else if (moveTime >= STAY_TIME_MAX) {
-                pointType = SignalProcessUtil.STAY_POINT;
-            }
-        }
-
-        return pointType;
     }
 
     /**
@@ -309,7 +256,8 @@ public class StationDataFilter implements Serializable {
             //1. 如果信令在枢纽基站，则修改后，加入结果列表，并跳出循环
             //2. 如果信令不在枢纽基站，加入结果列表，并跳出循环
             if (i == rows.size() - 1) {
-                if (stationCell.value().containsKey(current.getAs("base"))) {
+                String base = current.getAs("base");
+                if (stationCell.value().containsKey(base)) {
                     //默认为最后一条记录，距离和速度均为0
                     Row lastRow = new GenericRowWithSchema(new
                             Object[]{current.getAs("date"), current.getAs

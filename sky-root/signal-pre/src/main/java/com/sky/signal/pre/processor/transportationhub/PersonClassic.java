@@ -10,14 +10,14 @@ public enum PersonClassic {
     CityPassBy("城市过境人口", 4), NotTransportationHubLeave("非高铁出行对外交通人口", 5);
 
     private String name;
-    private int index;
+    private Integer index;
 
-    private PersonClassic(String name, int index) {
+    PersonClassic(String name, Integer index) {
         this.name = name;
         this.index = index;
     }
 
-    public static String getName(int index) {
+    public static String getName(Integer index) {
         for (PersonClassic c : PersonClassic.values()) {
             if (c.getIndex() == index) {
                 return c.name;
@@ -34,11 +34,11 @@ public enum PersonClassic {
         this.name = name;
     }
 
-    public int getIndex() {
+    public Integer getIndex() {
         return index;
     }
 
-    public void setIndex(int index) {
+    public void setIndex(Integer index) {
         this.index = index;
     }
 
