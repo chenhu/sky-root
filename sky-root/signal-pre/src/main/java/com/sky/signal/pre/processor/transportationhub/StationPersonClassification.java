@@ -1,13 +1,11 @@
 package com.sky.signal.pre.processor.transportationhub;
 
-import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
 import com.sky.signal.pre.processor.transportationhub.StationPersonClassify
         .KunShanStation;
 import com.sky.signal.pre.util.FileUtil;
-import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
 import com.sky.signal.pre.util.SignalProcessUtil;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -17,16 +15,11 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.storage.StorageLevel;
-import org.joda.time.DateTime;
-import org.joda.time.Seconds;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -114,7 +107,7 @@ public class StationPersonClassification implements Serializable {
     /**
      * 枢纽站人口分类
      *
-     * @param rows 用户一条的信令
+     * @param rows 用户一天的信令
      * @return 增加分类后的用户数据
      */
     private List<Row> stationPersionClassification(List<Row> rows) {
@@ -122,7 +115,7 @@ public class StationPersonClassification implements Serializable {
         if (stationCount < 2) { //枢纽基站为1个
             rows = stationPersonClassifyUtil.oneStationBaseProc(rows);
         } else { //合并基站
-            rows = mergeStationBase(rows);
+            rows = stationPersonClassifyUtil.mergeStationBase(rows);
             //重新计算枢纽基站数量
             stationCount = getStationCount(rows);
             if (stationCount < 2) {
@@ -136,79 +129,6 @@ public class StationPersonClassification implements Serializable {
 
         return rows;
     }
-
-    /**
-     * 对于枢纽基站数量大于1的情况，进行基站合并
-     * <p>
-     * <pre>
-     *     计算相邻两个虚拟基站{Ai,Ai+1}的时间间隔T = Ai+1(start_time) – Ai(last_time)：
-     * 若 T <= 10min，合并两个枢纽站Ai,
-     * Ai+1，删除中间的其他点，以Ai的（start_time）为新枢纽点Ai’的（start_time），Ai+1的（last
-     * _time）为新枢纽点Ai’的（last
-     * _time），重新计算distance、move_time、speed，并记Ai’为该用户当天轨迹中有效的枢纽点；
-     * 若 10min < T < 2hr，舍弃枢纽点Ai；
-     * 若 T >= 2hr，将Ai,Ai+1分别记为该用户当天轨迹中有效的两个枢纽点。
-     * 循环处理集合Ai中的所有虚拟基站，得到记录该用户当天新的轨迹集合Qi = {Q1,Q2,…,Qn}，以及轨迹中所有有效枢纽点的新集合Si =
-     * {S1,S2,…,Sn}
-     *
-     * </pre>
-     *
-     * @param rows 用户一天的信令数据
-     * @return 合并虚拟基站后的信令
-     */
-    private List<Row> mergeStationBase(List<Row> rows) {
-        //结果数据集
-        List<Row> resultList = new ArrayList<>(rows.size());
-
-        //需要按照时间排序
-        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf
-                (new com.google.common.base.Function<Row, Timestamp>() {
-            @Override
-            public Timestamp apply(Row row) {
-                return row.getAs("begin_time");
-            }
-        });
-        //按begin_time排序
-        rows = ordering.sortedCopy(rows);
-        Row priorStationBase = null, currentStationBase = null;
-        int priorStationBaseIndex = -1, currentStationBaseIndex = -1;
-
-
-        for (int i = 0; i < rows.size(); i++) {
-            if (rows.get(i).getAs("base").equals(params.getVisualStationBase
-                    ())) {
-                currentStationBase = rows.get(i);
-                currentStationBaseIndex = i;
-            }
-            if (priorStationBase == null && currentStationBase != null) {
-                priorStationBase = currentStationBase;
-                priorStationBaseIndex = i;
-            } else if (priorStationBase != null && currentStationBase != null) {
-                DateTime beginTime = new DateTime(priorStationBase.getAs
-                        ("last_time"));
-                DateTime endTime = new DateTime(currentStationBase.getAs
-                        ("begin_time"));
-                if (Math.abs(Seconds.secondsBetween(beginTime, endTime)
-                        .getSeconds()) <= TEN_MI) { //小于等于10分钟，合并两个虚拟基站
-
-                    Row mergedStationBaseRow = SignalProcessUtil.getNewRowWithStayPoint
-                            (currentStationBase, rows.get(i+1), (Timestamp) priorStationBase
-                                    .getAs("begin_time"),(Timestamp) currentStationBase
-                                    .getAs("last_time"));
-                    //合并虚拟基站后的记录添加到结果列表中
-                    resultList.add(mergedStationBaseRow);
-                }
-
-            } else { //非枢纽基站
-                resultList.add(rows.get(i));
-            }
-
-        }
-
-
-        return null;
-    }
-
     /**
      * 获取枢纽轨迹数据中枢纽基站的数量
      *

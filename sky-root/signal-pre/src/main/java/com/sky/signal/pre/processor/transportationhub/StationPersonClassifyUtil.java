@@ -29,6 +29,7 @@ public class StationPersonClassifyUtil implements Serializable {
     private static final Integer FIVE_MI = 5 * 60;
     private static final Integer TWO_HOUR = 2 * 60 * 60;
     private static final Integer SEVENTY_SIX = 76;
+    private static final Integer TEN_MI = 10 * 60;
 
     @Autowired
     private transient ParamProperties params;
@@ -93,14 +94,14 @@ public class StationPersonClassifyUtil implements Serializable {
 
         for (Row row : preStationBaseList) {
             Byte stayPoint = row.getAs("stay_point");
-            if (stayPoint.byteValue() == SignalProcessUtil.STAY_POINT) {
+            if (stayPoint == SignalProcessUtil.STAY_POINT) {
                 hasPreStayPoint = true;
                 break;
             }
         }
         for (Row row : behindStationBaseList) {
             Byte stayPoint = row.getAs("stay_point");
-            if (stayPoint.byteValue() == SignalProcessUtil.STAY_POINT) {
+            if (stayPoint == SignalProcessUtil.STAY_POINT) {
                 hasBehindStayPoint = true;
                 behindStayPointRow = row;
                 break;
@@ -218,8 +219,148 @@ public class StationPersonClassifyUtil implements Serializable {
         List<Row> secondStationBaseClassification = oneStationBaseProc
                 (secondStationBaseTrace);
 
+        //两个虚拟基站时间间隔
+        DateTime beginTime = new DateTime(rows.get(secondStationBaseIndex)
+                .getAs("begin_time"));
+        DateTime endTime = new DateTime(rows.get(firstStationBaseIndex).getAs
+                ("last_time"));
 
-        return null;
+        Integer stationBaseTimeDiff = Math.abs(Seconds.secondsBetween
+                (beginTime, endTime).getSeconds());
+        //计算第一个虚拟基站后的第一个停留点与第二个虚拟基站之间的时间间隔
+
+        //第一个虚拟基站后的第一个停留点的结束时间
+        DateTime endTimeB = null;
+        for (int i = firstStationBaseIndex; i < rows.size(); i++) {
+            Byte pointType = rows.get(i).getAs("point_type");
+            if (pointType == SignalProcessUtil.STAY_POINT) {
+                endTimeB = rows.get(i).getAs("last_time");
+                break;
+            }
+        }
+        Integer stayPointAndSecondStationBaseTimeDiff = 0;
+        if (endTimeB != null) {
+            stayPointAndSecondStationBaseTimeDiff = Math.abs(Seconds
+                    .secondsBetween(beginTime, endTimeB).getSeconds());
+        }
+
+        // 通过文档中的交叉表实现最终人口分类判定
+        Byte x1 = firstStationBaseClassification.get(0).getAs
+                ("station_person_classic");
+        Byte x2 = secondStationBaseClassification.get(0).getAs
+                ("station_person_classic");
+        Byte personClassic = getPersonClassicByCrossTable(x1, x2,
+                stationBaseTimeDiff, stayPointAndSecondStationBaseTimeDiff);
+
+        //结果数据集
+        List<Row> resultList = new ArrayList<>(rows.size());
+
+        //根据人口分类，创建带人口分类的信令数据集合
+        for (Row row : rows) {
+            Row rowWithPersionClassic = new GenericRowWithSchema(new
+                    Object[]{row.getAs("date"), row.getAs("msisdn"), row
+                    .getAs("base"), row.getAs("lng"), row.getAs("lat"), row
+                    .getAs("begin_time"), row.getAs("last_time"), row.getAs
+                    ("distance"), row.getAs("move_time"), row.getAs("speed"),
+                    row.getAs("point_type"), personClassic}, ODSchemaProvider
+                    .STATION_TRACE_CLASSIC_SCHEMA);
+            resultList.add(rowWithPersionClassic);
+        }
+        return resultList;
+    }
+
+    /**
+     * 通过文档中的交叉表判定最终人口分类
+     *
+     * @param x1 第一批数据的人口分类
+     * @param x2 第二批数据的人口分类
+     * @param t  时间间隔1
+     * @param k  时间间隔2
+     * @return 最终人口分类
+     */
+    private Byte getPersonClassicByCrossTable(Byte x1, Byte x2, Integer t,
+                                              Integer k) {
+        //交叉表对角线
+        if (x1.intValue() == x2.intValue()) {
+            return PersonClassic.CityPassBy.getIndex().byteValue();
+        }
+
+        //x1 为城市过境人口
+        if (x1.intValue() == PersonClassic.CityPassBy.getIndex() && x2
+                .intValue() != PersonClassic.Arrive.getIndex()) {
+            return x2;
+        } else if (x1.intValue() == PersonClassic.CityPassBy.getIndex() && x2
+                .intValue() == PersonClassic.Arrive.getIndex()) {
+            return PersonClassic.CityPassBy.getIndex().byteValue();
+        }
+
+        //x1为铁路出发人口
+        if (x1.intValue() == PersonClassic.Leave.getIndex() && x2.intValue()
+                != PersonClassic.Arrive.getIndex()) {
+            return PersonClassic.CityPassBy.getIndex().byteValue();
+        } else if (x1.intValue() == PersonClassic.Leave.getIndex() && x2
+                .intValue() == PersonClassic.Arrive.getIndex()) {
+            if (t >= TWO_HOUR) {
+                return PersonClassic.Leave1.getIndex().byteValue();
+            } else {
+                return PersonClassic.CityPassBy.getIndex().byteValue();
+            }
+        }
+
+        //x1为铁路出发人口（当天往返，但非火车返回）
+        if (x1.intValue() == PersonClassic.Leave1.getIndex() && x2.intValue()
+                != PersonClassic.CityPassBy.getIndex()) {
+            return PersonClassic.CityPassBy.getIndex().byteValue();
+        } else if (x1.intValue() == PersonClassic.Leave1.getIndex() && x2
+                .intValue() == PersonClassic.CityPassBy.getIndex()) {
+            if (k >= TWO_HOUR) {
+                return PersonClassic.Leave.getIndex().byteValue();
+            } else {
+                return PersonClassic.CityPassBy.getIndex().byteValue();
+            }
+        }
+
+        //x1为非高铁对外交通人口
+        if (x1.intValue() == PersonClassic.NotTransportationHubLeave.getIndex
+                () && x2.intValue() != PersonClassic.Arrive.getIndex()) {
+            return PersonClassic.CityPassBy.getIndex().byteValue();
+        } else if (x1.intValue() == PersonClassic.NotTransportationHubLeave
+                .getIndex() && x2.intValue() == PersonClassic.Arrive.getIndex
+                ()) {
+            if (t >= TWO_HOUR) {
+                return PersonClassic.Arrive.getIndex().byteValue();
+            } else {
+                return PersonClassic.CityPassBy.getIndex().byteValue();
+            }
+        }
+
+        //x1为铁路到达人口
+        if (x1.intValue() == PersonClassic.Arrive.getIndex()) {
+            if (x2.intValue() == PersonClassic.CityPassBy.getIndex()) {
+                return PersonClassic.Arrive.getIndex().byteValue();
+            }
+            if (x2.intValue() == PersonClassic.Leave1.getIndex()) {
+                return PersonClassic.Arrive.getIndex().byteValue();
+            }
+
+            if (x2.intValue() == PersonClassic.Leave.getIndex()) {
+                if(t >= TWO_HOUR) {
+                    return PersonClassic.Leave1.getIndex().byteValue();
+                } else {
+                    return PersonClassic.CityPassBy.getIndex().byteValue();
+                }
+            }
+
+            if (x2.intValue() == PersonClassic.NotTransportationHubLeave.getIndex()) {
+                if(t >= TWO_HOUR) {
+                    return PersonClassic.Arrive.getIndex().byteValue();
+                } else {
+                    return PersonClassic.CityPassBy.getIndex().byteValue();
+                }
+            }
+        }
+        //如果不在上述情况中出现，默认为城市过境人口
+        return PersonClassic.CityPassBy.getIndex().byteValue();
     }
 
     /**
@@ -245,6 +386,132 @@ public class StationPersonClassifyUtil implements Serializable {
                     .getIndex().byteValue()}, ODSchemaProvider
                     .STATION_TRACE_CLASSIC_SCHEMA);
             resultList.add(rowWithPersionClassic);
+        }
+        return resultList;
+    }
+
+    /**
+     * 对于枢纽基站数量大于1的情况，进行基站合并
+     * <p>
+     * <pre>
+     *     计算相邻两个虚拟基站{Ai,Ai+1}的时间间隔T = Ai+1(start_time) – Ai(last_time)：
+     * 若 T <= 10min，合并两个枢纽站Ai,
+     * Ai+1，删除中间的其他点，以Ai的（start_time）为新枢纽点Ai’的（start_time），Ai+1的（last
+     * _time）为新枢纽点Ai’的（last
+     * _time），重新计算distance、move_time、speed，并记Ai’为该用户当天轨迹中有效的枢纽点；
+     * 若 10min < T < 2hr，舍弃枢纽点Ai；
+     * 若 T >= 2hr，将Ai,Ai+1分别记为该用户当天轨迹中有效的两个枢纽点。
+     * 循环处理集合Ai中的所有虚拟基站，得到记录该用户当天新的轨迹集合Qi = {Q1,Q2,…,Qn}，以及轨迹中所有有效枢纽点的新集合Si =
+     * {S1,S2,…,Sn}
+     *
+     * </pre>
+     *
+     * @param rows 用户一天的信令数据
+     * @return 合并虚拟基站后的信令
+     */
+    public List<Row> mergeStationBase(List<Row> rows) {
+        //结果数据集
+        List<Row> resultList = new ArrayList<>(rows.size());
+
+        //需要按照时间排序
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf
+                (new com.google.common.base.Function<Row, Timestamp>() {
+            @Override
+            public Timestamp apply(Row row) {
+                return row.getAs("begin_time");
+            }
+        });
+        //按begin_time排序
+        rows = ordering.sortedCopy(rows);
+        //相邻的两个虚拟基站
+        Row priorStationBase = null, currentStationBase = null;
+        //相邻的两个虚拟基站的索引
+        int priorStationBaseIndex = -1, currentStationBaseIndex = -1;
+
+        //记录上次加入到列表中的集合index
+        int checkpoint = 0;
+
+        for (int i = 0; i < rows.size(); i++) {
+            //找到虚拟基站，设置为当前虚拟基站，并记录当前虚拟基站索引
+            if (rows.get(i).getAs("base").equals(params.getVisualStationBase
+                    ())) {
+                currentStationBase = rows.get(i);
+                currentStationBaseIndex = i;
+            }
+            // 前虚拟基站不存在，设置为当前虚拟基站，并记录前虚拟基站的索引
+            if (priorStationBase == null && currentStationBase != null) {
+                priorStationBase = currentStationBase;
+                priorStationBaseIndex = i;
+            } else if (priorStationBase != null && currentStationBase != null
+                    && !priorStationBase.equals(currentStationBase)) {//相邻虚拟基站
+                DateTime beginTime = new DateTime(priorStationBase.getAs
+                        ("last_time"));
+                DateTime endTime = new DateTime(currentStationBase.getAs
+                        ("begin_time"));
+                int timeDiff = Math.abs(Seconds.secondsBetween(beginTime,
+                        endTime).getSeconds());
+                if (timeDiff <= TEN_MI) { //小于等于10分钟，合并两个虚拟基站
+
+                    Row mergedStationBaseRow = SignalProcessUtil
+                            .getNewRowWithStayPoint(currentStationBase, rows
+                                    .get(i + 1), (Timestamp) priorStationBase
+                                    .getAs("begin_time"), (Timestamp)
+                                    currentStationBase.getAs("last_time"));
+                    //把checkpoint开始到当前位置的记录，主要是非虚拟基站记录添加到结果列表中
+                    if (checkpoint == 0) {//如果最开始的两个虚拟基站合并，需要把prior之前的记录都加入结果列表
+                        resultList.addAll(rows.subList(checkpoint,
+                                priorStationBaseIndex - 1));
+                    }
+                    //注意：合并后的虚拟基站记录先不增加进去，防止后面再出现需要舍弃或者合并的情况
+                    //前基站指向合并后的基站，前基站的索引指向当前基站索引
+                    priorStationBase = mergedStationBaseRow;
+                    priorStationBaseIndex = currentStationBaseIndex;
+                    //checkpoint 指向当前记录后
+                    checkpoint = currentStationBaseIndex + 1;
+                } else if (timeDiff > TEN_MI && timeDiff < TWO_HOUR) {//舍弃前虚拟基站
+
+                    //把checkpoint开始到当前位置-1的记录，添加到结果列表中
+                    //当前记录先不增加进去，防止后面再出现需要舍弃这个基站的情况
+                    if (checkpoint == 0) {
+                        //开始的两个虚拟基站出现舍弃情况，需要把prior之前的记录都加入结果列表
+                        resultList.addAll(rows.subList(checkpoint,
+                                priorStationBaseIndex - 1));
+                    }
+                    //把checkpoint到current之前的记录增加到结果列表
+                    resultList.addAll(rows.subList(checkpoint,
+                            currentStationBaseIndex - 1));
+
+                    //chcekpoint指向current后一条
+                    checkpoint = currentStationBaseIndex + 1;
+                    //prior指向current
+                    priorStationBase = currentStationBase;
+                    priorStationBaseIndex = currentStationBaseIndex;
+
+                } else {//两个虚拟基站都保留
+                    //为了易于理解，分为三步增加
+                    //1. 增加checkpoint到prior -1
+                    resultList.addAll(rows.subList(checkpoint,
+                            priorStationBaseIndex - 1));
+                    //2. 增加prior
+                    resultList.add(priorStationBase);
+                    //3. 增加prior到current -1，但不增加current
+                    resultList.addAll(rows.subList(priorStationBaseIndex + 1,
+                            currentStationBaseIndex - 1));
+                    //chcekpoint指向current后一条
+                    checkpoint = currentStationBaseIndex + 1;
+                    //prior指向current
+                    priorStationBase = currentStationBase;
+                    priorStationBaseIndex = currentStationBaseIndex;
+                }
+            }
+            //循环进行到最后一条记录，需要把一直没有保存的current增加到结果列表
+            //同时把最后一个current后的非虚拟基站记录添加到结果列表
+            if (i == rows.size() - 1) {
+                //因为每次都会在最后把prior指向current，所以可以增加priorStationBase
+                resultList.add(priorStationBase);
+                resultList.addAll(rows.subList(checkpoint, rows.size() - 1));
+            }
+
         }
         return resultList;
     }
