@@ -30,7 +30,6 @@ import java.util.List;
 public class StationPersonClassification implements Serializable {
     //60分钟
     private static final Integer ONE_HOUR = 60 * 60;
-    private static final Integer TEN_MI = 10 * 60;
     @Autowired
     private transient ParamProperties params;
     @Autowired
