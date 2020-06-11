@@ -7,7 +7,7 @@ package com.sky.signal.pre.processor.transportationhub;
 public enum PersonClassic {
     Leave("枢纽站出发人口", 0), Leave1("枢纽站出发人口（当天往返，但非当前枢纽返回）", 1),
     Arrive("到达人口", 2), TransportationHubPassBy("枢纽站过境人口", 3),
-    CityPassBy("城市过境人口", 4), NotTransportationHubLeave("非高铁出行对外交通人口", 5);
+    CityPassBy("城市途经人口", 4), NotTransportationHubLeave("非高铁出行对外交通人口", 5);
 
     private String name;
     private Integer index;

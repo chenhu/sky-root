@@ -48,6 +48,12 @@ public class StationPersonClassifyUtil implements Serializable {
      * 76s，判断该用户为城市过境人口；
      * 若枢纽站前无停留点且枢纽站后也无停留点，则判断该用户为城市过境人口。
      * </pre>
+     * <pre>
+     *     2020.06.11 Hu.Chen
+     *     本逻辑暂时不用了，修改为一套跟当前分析枢纽站列车时刻表有关的逻辑，所以这个逻辑应该放到
+     *     <code>com.sky.signal.pre.processor.transportationhub
+     * .StationPersonClassify.KunShanStation</code> 中来实现
+     * </pre>
      *
      * @param rows 用户一天的枢纽站信令数据
      * @return 增加了人口分类的枢纽站信令数据
@@ -344,15 +350,16 @@ public class StationPersonClassifyUtil implements Serializable {
             }
 
             if (x2.intValue() == PersonClassic.Leave.getIndex()) {
-                if(t >= TWO_HOUR) {
+                if (t >= TWO_HOUR) {
                     return PersonClassic.Leave1.getIndex().byteValue();
                 } else {
                     return PersonClassic.CityPassBy.getIndex().byteValue();
                 }
             }
 
-            if (x2.intValue() == PersonClassic.NotTransportationHubLeave.getIndex()) {
-                if(t >= TWO_HOUR) {
+            if (x2.intValue() == PersonClassic.NotTransportationHubLeave
+                    .getIndex()) {
+                if (t >= TWO_HOUR) {
                     return PersonClassic.Arrive.getIndex().byteValue();
                 } else {
                     return PersonClassic.CityPassBy.getIndex().byteValue();
