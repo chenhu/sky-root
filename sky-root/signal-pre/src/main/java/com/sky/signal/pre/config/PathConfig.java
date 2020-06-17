@@ -17,4 +17,8 @@ public class PathConfig {
     //枢纽站预处理后带停人口分类的文件保存文件夹名称
     public static final String STATION_CLASSIC_PATH = "station-classic/";
 
+    //职住分析结果保存文件夹名称
+    public static final String WORKLIVE_PATH = "work_live_his";
+
+
 }

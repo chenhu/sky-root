@@ -214,6 +214,7 @@ public class KunShanStation implements Serializable {
      *
      * @param rows         用户一天的数据
      * @param stationTrace 枢纽站当前分析阶段所有用户数据，用于查找当前用户昨天和明天是否有停留点
+     * @param workLiveDf 当前分析阶段所有数据计算出的用户职住信息
      * @return 增加了枢纽站人口分类的信令数据
      */
     public List<Row> oneStationBaseProc(List<Row> rows, DataFrame
@@ -350,25 +351,27 @@ public class KunShanStation implements Serializable {
                 beginTimeLocalDateTime.isAfter(localDateTime2)) {
             //在0:35到22:35之间
 
-            if(hasPreStayPoint && !hasBehindStayPoint) {//枢纽站前有停留点而枢纽站后无停留点
-                if(stationBaseMoveTime > THREE_MI) {
+            if (hasPreStayPoint && !hasBehindStayPoint) {//枢纽站前有停留点而枢纽站后无停留点
+                if (stationBaseMoveTime > THREE_MI) {
                     personClassic = PersonClassic.Leave.getIndex();
                 } else {
-                    personClassic = PersonClassic.NotTransportationHubLeave.getIndex();
+                    personClassic = PersonClassic.NotTransportationHubLeave
+                            .getIndex();
                 }
-            } else if(hasPreStayPoint && hasBehindStayPoint) { //枢纽站前有停留点且枢纽站后也有停留点
+            } else if (hasPreStayPoint && hasBehindStayPoint) {
+                //枢纽站前有停留点且枢纽站后也有停留点
                 //枢纽站后第一个停留点的逗留时间
                 int moveTime = behindStayPointRow.getAs("move_time");
                 DateTime beginTime = new DateTime(behindStayPointRow.getAs
                         ("begin_time"));
                 DateTime endTime = new DateTime(behindStayPointRow.getAs
                         ("last_time"));
-                if(stationBaseMoveTime > THREE_MI ) {
-                    if((moveTime >=TWO_HOUR && Math.abs(Seconds
-                            .secondsBetween(beginTime, endTime)
-                            .getSeconds()) < FIVE_MI) || (moveTime >=TWO_HOUR
-                    && staypointWorkLiveDistanceGt800m(workLiveDf,
-                            msisdn, behindStayPointRow)) ) {
+                if (stationBaseMoveTime > THREE_MI) {
+                    if ((moveTime >= TWO_HOUR && Math.abs(Seconds
+                            .secondsBetween(beginTime, endTime).getSeconds())
+                            < FIVE_MI) || (moveTime >= TWO_HOUR &&
+                            staypointWorkLiveDistanceGt800m(workLiveDf,
+                                    msisdn, behindStayPointRow))) {
                         personClassic = PersonClassic.Leave1.getIndex();
                     } else {
                         personClassic = PersonClassic.CityPassBy.getIndex();
@@ -376,9 +379,9 @@ public class KunShanStation implements Serializable {
                 } else {
                     personClassic = PersonClassic.CityPassBy.getIndex();
                 }
-            } else if(!hasPreStayPoint && hasBehindStayPoint)
+            } else if (!hasPreStayPoint && hasBehindStayPoint)
             {//枢纽站前无停留点而枢纽站后有停留点
-                if(stationBaseMoveTime >= SEVENTY_SIX) {
+                if (stationBaseMoveTime >= SEVENTY_SIX) {
                     personClassic = PersonClassic.Arrive.getIndex();
                 } else {//若枢纽站逗留时间 < 76s，判断该用户为城市途经人口
                     personClassic = PersonClassic.CityPassBy.getIndex();
@@ -461,6 +464,84 @@ public class KunShanStation implements Serializable {
         }
         //距离是否大于800米
         return distance > 800;
+    }
+
+    /**
+     * 当双枢纽基站的时候，第一个基站人口类型为 铁路出发人口（当天往返，但非火车返回），需要通过
+     * 第二个基站的人口类型重新判定,当前方法返回的是最终人口分类结果，并不是第二个基站人口分类结果
+     * @param rows 当天当前用户的轨迹数据
+     * @param secondStationIndex 第二个基站在当前轨迹中的位置
+     * @param stationTrace 枢纽站当前分析阶段所有用户数据，用于查找当前用户昨天和明天是否有停留点
+     * @return 当前用户第二个枢纽站的人口分类
+     */
+    public Byte getPersonClassicWhenX1EqualsLeave1(List<Row> rows, int
+            secondStationIndex, DataFrame stationTrace) {
+        Row secondStationBase = rows.get(secondStationIndex);
+
+        //当天日期
+        Integer date = secondStationBase.getAs("date");
+
+        //今天的日期
+        LocalDate today = LocalDate.parse(date.toString(), formatterDate);
+        //明天的日期
+        Integer tomorrow = Integer.valueOf(today.plusDays(1).toString
+                ("yyyyMMdd"));
+        //手机号码
+        String msisdn = secondStationBase.getAs("msisdn");
+        Boolean tomorrowHasStayPoint = this.tomorrowHasStayPoint
+                (stationTrace, tomorrow, msisdn);
+
+        //定义人口分类
+        Byte personClassic;
+        //根据枢纽站开始数据在列车时刻表的不同位置，进行人口分类
+        //列车时刻表
+        LocalDateTime localDateTime1 = LocalDateTime.parse(date.toString() +
+                "0000", formatterDateTimeMi);
+        LocalDateTime localDateTime2 = LocalDateTime.parse(date.toString() +
+                "0035", formatterDateTimeMi);
+        LocalDateTime localDateTime3 = LocalDateTime.parse(date.toString() +
+                "2230", formatterDateTimeMi);
+        LocalDateTime localDateTime4 = LocalDateTime.parse(date.toString() +
+                "2359", formatterDateTimeMi);
+        //枢纽站开始时间
+        Timestamp stationBaseBeginTime = secondStationBase.getAs("begin_time");
+        LocalDateTime beginTimeLocalDateTime = LocalDateTime.parse
+                (stationBaseBeginTime.toString(), formatterDateTime);
+        //枢纽站停留时间
+        Integer stationBaseMoveTime = secondStationBase.getAs("move_time");
+
+        //第二个枢纽基站后是否有停留点
+        Boolean afterSecondStationHasStayPoint = false;
+        for (int i = secondStationIndex + 1; i < rows.size(); i++) {
+            Byte pointType = rows.get(i).getAs("point_type");
+            if (pointType == SignalProcessUtil.STAY_POINT) {
+                afterSecondStationHasStayPoint = true;
+                break;
+            }
+        }
+
+        /** ①若S2的start_time在（00:35 – 22:30）之间
+         如果S2后有停留点，且 S2枢纽站逗留时间 >= 76s，则为往返人口，否则为城市途经人口
+         **/
+        if (beginTimeLocalDateTime.isBefore(localDateTime3) &&
+                beginTimeLocalDateTime.isAfter(localDateTime1)) {
+            if (afterSecondStationHasStayPoint && stationBaseMoveTime >=
+                    SEVENTY_SIX) {
+                personClassic = PersonClassic.Leave1.getIndex().byteValue();
+            } else {
+                personClassic = PersonClassic.CityPassBy.getIndex().byteValue();
+            }
+        } else {
+            /**②若S2的start_time在（22:30 – 24：00）之间
+             * 如果S2枢纽站逗留时间 >= 76s，S2后有停留点或该用户在后一天有停留点，则判断该用户为往返人口；否则为城市途经人口。 **/
+            if (stationBaseMoveTime >= SEVENTY_SIX &&
+                    (afterSecondStationHasStayPoint || tomorrowHasStayPoint)) {
+                personClassic = PersonClassic.Leave1.getIndex().byteValue();
+            } else {
+                personClassic = PersonClassic.CityPassBy.getIndex().byteValue();
+            }
+        }
+        return personClassic;
     }
 
 

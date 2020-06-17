@@ -1,6 +1,7 @@
 package com.sky.signal.pre.processor.workLiveProcess;
 
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.ProfileUtil;
 import org.apache.spark.sql.DataFrame;
@@ -149,7 +150,8 @@ public class LiveWorkAggProcessor implements Serializable {
                         workDfUwd.col("uwd"));
         //排除结果中，一个人多个职住地的情况
         result = result.dropDuplicates(new String[]{"msisdn"});
-        FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType.CSV, params.getWorkliveSavePath() + "work_live_his");
+        FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType
+                .CSV, params.getWorkliveSavePath() + PathConfig.WORKLIVE_PATH);
 
         existsDf.unpersist();
         fitUsers.unpersist();

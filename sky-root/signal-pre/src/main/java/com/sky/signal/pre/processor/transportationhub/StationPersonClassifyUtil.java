@@ -3,8 +3,11 @@ package com.sky.signal.pre.processor.transportationhub;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
+import com.sky.signal.pre.processor.transportationhub.StationPersonClassify
+        .KunShanStation;
 import com.sky.signal.pre.util.SignalProcessUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.joda.time.DateTime;
@@ -30,7 +33,8 @@ public class StationPersonClassifyUtil implements Serializable {
     private static final Integer TWO_HOUR = 2 * 60 * 60;
     private static final Integer SEVENTY_SIX = 76;
     private static final Integer TEN_MI = 10 * 60;
-
+    @Autowired
+    private transient KunShanStation kunShanStation;
     @Autowired
     private transient ParamProperties params;
 
@@ -182,9 +186,11 @@ public class StationPersonClassifyUtil implements Serializable {
      * </pre>
      *
      * @param rows 用户一天的枢纽站信令数据
+     * @param stationTrace 分析枢纽站当前分析阶段所有用户数据，用于查找当前用户昨天和明天是否有停留点
      * @return 增加了人口分类的枢纽站信令数据
      */
-    public List<Row> twoStationBaseProc(List<Row> rows) {
+    public List<Row> twoStationBaseProc(List<Row> rows , DataFrame
+            stationTrace) {
 
         //需要按照时间排序
         Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf
@@ -255,9 +261,27 @@ public class StationPersonClassifyUtil implements Serializable {
                 ("station_person_classic");
         Byte x2 = secondStationBaseClassification.get(0).getAs
                 ("station_person_classic");
-        Byte personClassic = getPersonClassicByCrossTable(x1, x2,
-                stationBaseTimeDiff, stayPointAndSecondStationBaseTimeDiff);
 
+        /**  X1=铁路出发人口（当天往返，但非火车返回） 重新对S2进行判断             **/
+        /** ①若S2的start_time在（00:35 – 22:30）之间                         **/
+        /**   如果S2后有停留点，且 S2枢纽站逗留时间 >= 76s，                     **/
+        /**   则为往返人口，否则为城市途经人口。                                 **/
+        /** ②若S2的start_time在（22:30 – 24：00）之间且 的move_time >= 76s，   **/
+        /** 且在 之后{Qj+1,Qj+2,…,Qn}之中）有停留点或该用户在后一天有停留点        **/
+        /** 则判断该用户为往返人口；否则为城市途经人口                            **/
+
+        /**         因为这儿需要根据当前分析的列车时刻表来进行判定       **/
+        /**         所以应该访问当前分析枢纽处理类                     **/
+
+        Byte personClassic;
+        if (x1 == PersonClassic.Leave1.getIndex().byteValue())
+        {//如果第一个基站人口分类为 铁路出发人口（当天往返，但非火车返回）
+            personClassic = kunShanStation.getPersonClassicWhenX1EqualsLeave1(rows,
+                    secondStationBaseIndex, stationTrace);
+        } else {//否则通过交叉表判定
+            personClassic = getPersonClassicByCrossTable(x1, x2,
+                    stationBaseTimeDiff, stayPointAndSecondStationBaseTimeDiff);
+        }
         //结果数据集
         List<Row> resultList = new ArrayList<>(rows.size());
 

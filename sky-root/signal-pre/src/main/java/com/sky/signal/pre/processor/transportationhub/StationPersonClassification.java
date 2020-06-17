@@ -5,6 +5,7 @@ import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
 import com.sky.signal.pre.processor.transportationhub.StationPersonClassify
         .KunShanStation;
+import com.sky.signal.pre.processor.workLiveProcess.WorkLiveLoader;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.ProfileUtil;
 import com.sky.signal.pre.util.SignalProcessUtil;
@@ -37,6 +38,8 @@ public class StationPersonClassification implements Serializable {
     @Autowired
     private transient KunShanStation kunShanStation;
     @Autowired
+    private transient WorkLiveLoader workLiveLoader;
+    @Autowired
     private transient StationPersonClassifyUtil stationPersonClassifyUtil;
 
     public void process(String stationTraceFilePath) {
@@ -57,11 +60,13 @@ public class StationPersonClassification implements Serializable {
         // 加载所有枢纽站轨迹有效信令数据，因为昆山南站的分析需要用到昨天和明天的信令
         //需要在map外部预先取出这个数据集
         final DataFrame stationTrace = loadStationTrace();
+        // 加载当前分析阶段所有用户的职住分析结果
+        final DataFrame workLiveDf = workLiveLoader.load();
         JavaRDD<List<Row>> stationTraceRDD = stationTracePairRDD.values().map
                 (new Function<List<Row>, List<Row>>() {
             @Override
             public List<Row> call(List<Row> rows) throws Exception {
-                return personClassification(rows, stationTrace);
+                return personClassification(rows, stationTrace,workLiveDf);
             }
         });
 
@@ -85,10 +90,12 @@ public class StationPersonClassification implements Serializable {
      * 60min的用户，直接进入第⑤步，对于逗留时间 < 60min的用户，直接进入步骤④进行铁路过境人口判断
      *
      * @param rows 用户一天的信令数据
+     * @param stationTrace 分析枢纽站当前分析阶段所有用户数据，用于查找当前用户昨天和明天是否有停留点
+     * @param workLiveDf 当前分析阶段所有数据计算出的用户职住信息
      * @return 人口分类
      */
     private List<Row> personClassification(List<Row> rows, DataFrame
-            stationTrace) {
+            stationTrace,DataFrame workLiveDf) {
         List<Row> resultList;
         Long sumMoveTime = 0L;
         for (Row row : rows) {
@@ -96,7 +103,7 @@ public class StationPersonClassification implements Serializable {
             sumMoveTime += moveTime;
         }
         if (sumMoveTime >= ONE_HOUR) {
-            resultList = stationPersionClassification(rows);
+            resultList = stationPersionClassification(rows, stationTrace,workLiveDf);
         } else {
             resultList = kunShanStation.classify(rows, stationTrace);
         }
@@ -107,9 +114,12 @@ public class StationPersonClassification implements Serializable {
      * 枢纽站人口分类
      *
      * @param rows 用户一天的信令
+     * @param stationTrace 分析枢纽站当前分析阶段所有用户数据，用于查找当前用户昨天和明天是否有停留点
+     * @param workLiveDf 当前分析阶段所有数据计算出的用户职住信息
      * @return 增加分类后的用户数据
      */
-    private List<Row> stationPersionClassification(List<Row> rows) {
+    private List<Row> stationPersionClassification(List<Row> rows, DataFrame
+            stationTrace,DataFrame workLiveDf) {
         int stationCount = getStationCount(rows);
         if (stationCount < 2) { //枢纽基站为1个
             rows = stationPersonClassifyUtil.oneStationBaseProc(rows);
@@ -118,9 +128,10 @@ public class StationPersonClassification implements Serializable {
             //重新计算枢纽基站数量
             stationCount = getStationCount(rows);
             if (stationCount < 2) {
-                rows = stationPersonClassifyUtil.oneStationBaseProc(rows);
+                rows = kunShanStation.oneStationBaseProc(rows,stationTrace,workLiveDf);
             } else if (stationCount == 2) {
-                rows = stationPersonClassifyUtil.twoStationBaseProc(rows);
+                rows = stationPersonClassifyUtil.twoStationBaseProc(rows,
+                        stationTrace);
             } else {
                 rows = stationPersonClassifyUtil.gt2StationBaseProc(rows);
             }
