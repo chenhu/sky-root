@@ -438,9 +438,12 @@ public class StationPersonClassifyUtil implements Serializable {
      * </pre>
      *
      * @param rows 用户一天的信令数据
+     * @param flag1 是否判定小于等于10分钟
+     * @param flag2 是否判定大于10分钟小于2小时
      * @return 合并虚拟基站后的信令
      */
-    public List<Row> mergeStationBase(List<Row> rows) {
+    public List<Row> mergeStationBase(List<Row> rows, Boolean flag1, Boolean
+            flag2) {
         //结果数据集
         List<Row> resultList = new ArrayList<>(rows.size());
 
@@ -481,7 +484,7 @@ public class StationPersonClassifyUtil implements Serializable {
                         ("begin_time"));
                 int timeDiff = Math.abs(Seconds.secondsBetween(beginTime,
                         endTime).getSeconds());
-                if (timeDiff <= TEN_MI) { //小于等于10分钟，合并两个虚拟基站
+                if (flag1 && timeDiff <= TEN_MI) { //小于等于10分钟，合并两个虚拟基站
 
                     Row mergedStationBaseRow = SignalProcessUtil
                             .getNewRowWithStayPoint(currentStationBase, rows
@@ -499,7 +502,8 @@ public class StationPersonClassifyUtil implements Serializable {
                     priorStationBaseIndex = currentStationBaseIndex;
                     //checkpoint 指向当前记录后
                     checkpoint = currentStationBaseIndex + 1;
-                } else if (timeDiff > TEN_MI && timeDiff < TWO_HOUR) {//舍弃前虚拟基站
+                } else if (flag2 && timeDiff > TEN_MI && timeDiff < TWO_HOUR)
+                {//舍弃前虚拟基站
 
                     //把checkpoint开始到当前位置-1的记录，添加到结果列表中
                     //当前记录先不增加进去，防止后面再出现需要舍弃这个基站的情况

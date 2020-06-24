@@ -124,7 +124,7 @@ public class StationPersonClassification implements Serializable {
         if (stationCount < 2) { //枢纽基站为1个
             rows = stationPersonClassifyUtil.oneStationBaseProc(rows);
         } else { //合并基站
-            rows = stationPersonClassifyUtil.mergeStationBase(rows);
+            rows = stationPersonClassifyUtil.mergeStationBase(rows,true,true);
             //重新计算枢纽基站数量
             stationCount = getStationCount(rows);
             if (stationCount < 2) {

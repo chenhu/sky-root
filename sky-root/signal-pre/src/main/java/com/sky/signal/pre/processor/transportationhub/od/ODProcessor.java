@@ -3,6 +3,7 @@ package com.sky.signal.pre.processor.transportationhub.od;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
+import com.sky.signal.pre.processor.transportationhub.StationPersonClassifyUtil;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.ProfileUtil;
 import com.sky.signal.pre.util.SignalProcessUtil;
@@ -33,6 +34,9 @@ public class ODProcessor implements Serializable {
 
     @Autowired
     private transient PreODProcess preODProcess;
+    @Autowired
+    private transient StationPersonClassifyUtil stationPersonClassifyUtil;
+
     /**
      * 按天进行枢纽站人口OD出行分析
      *
@@ -78,7 +82,7 @@ public class ODProcessor implements Serializable {
     }
 
     public List<Row> getOD(List<Row> rows, DataFrame df) {
-        rows = preODProcess.mergeStationBase(rows);
+        rows = stationPersonClassifyUtil.mergeStationBase(rows, true, false);
         rows = preODProcess.mergeStayPoint(rows);
         rows = getStationBaseOD(rows, df);
         return rows;
