@@ -9,7 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>signal-pre</artifactId>
+    <artifactId>population-migrate</artifactId>
+    <description>人口迁徙分析</description>
 
     <properties>
         <!--部署到spark时使用provided,调试时使用compile -->
@@ -99,7 +100,7 @@
                                 implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                         <transformer
                                 implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.sky.signal.pre.Application</mainClass>
+                            <mainClass>com.sky.signal.population.Application</mainClass>
                         </transformer>
                     </transformers>
                 </configuration>

@@ -1,0 +1,20 @@
+param:
+  masterUrl: local[2]
+  cityCode: 1000512
+  savePath: /Users/chenhu/data/changshu/save/
+  cellFile: file:///Users/chenhu/data/changshu/cell/cell.csv
+  basePath: /Users/chenhu/data/changshu/轨迹数据/
+  trackPre: track_
+  phoneCityFile: file:///Users/chenhu/data/changshu/GSDZ.csv
+  userFile: file:///Users/chenhu/data/changshu/crm.csv
+  workliveBatchSize: 1
+  workliveSavePath: /Users/chenhu/data/changshu/save/201706/
+  validSignalFilesForWorkLive:
+    - /Users/chenhu/data/changshu/save/validSignal/20170602
+
+  #枢纽站数据分析常用配置
+  specifiedAreaBaseFile: file:///Users/chenhu/data/changshu/save/baseArea.csv
+  visualStationBase: 1111|222
+  visualLng: 120.95173
+  visualLat: 31.36785
+
