@@ -7,12 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import scala.Tuple2;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @Component
@@ -39,54 +37,22 @@ public class ParamProperties {
     private String service;
 
     /**
-     * 保存路径
-     */
-    private String savePath;
-
-    /**
      * 基站数据文件
      */
     private String cellFile;
-
     /**
-     * description: 当前处理的地市
-     * param:
-     * return:
-     **/
+     * 当前处理的地市编码
+     */
     private Integer cityCode;
 
     /**
-     * 手机号段归属地数据文件
+     * 当前处理的区县编码
      */
-    private String phoneCityFile;
-
+    private String districtCode;
     /**
      * 移动信令数据基础路径
      */
     private String basePath;
-
-    /**
-     * 职住分析每个批次处理有效数据天数
-     */
-    private Integer workliveBatchSize;
-    /**
-     * 有效信令数据文件
-     */
-    private List<String> validSignalFilesForWorkLive;
-
-    /**
-     * 用来做工作地处理的有效信令文件
-     */
-    private List<String> validSignalForWork;
-    /**
-     * 用来做居住地处理的有效信令文件
-     */
-    private List<String> validSignalForLive;
-
-    /**
-     * 职住分析结果文件存储位置
-     */
-    private String workliveSavePath;
 
     /**
      * 停驻点
@@ -97,23 +63,6 @@ public class ParamProperties {
      * OD文件
      */
     private String linkFile;
-
-    /**
-     * 当处理的信令是在一个区域内的时候，指定的一个区域内的基站信息
-     */
-    private String specifiedAreaBaseFile;
-
-    /**
-     * 枢纽分析中虚拟基站的经纬度，以及虚拟基站的Base(tac|cell)
-     */
-    private Double visualLng;
-    private Double visualLat;
-    private String visualStationBase;
-
-    /**
-     * 用户信息
-     */
-    private String userFile;
 
     /**
      * 分区数
@@ -131,8 +80,9 @@ public class ParamProperties {
     private static final Logger logger = LoggerFactory.getLogger
             (ParamProperties.class);
 
-    // 轨迹文件路径前面统一字符，比如track_、dt= ,后面带有日期yyyyMMdd
-    public String trackPre;
+    // 全省轨迹日期,一般是逗号分割的日期，比如: --odays=20190611,20190618
+    private static final String ORGINAL_DATE = "odays";
+    private List<String> odays;
 
     /**
      * 注入程序参数
@@ -141,6 +91,11 @@ public class ParamProperties {
      */
     @Autowired
     public void setArgs(ApplicationArguments args) {
+        // 注入当前要运行的服务名称
+        if (args.containsOption(ORGINAL_DATE)) {
+            odays = Arrays.asList(args.getOptionValues(ORGINAL_DATE).get(0)
+                    .trim().split(","));
+        }
         // 注入当前要运行的服务名称
         if (args.containsOption(SERVICENAME)) {
             service = args.getOptionValues(SERVICENAME).get(0).trim();
@@ -184,101 +139,77 @@ public class ParamProperties {
                         " , using: --year --month --day");
             }
         }
+
+
     }
 
     /**
-     * 获取客户hdfs上面原始信令数据路径
-     * 目前客户hdfs上面文件路径为 basepath/YYYYMMDD/xxxx.gz
-     * 此方法后面要根据实际情况作改动
+     * 获取预处理后的全省基站文件路径
      *
      * @return
      */
-    public List<String> getTraceSignalFileFullPath() {
-        String orignal = this.getBasePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            if (orignal.endsWith(sep)) {
-                fileList.add(orignal + trackPre + strYear + strMonth + day);
-            } else {
-                fileList.add(orignal + sep + trackPre + strYear + strMonth +
-                        day);
-            }
-        }
-        return fileList;
+    public String getValidProvinceCellPath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (PathConfig.CELL_PATH);
     }
 
     /**
-     * description: 获取有效信令文件路径
-     * param: []
-     * return: java.lang.String
-     **/
-    public List<String> getValidSignalFileFullPath() {
-        String orignal = this.getSavePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            if (orignal.endsWith(sep)) {
-                fileList.add(orignal + "validSignal" + sep + strYear +
-                        strMonth + day);
-            } else {
-                fileList.add(orignal + sep + "validSignal" + sep + strYear +
-                        strMonth + day);
-            }
-        }
-        return fileList;
+     * 获取预处理后的指定区县基站文件路径
+     *
+     * @param districtCode 区县编码
+     * @return
+     */
+    public String getCurrentDistrictCellPath(String districtCode) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (districtCode).concat(PathConfig.DISTRICT_CELL_PATH);
     }
 
     /**
-     * description: 获取枢纽有效信令文件路径,文件内容带有停留点类型
-     * param: []
-     * return: java.lang.String
-     **/
-    public List<String> getStationTraceFileFullPath() {
-        String orignal = this.getSavePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            if (orignal.endsWith(sep)) {
-                fileList.add(orignal + PathConfig.STATION_DATA_PATH + strYear +
-                        strMonth + day);
-            } else {
-                fileList.add(orignal + sep + PathConfig.STATION_DATA_PATH +
-                        strYear +
-                        strMonth + day);
-            }
-        }
-        return fileList;
+     * 获取全省基站的经纬度和geohash对照表文件路径
+     *
+     * @return
+     */
+    public String getGeoHashFilePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (PathConfig.GEOHASH_PATH);
     }
 
+    /**
+     * 获取当前处理区县符合条件的手机号轨迹保存路径
+     *
+     * @param districtCode 区县编码
+     * @return
+     */
+    public String getDestDistrictOdFilePath(String districtCode) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH);
+    }
 
     /**
-     * description: 返回根据日期参数拼接成的 日期、有效数据路径、原始数据路径 的 map
-     * param: []
-     * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,
-     * java.lang.String>>
-     **/
-    public Map<String, Tuple2<String, String>> getSignalFilePathTuple2() {
-        String basePath = this.getBasePath();
-        String savePath = this.getSavePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        Map<String, Tuple2<String, String>> resultMap = new HashMap<>();
-        for (String day : days) {
-            String date = strYear + strMonth + day;
-            if (basePath.endsWith(sep)) {
-                String orginalPath = basePath + trackPre;
-                resultMap.put(date, new Tuple2<>(savePath + "validSignal" +
-                        sep + date, orginalPath + date));
-            } else {
-                String orginalPath = basePath + sep + trackPre;
-                resultMap.put(date, new Tuple2<>(savePath + sep +
-                        "validSignal" + sep + date, orginalPath + date));
+     * 获取在目标区县中出现一定时间的手机号，在全省范围的轨迹文件保存路径
+     *
+     * @return
+     */
+    public String getProvinceFilePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (districtCode).concat(PathConfig.PROVINCE_MSISDN_OD_PATH);
+    }
+
+    /**
+     * 获取当前要处理日期的全省轨迹数据路径列表
+     * @return
+     */
+    public List<String> getProvinceTraceFilePath() {
+        List<String> tracePathList = new ArrayList<>();
+        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
+        if(!CollectionUtils.isEmpty(this.odays)) {
+            for(String oday: odays) {
+                tracePathList.add(tracePath.concat(oday));
             }
+        } else {
+            throw new IllegalArgumentException("需要指定要处理的轨迹日期， " +
+                    "--odays=yyyyMMdd, yyyyMMdd");
         }
-        return resultMap;
+        return tracePathList;
     }
 }

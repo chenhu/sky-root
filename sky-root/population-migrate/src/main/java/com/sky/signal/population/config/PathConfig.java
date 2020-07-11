@@ -5,20 +5,22 @@ package com.sky.signal.population.config;
  * 关于路径方面的配置，解决硬编码的问题
  */
 public class PathConfig {
-    //普通基站处理后保存文件夹名称
-    public static final String CELL_PATH = "cell";
-    //枢纽基站处理后保存文件夹名称
-    public static final String STATION_CELL_PATH = "station_cell";
+    //全省基站处理后保存文件夹名称
+    public static final String CELL_PATH = "cell/";
+    //当前处理区县基站文件保存文件夹名称，应该在"_"之前连接上当前区县编号
+    public static final String DISTRICT_CELL_PATH = "_cell/";
     //基站经纬度和geohash对照表数据保存文件夹名称
-    public static final String GEOHASH_PATH = "geohash";
-    //枢纽站预处理后带停留点类型的文件保存文件夹名称
-    public static final String STATION_DATA_PATH = "station-data/";
+    public static final String GEOHASH_PATH = "geohash/";
+    //目标区县od点保存路径，应该在"_"之前连接上当前区县编号
+    public static final String DEST_DESTRICT_OD_PATH = "_destrict_od/";
+    //全省范围内目标区县手机的轨迹od保存路径
+    public static final String PROVINCE_MSISDN_OD_PATH = "privince_od/";
+    //处理过程中结果和中间数据保存路径
+    public static final String APP_SAVE_PATH = "save/";
 
-    //枢纽站预处理后带停人口分类的文件保存文件夹名称
-    public static final String STATION_CLASSIC_PATH = "station-classic/";
+    //原始信令文件夹名称
+    public static final String TRACE_PATH = "trace/dt=";
 
-    //职住分析结果保存文件夹名称
-    public static final String WORKLIVE_PATH = "work_live_his";
 
 
 }
