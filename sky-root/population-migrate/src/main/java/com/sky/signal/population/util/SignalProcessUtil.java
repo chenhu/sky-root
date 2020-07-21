@@ -6,6 +6,8 @@ import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import org.joda.time.DateTime;
+import org.joda.time.Seconds;
 import scala.Tuple2;
 import scala.Tuple3;
 
@@ -21,11 +23,11 @@ public class SignalProcessUtil {
     /**
      * 手机信令DataFrame转化为JavaPairRDD
      *
-     * @param validSignalDf
-     * @param params
+     * @param validSignalDf 信令df
+     * @param params 参数配置工具类
      * @return
      */
-    public static JavaPairRDD<String, List<Row>> signalToJavaPairRDD
+    public static JavaPairRDD<String, List<Row>> keyPairByMsisdn
     (DataFrame validSignalDf, ParamProperties params) {
         JavaPairRDD<String, Row> validSignalRDD = validSignalDf.javaRDD()
                 .mapToPair(new PairFunction<Row, String, Row>() {
@@ -54,6 +56,42 @@ public class SignalProcessUtil {
         });
     }
 
+    /**
+     * 手机信令DataFrame转化为JavaPairRDD，key为区县编码，value为区县区县信令
+     *
+     * @param signalDf 需要转换的信令
+     * @param params 参数配置工具类
+     * @return
+     */
+    public static JavaPairRDD<String, List<Row>> keyPairByDistrictCode
+    (DataFrame signalDf, ParamProperties params) {
+        JavaPairRDD<String, Row> signalRDD = signalDf.javaRDD()
+                .mapToPair(new PairFunction<Row, String, Row>() {
+                    public Tuple2<String, Row> call(Row row) throws Exception {
+                        String district = row.getAs("district");
+                        return new Tuple2<>(district, row);
+                    }
+                });
+
+        //对数据进行分组，相同区县放到一个集合里面
+        List<Row> rows = new ArrayList<>();
+        return signalRDD.aggregateByKey(rows, params.getPartitions(),
+                new Function2<List<Row>, Row, List<Row>>() {
+                    @Override
+                    public List<Row> call(List<Row> rows1, Row row) throws Exception {
+                        rows1.add(row);
+                        return rows1;
+                    }
+                }, new Function2<List<Row>, List<Row>, List<Row>>() {
+                    @Override
+                    public List<Row> call(List<Row> rows1, List<Row> rows2) throws
+                            Exception {
+                        rows1.addAll(rows2);
+                        return rows1;
+                    }
+                });
+    }
+
 
     /**
      * 计算两条信令之间的 distance move_time speed
@@ -80,6 +118,17 @@ public class SignalProcessUtil {
                     moveTime * 3.6, 2);
         }
         return new Tuple3<>(distance, moveTime, speed);
+    }
+
+    /**
+     * description: 计算两个时间直接的秒数差
+     * param: [t1, t2]
+     * return: int
+     **/
+    public static int getTimeDiff(Timestamp t1, Timestamp t2) {
+        // t2 - t1
+        return Seconds.secondsBetween(new DateTime(t1), new DateTime(t2))
+                .getSeconds();
     }
 
 

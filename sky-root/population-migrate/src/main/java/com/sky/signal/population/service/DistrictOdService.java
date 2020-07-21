@@ -11,7 +11,6 @@ import org.apache.spark.storage.StorageLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,8 +23,6 @@ public class DistrictOdService implements ComputeService {
     @Autowired
     private transient ParamProperties params;
 
-    //在单个区域逗留时间阀值为120分钟
-    private static final int DISTRICT_STAY_MINUTE = 2 * 60;
     @Autowired
     private transient CellLoader cellLoader;
 
@@ -39,24 +36,32 @@ public class DistrictOdService implements ComputeService {
     public void compute() {
         //当前要处理的区县编码
         String districtCode = params.getDistrictCode();
+
         //加载基站文件，并筛选出属于当前区县的基站
-        final Broadcast<Map<String, Row>> currentDistrictCell = cellLoader
-                .loadCurrentDistrictCell(districtCode);
+//        final Broadcast<Map<String, Row>> currentDistrictCell = cellLoader
+//                .loadCurrentDistrictCell(districtCode);
 
         //加载全省指定日期的信令数据
-        List<String> traceFilePathList = params.getProvinceTraceFilePath();
-        DataFrame traceDf = traceProcessor.loadTrace(traceFilePathList)
-                .persist(StorageLevel.DISK_ONLY());
+        DataFrame traceDf = traceProcessor.loadTrace(params.getProvinceTraceFilePath());
+        //基站信息合并到全省信令数据
+        final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
+        DataFrame provinceSignalDf = traceProcessor.mergeCellSignal(traceDf, provinceCell).persist(StorageLevel
+                .DISK_ONLY());
+
 
         //根据基站内容筛选出属于当前区县的信令数据
-        DataFrame currentDistrictDf = traceProcessor
-                .filterCurrentDistrictTrace(currentDistrictCell, traceDf);
+        DataFrame currentDistrictDf = traceProcessor.filterCurrentDistrictTrace
+                (districtCode, provinceSignalDf);
 
         //只保存停留时间大于等于2小时的手机号码信息
-        DataFrame mergedDf = traceProcessor.getDistrictDf(currentDistrictDf,
-                currentDistrictCell);
+        currentDistrictDf = traceProcessor.filterStayMsisdnTrace(currentDistrictDf).persist(StorageLevel
+                .DISK_ONLY());
 
-        //
+        //找出符合条件的号码在当前区域外的信令
+        DataFrame otherDistrictDf = traceProcessor.filterOtherDistrictTrace(districtCode, provinceSignalDf);
+        otherDistrictDf = traceProcessor.filterSignalByMsisdn(currentDistrictDf, otherDistrictDf);
+
+        //对非当前区域的信令进行基于区县的OD分析
 
 
     }
