@@ -77,17 +77,6 @@ public class TraceProcessor implements Serializable {
     }
 
     /**
-     * 通过区县基站信息找到除当前区县的轨迹数据
-     *
-     * @param currentDistrictCode 当前区县编码
-     * @param allTrace            全省轨迹
-     * @return
-     */
-    public DataFrame filterOtherDistrictTrace(String currentDistrictCode, DataFrame allTrace) {
-        return allTrace.filter(col("district").notEqual(currentDistrictCode));
-    }
-
-    /**
      * 过滤停留时间超过一定时间的手机号码的信令
      *
      * @param traceDf
@@ -214,10 +203,10 @@ public class TraceProcessor implements Serializable {
      * 从非当前区县信令中过滤出目标区县内符合条件的手机号码的信令
      *
      * @param currentDistrictDf 目标区县信令
-     * @param otherDistrictDf   非目标区县信令
+     * @param provinceDf        全省信令
      * @return
      */
-    public DataFrame filterSignalByMsisdn(DataFrame currentDistrictDf, DataFrame otherDistrictDf) {
+    public DataFrame filterSignalByMsisdn(DataFrame currentDistrictDf, DataFrame provinceDf) {
         List<Row> msisdnRowList = currentDistrictDf.select("msisdn").collectAsList();
         List<String> msisdnList = new ArrayList<>(msisdnRowList.size());
         for (Row row : msisdnRowList) {
@@ -225,8 +214,7 @@ public class TraceProcessor implements Serializable {
         }
         final Broadcast<List<String>> msisdnBroadcast = sparkContext.broadcast(msisdnList);
 
-        JavaRDD<Row> signalOtherDistrictRdd = otherDistrictDf.javaRDD().filter(new Function<Row,
-                Boolean>() {
+        JavaRDD<Row> signalProvinceRdd = provinceDf.javaRDD().filter(new Function<Row, Boolean>() {
             @Override
             public Boolean call(Row row) throws Exception {
                 List<String> msisdnList = msisdnBroadcast.getValue();
@@ -237,148 +225,181 @@ public class TraceProcessor implements Serializable {
                 return false;
             }
         });
-        return sqlContext.createDataFrame(signalOtherDistrictRdd, SignalSchemaProvider
+        return sqlContext.createDataFrame(signalProvinceRdd, SignalSchemaProvider
                 .SIGNAL_SCHEMA_BASE);
 
     }
 
     /**
      * 按照区县生成每个人的停留点
-     *
      * @param signalDf 信令数据
      * @return
      */
-    public DataFrame createDistrictStayPoint(DataFrame signalDf) {
-        JavaRDD<Row> districtOdRdd = SignalProcessUtil.keyPairByMsisdn
-                (signalDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
+    public DataFrame provinceOd(DataFrame signalDf) {
+        JavaRDD<Row> districtOdRdd = SignalProcessUtil.keyPairByMsisdn(signalDf, params).values()
+                .flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {
-
-
-
-                return null;
+                return districtOdByMsisdn(rows);
             }
         });
-
-
-        return null;
+        return sqlContext.createDataFrame(districtOdRdd, SignalSchemaProvider.DISTRICT_OD);
 
     }
 
     /**
      * 处理单个手机的信令，并按照日期形成手机的区县OD
-     * @param rows
+     *
+     * @param rows 单个用户信令
      * @return
      */
-    public Map<Integer, List<Row>> districtOdByMsisdn(List<Row> rows) {
+    public List<Row> districtOdByMsisdn(List<Row> rows) {
         //按日期生成数据
         Map<Integer, List<Row>> signalDateMap = new HashMap<>();
-        //日期OD
-        Map<Integer, List<Row>> odDateMap = new HashMap<>();
-
         Set<Integer> dateSet = new HashSet<>();
-        for(Row row: rows) {
+        for (Row row : rows) {
             Integer date = row.getAs("date");
             dateSet.add(date);
         }
 
         //生成按照日期组成的用户轨迹
-        for (Integer date: dateSet) {
+        for (Integer date : dateSet) {
             List<Row> oneDaySignalList = new ArrayList<>();
-            for (Row row: rows) {
-                if(row.getAs("date").equals(date)) {
+            for (Row row : rows) {
+                if (row.getAs("date").equals(date)) {
                     oneDaySignalList.add(row);
                 }
             }
             signalDateMap.put(date, oneDaySignalList);
         }
+        List<Row> result = new ArrayList<>();
         //针对每天的用户轨迹进行处理，生成每天的区县出行OD
-        for (Integer date: signalDateMap.keySet()) {
-            //用户一天的轨迹进行排序
+        for (Integer date : signalDateMap.keySet()) {
             List<Row> oneDaySignalList = signalDateMap.get(date);
             oneDaySignalList = odLink(oneDaySignalList);
-            odDateMap.put(date, oneDaySignalList);
+            result.addAll(oneDaySignalList);
         }
-        return odDateMap;
+
+        return result;
     }
 
-/**
- * @Description:
- *
- * 
- * @Author: Hu Chen 
- * @Date: 2020/7/20 17:06
- * @param:  [rows]
- * @return: java.util.List<org.apache.spark.sql.Row>
- **/
+    /**
+     * @Description: 生成区县OD出行链
+     * @Author: Hu Chen
+     * @Date: 2020/7/20 17:06
+     * @param: [rows]
+     * @return: java.util.List<org.apache.spark.sql.Row>
+     **/
     private List<Row> odLink(List<Row> rows) {
+        //合并单用户一条的轨迹，按照时间顺序，相邻两天记录，肯定为不同区县。
+        rows = mergeDistrictTrace(rows);
         //结果列表
         List<Row> resultOd = new ArrayList<>();
         //排序
-        Ordering<Row> ordering = Ordering.natural().nullsFirst()
-                .onResultOf(new com.google.common.base.Function<Row, Timestamp>() {
-                    @Override
-                    public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
-                    }
-                });
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common
+                .base.Function<Row, Timestamp>() {
+            @Override
+            public Timestamp apply(Row row) {
+                return row.getAs("begin_time");
+            }
+        });
         //按startTime排序
         rows = ordering.sortedCopy(rows);
         Row pre = null;
-        Row current ;
+        Row current;
 
-        for (Row row: rows) {
+        for (Row row : rows) {
             current = row;
-            if(pre == null) {
+            if (pre == null) {
+                pre = current;
+                continue;
+            } else {
+                Integer cityCodeO = pre.getAs("city_code");
+                Integer cityCodeD = current.getAs("city_code");
+                String districtO = pre.getAs("district");
+                String districtD = current.getAs("district");
+                Timestamp beginTime = pre.getAs("begin_time");
+                Timestamp endTime = current.getAs("last_time");
+                int moveTime = SignalProcessUtil.getTimeDiff(beginTime, endTime);
+                if (params.getOdMode() == 1)//停留时间有要求
+                {
+                    if (moveTime >= DISTRICT_STAY_MINUTE * 60) {//停留时间满足要求
+                        Row resultRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
+                                pre.getAs("msisdn"), pre.getAs("region"), cityCodeO, districtO,
+                                cityCodeD, districtD, pre.getAs("begin_time"), current.getAs
+                                ("last_time"), moveTime}, SignalSchemaProvider.DISTRICT_OD);
+                        resultOd.add(resultRow);
+                        pre = current;//pre指向current
+                    } else {//停留时间不满足要求，忽略当前区县停留点，pre的指向不变
+                        continue;
+                    }
+                } else {//停留时间无要求
+                    Row resultRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"), pre
+                            .getAs("msisdn"), pre.getAs("region"), cityCodeO, districtO,
+                            cityCodeD, districtD, pre.getAs("begin_time"), current.getAs
+                            ("last_time"), moveTime}, SignalSchemaProvider.DISTRICT_OD);
+                    resultOd.add(resultRow);
+                    pre = current;
+                }
+            }
+        }
+        return resultOd;
+    }
+
+    /**
+     * 合并同区县内的信令,相邻记录肯定为不同区县，同一区县只会存在一条合并后的信令，
+     * 开始时间为第一条的开始时间，结束时间为最后一条的结束时间
+     *
+     * @param rows 单用户某天的信令
+     * @return
+     */
+    private List<Row> mergeDistrictTrace(List<Row> rows) {
+        //结果列表
+        List<Row> result = new ArrayList<>();
+        //排序
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common
+                .base.Function<Row, Timestamp>() {
+            @Override
+            public Timestamp apply(Row row) {
+                return row.getAs("begin_time");
+            }
+        });
+        //按startTime排序
+        rows = ordering.sortedCopy(rows);
+        Row pre = null;
+        Row current;
+        Map<Tuple2<String, Timestamp>, Row> tmpMap = new HashMap<>();
+        for (Row row : rows) {
+            current = row;
+            if (pre == null) {
                 pre = current;
                 continue;
             } else {
                 String currentDistrict = current.getAs("district");
                 String preDistrict = pre.getAs("district");
                 //相同区县，合并
-                if(currentDistrict.equals(preDistrict)) {
-                    Row mergedRow = new GenericRowWithSchema(new Object[]{
-                            pre.getAs("date"),
-                            pre.getAs("msisdn"),
-                            pre.getAs("region"),
-                            pre.getAs("city_code"),
-                            pre.getAs("district"),
-                            pre.getAs("tac"),
-                            pre.getAs("cell"),
-                            pre.getAs("base"),
-                            pre.getAs("lng"),
-                            pre.getAs("lat"),
-                            pre.getAs("begin_time"),
-                            current.getAs("last_time")},
-                            SignalSchemaProvider.SIGNAL_SCHEMA_BASE);
+                if (currentDistrict.equals(preDistrict)) {
+                    Timestamp beginTime = pre.getAs("begin_time");
+                    Row mergedRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"), pre
+                            .getAs("msisdn"), pre.getAs("region"), pre.getAs("city_code"), pre
+                            .getAs("district"), pre.getAs("tac"), pre.getAs("cell"), pre.getAs
+                            ("base"), pre.getAs("lng"), pre.getAs("lat"), pre.getAs("begin_time")
+                            , current.getAs("last_time")}, SignalSchemaProvider.SIGNAL_SCHEMA_BASE);
+                    tmpMap.put(new Tuple2<>(preDistrict, beginTime), mergedRow);
                     pre = mergedRow;
                     continue;
-
-                } else {//不同区县，生成出行OD
-                    Integer cityCodeO = pre.getAs("city_code");
-                    Integer cityCodeD = current.getAs("city_code");
-                    String districtO = pre.getAs("district");
-                    String districtD = current.getAs("district");
-                    Timestamp beginTime = pre.getAs("begin_time");
-                    Timestamp endTime = current.getAs("last_time");
-                    int moveTime = SignalProcessUtil.getTimeDiff(beginTime, endTime);
-                    Row odRow = new GenericRowWithSchema(new Object[]{
-                            pre.getAs("date"),
-                            pre.getAs("msisdn"),
-                            pre.getAs("region"),
-                            cityCodeO,
-                            districtO,
-                            cityCodeD,
-                            districtD,
-                            pre.getAs("begin_time"),
-                            current.getAs("last_time"),moveTime},
-                            SignalSchemaProvider.DISTRICT_OD);
-                    resultOd.add(odRow);
+                } else {
+                    Timestamp beginTime = current.getAs("begin_time");
+                    tmpMap.put(new Tuple2<>(currentDistrict, beginTime), current);
                     pre = current;
+                    continue;
                 }
             }
         }
-        return resultOd;
+
+        result.addAll(tmpMap.values());
+
+        return result;
     }
 
 

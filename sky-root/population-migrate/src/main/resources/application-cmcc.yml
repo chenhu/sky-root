@@ -1,4 +1,5 @@
 param:
   basePath: /user/bdoc/17/services/hdfs/132/batch1/jiangsu/
   cellFile: /user/bdoc/17/services/hdfs/132/batch1/jiangsu/cell/cell.csv
+  odMode: 0
 

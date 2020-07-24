@@ -34,7 +34,7 @@ public class CellLoader implements Serializable {
      */
     public Broadcast<Map<String, Row>> loadCurrentDistrictCell(String districtCode) {
         DataFrame cellDf = FileUtil.readFile(FileUtil.FileType.CSV,
-                CellSchemaProvider.CELL_SCHEMA, params.getProvinceFilePath());
+                CellSchemaProvider.CELL_SCHEMA, params.getCurrentDistrictCellPath(districtCode));
         Row[] cellRows = cellDf.filter(col("district").equalTo(districtCode)).collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
@@ -52,7 +52,7 @@ public class CellLoader implements Serializable {
      */
     public Broadcast<Map<String, Row>> loadCell() {
         DataFrame cellDf = FileUtil.readFile(FileUtil.FileType.CSV,
-                CellSchemaProvider.CELL_SCHEMA, params.getProvinceFilePath());
+                CellSchemaProvider.CELL_SCHEMA, params.getCellFile());
         Row[] cellRows = cellDf.collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {

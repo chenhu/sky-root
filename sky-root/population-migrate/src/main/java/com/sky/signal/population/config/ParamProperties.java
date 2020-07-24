@@ -50,6 +50,12 @@ public class ParamProperties {
      */
     private String districtCode;
     /**
+     * 区域OD分析判定方式
+     * odMode = 0, 只要在区县有停留点，则算一次OD出行，不用满足停留时间满足阀值
+     * odMode = 1, 只有在区县停留时间满足阀值，才算一次OD出行
+     */
+    private Integer odMode;
+    /**
      * 移动信令数据基础路径
      */
     private String basePath;
@@ -175,7 +181,7 @@ public class ParamProperties {
     }
 
     /**
-     * 获取当前处理区县符合条件的手机号轨迹保存路径
+     * 获取区县OD分析保存路径
      *
      * @param districtCode 区县编码
      * @return
@@ -186,13 +192,12 @@ public class ParamProperties {
     }
 
     /**
-     * 获取在目标区县中出现一定时间的手机号，在全省范围的轨迹文件保存路径
+     * 获取全省不分区县OD保存路径
      *
      * @return
      */
-    public String getProvinceFilePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
-                (districtCode).concat(PathConfig.PROVINCE_MSISDN_OD_PATH);
+    public String getProvinceODFilePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.PROVINCE_MSISDN_OD_PATH);
     }
 
     /**
