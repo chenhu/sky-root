@@ -2,10 +2,13 @@ package com.sky.signal.population.processor;
 
 import com.sky.signal.population.config.ParamProperties;
 import com.sky.signal.population.util.FileUtil;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,4 +68,23 @@ public class CellLoader implements Serializable {
         return cellVar;
     }
 
+    /**
+     * 加载测试的省基站文件，并转换为广播变量数据
+     * @return
+     */
+    public Broadcast<Map<String, Row >> loadDemoCell() {
+        JavaRDD<String> cellRdd = sparkContext.textFile(params.getCellFile()) ;
+        final Map<String, Row> cellMap = new HashMap<>();
+        JavaRDD<Row> rdd = cellRdd.map(new Function<String, Row>() {
+            @Override
+            public Row call(String line) throws Exception {
+                String[] fileds = line.split("\01");
+                Row row = RowFactory.create(fileds[1],fileds[2],fileds[3],fileds[6],fileds[7],fileds[8],fileds[9]);
+                cellMap.put(fileds[8]+'|'+fileds[9], row);
+                return  row;
+            }
+        });
+        return sparkContext.broadcast(cellMap);
+
+    }
 }
