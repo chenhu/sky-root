@@ -111,7 +111,7 @@ public class SignalLoader implements Serializable {
                 String startTime = row.getAs("start_time").toString();
                 String endTime = row.getAs("end_time").toString();
                 Integer date = Integer.valueOf(DateTime.parse(startTime, FORMATTER).toString(FORMATTED));
-                String msisdn = row.getAs("msisdn");
+                String msisdn = row.getAs("msisdn").toString();
                 Integer city_code = cityCode;
                 Integer region = Integer.valueOf(row.getAs("reg_city").toString());
                 Integer tac = Integer.valueOf(row.getAs("lac").toString());
@@ -224,7 +224,7 @@ public class SignalLoader implements Serializable {
             JavaRDD<Row> resultRDD = rdd.map(new Function<Row, Row>() {
                 @Override
                 public Row call(Row row) throws Exception {
-                    String msisdn = row.getAs("msisdn");
+                    String msisdn = row.getAs("msisdn").toString();
                     Row userRow = crmVar.value().get(msisdn);
                     Short age = -1, sex = -1;
                     // 没有匹配到的msisdn信息，户籍所在地为0
@@ -259,7 +259,7 @@ public class SignalLoader implements Serializable {
             JavaRDD<Row> resultRDD = rdd.map(new Function<Row, Row>() {
                 @Override
                 public Row call(Row row) throws Exception {
-                    String msisdn = row.getAs("msisdn");
+                    String msisdn = row.getAs("msisdn").toString();
                     Row userRow = crmVar.value().get(msisdn);
                     Short age = -1, sex = -1;
                     // 没有匹配到的msisdn信息，户籍所在地为0
@@ -305,7 +305,7 @@ public class SignalLoader implements Serializable {
             JavaRDD<Row> resultRDD = rdd.map(new Function<Row, Row>() {
                 @Override
                 public Row call(Row row) throws Exception {
-                    int region = row.getAs("region");
+                    int region = Integer.valueOf(row.getAs("region").toString()) ;
                     //根据region查找归属地信息
                     Row regionRow = regionVar.value().get(region);
                     if (regionRow == null) {
@@ -334,8 +334,8 @@ public class SignalLoader implements Serializable {
             JavaRDD<Row> resultRDD = rdd.map(new Function<Row, Row>() {
                 @Override
                 public Row call(Row row) throws Exception {
-                    Integer tac = row.getAs("tac");
-                    Long cell = row.getAs("cell");
+                    Integer tac = Integer.valueOf(row.getAs("tac").toString());
+                    Long cell = Long.valueOf(row.getAs("cell").toString());
                     Short area = -1;
                     //根据tac/cell查找区域信息
                     if (areaVar != null) {
