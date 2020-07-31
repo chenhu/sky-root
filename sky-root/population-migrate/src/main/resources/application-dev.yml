@@ -1,0 +1,5 @@
+param:
+  basePath: /user/root/examples/apps/jiangsu/
+  cellFile: /user/root/examples/apps/jiangsu/cell/cell.csv
+  odMode: 0
+

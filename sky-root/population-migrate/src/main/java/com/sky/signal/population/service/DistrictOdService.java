@@ -4,6 +4,7 @@ import com.sky.signal.population.config.ParamProperties;
 import com.sky.signal.population.processor.CellLoader;
 import com.sky.signal.population.processor.TraceProcessor;
 import com.sky.signal.population.util.FileUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
@@ -12,6 +13,7 @@ import org.apache.spark.storage.StorageLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -22,7 +24,8 @@ import java.util.Map;
  * 找出这些手机在全省范围内的轨迹，然后进行省级范围内以区县为单位进行OD分析
  */
 @Service
-public class DistrictOdService implements ComputeService {
+@Slf4j
+public class DistrictOdService implements ComputeService, Serializable {
     @Autowired
     private transient ParamProperties params;
 
@@ -43,21 +46,15 @@ public class DistrictOdService implements ComputeService {
         DataFrame traceDf = traceProcessor.loadTrace(params.getProvinceTraceFilePath());
         //基站信息合并到全省信令数据
         final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
-        DataFrame provinceSignalDf = traceProcessor.mergeCellSignal(traceDf, provinceCell)
-                .persist(StorageLevel.DISK_ONLY());
-
+        DataFrame provinceSignalDf = traceProcessor.mergeCellSignal(traceDf, provinceCell).persist(StorageLevel.DISK_ONLY());
         //根据基站内容筛选出属于当前区县的信令数据
-        DataFrame currentDistrictDf = traceProcessor.filterCurrentDistrictTrace(districtCode,
-                provinceSignalDf);
+        DataFrame currentDistrictDf = traceProcessor.filterCurrentDistrictTrace(districtCode, provinceSignalDf);
 
         //只保存停留时间大于等于2小时的手机号码信息
-        currentDistrictDf = traceProcessor.filterStayMsisdnTrace(currentDistrictDf).persist
-                (StorageLevel.DISK_ONLY());
+        currentDistrictDf = traceProcessor.filterStayMsisdnTrace(currentDistrictDf).persist(StorageLevel.DISK_ONLY());
 
         //找出符合条件的号码指定日期内在全省的轨迹数据
-        DataFrame provinceMsisdnDf = traceProcessor.filterSignalByMsisdn(currentDistrictDf,
-                provinceSignalDf);
-
+        DataFrame provinceMsisdnDf = traceProcessor.filterSignalByMsisdn(currentDistrictDf, provinceSignalDf);
         //对指定日期符合条件的号码进行全省范围内OD分析，并生成OD出行轨迹
         DataFrame odDf = traceProcessor.provinceOd(provinceMsisdnDf);
 

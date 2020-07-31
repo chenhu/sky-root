@@ -18,7 +18,7 @@ public class ProfileUtil implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext)
             throws BeansException {
-        this.context = applicationContext;
+        context = applicationContext;
     }
 
     public static String getActiveProfile() {

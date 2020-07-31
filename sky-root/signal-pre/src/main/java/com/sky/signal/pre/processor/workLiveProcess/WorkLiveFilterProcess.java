@@ -63,15 +63,10 @@ public class WorkLiveFilterProcess implements Serializable {
                     int currentDay =  date.getDayOfMonth();
                     LocalTime time = begin_time.toLocalTime();
                     if(currentDay == day) {
-                        if(time.compareTo(time0100) >= 0 && time.compareTo(time0700) <= 0) {
-                            return true;
-                        }
+                        return time.compareTo(time0100) >= 0 && time.compareTo(time0700) <= 0;
                     } else {
-                        if(time.compareTo(time0100) >= 0) {
-                            return true;
-                        }
+                        return time.compareTo(time0100) >= 0;
                     }
-                    return false;
                 }
             });
             int partitions = 1;
@@ -90,10 +85,7 @@ public class WorkLiveFilterProcess implements Serializable {
             public Boolean call(Row row) throws Exception {
                 DateTime begin_time = new DateTime(row.getAs("begin_time"));
                 LocalTime time = begin_time.toLocalTime();
-                if((time.compareTo(time0900) >= 0 && time.compareTo(time1130) <= 0) || (time.compareTo(time1400) >= 0 && time.compareTo(time1630) <= 0)) {
-                    return true;
-                }
-                return false;
+                return (time.compareTo(time0900) >= 0 && time.compareTo(time1130) <= 0) || (time.compareTo(time1400) >= 0 && time.compareTo(time1630) <= 0);
             }
         });
         int partitions = 1;

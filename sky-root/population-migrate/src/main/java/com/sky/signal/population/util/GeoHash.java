@@ -44,7 +44,7 @@ public class GeoHash implements Serializable {
         }
     }
 
-    private LocationBean location;
+    private final LocationBean location;
     /**
      * 1 2500km;2 630km;3 78km;4 30km
      * 5 2.4km; 6 610m; 7 76m; 8 19m

@@ -35,9 +35,9 @@ public class TransformFunction implements Serializable {
 
                 Timestamp leaveTimestamp=new Timestamp(leaveTime.getMillis());
                 Timestamp arriveTimestamp=new Timestamp(arriveTime.getMillis());
-                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"),
+                return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"),
                         leaveTimestamp, arriveTimestamp, row.getAs("distance"), row.getAs("move_time"), row.getAs("age_class"),row.getAs("sex"),
-                        row.getAs("person_class"), row.getAs("trip_purpose")});
+                        row.getAs("person_class"), row.getAs("trip_purpose"));
             }
         });
         return odRDD;
@@ -60,9 +60,9 @@ public class TransformFunction implements Serializable {
 
                 Timestamp leaveTimestamp=new Timestamp(leaveTime.getMillis());
                 Timestamp arriveTimestamp=new Timestamp(arriveTime.getMillis());
-                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_geo"), row.getAs("arrive_geo"),
+                return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_geo"), row.getAs("arrive_geo"),
                         leaveTimestamp, arriveTimestamp, row.getAs("distance"), row.getAs("move_time"), row.getAs("age_class"),row.getAs("sex"),
-                        row.getAs("person_class"), row.getAs("trip_purpose")});
+                        row.getAs("person_class"), row.getAs("trip_purpose"));
             }
         });
         return odRDD;
@@ -98,9 +98,9 @@ public class TransformFunction implements Serializable {
 
                 Timestamp leaveTimestamp=new Timestamp(leaveTime.getMillis());
                 Timestamp arriveTimestamp=new Timestamp(arriveTime.getMillis());
-                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"),
+                return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"), row.getAs("arrive_base"),
                         leaveTimestamp, arriveTimestamp, row.getAs("distance"), row.getAs("move_time"), row.getAs("age_class"),row.getAs("sex"),
-                        row.getAs("person_class"), row.getAs("trip_purpose")});
+                        row.getAs("person_class"), row.getAs("trip_purpose"));
             }
         });
         return odRDD;
@@ -118,9 +118,9 @@ public class TransformFunction implements Serializable {
                 int maxSpeedClass = transformSpeed(maxSpeed);
                 double covSpeed = row.getAs("cov_speed");
                 int covSpeedClass = transformCovSpeed(covSpeed);
-                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"),
+                return RowFactory.create(row.getAs("date"), row.getAs("msisdn"),
                         row.getAs("linked_distance"), tripDistanceClass,maxSpeedClass, row.getAs("move_time"), moveTimeClass, covSpeedClass,
-                        row.getAs("person_class"), row.getAs("age_class"), row.getAs("trip_purpose")});
+                        row.getAs("person_class"), row.getAs("age_class"), row.getAs("trip_purpose"));
             }
         });
         return odRDD;

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * 基站数据处理服务
  */
-@Component("CellService")
+@Component("cellService")
 public class CellService implements ComputeService {
     private static final Logger logger = LoggerFactory.getLogger(CellService.class);
 

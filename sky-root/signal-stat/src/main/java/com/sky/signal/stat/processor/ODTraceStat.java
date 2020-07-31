@@ -62,10 +62,7 @@ public class ODTraceStat implements Serializable{
                 DateTime arrive_time = new DateTime(row.getAs("arrive_time"));
                 LocalTime time1 = leave_time.toLocalTime();
                 LocalTime time2 = arrive_time.toLocalTime();
-                if(time1.compareTo(time0700) > 0 && time1.compareTo(time0900)<= 0 && time2.compareTo(time0700) > 0 && time2.compareTo(time0900) <= 0) {
-                    return true;
-                }
-                return false;
+                return time1.compareTo(time0700) > 0 && time1.compareTo(time0900) <= 0 && time2.compareTo(time0700) > 0 && time2.compareTo(time0900) <= 0;
             }
         });
         traceRdd = traceRdd.map(new Function<Row, Row>() {

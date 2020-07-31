@@ -83,10 +83,7 @@ public class CRMProcess implements Serializable {
                 Short sex=row.getShort(1);
                 Short age=row.getShort(2);
                 Integer id=row.getInt(3);
-                if (msisdn==null|sex==-2|age==-2|id==-1){
-                    return false;
-                }
-                return true;
+                return !(msisdn == null | sex == -2 | age == -2 | id == -1);
             }
         });
         DataFrame userDf = sqlContext.createDataFrame(userRdd, CrmSchemaProvider.CRM_SCHEMA).dropDuplicates();

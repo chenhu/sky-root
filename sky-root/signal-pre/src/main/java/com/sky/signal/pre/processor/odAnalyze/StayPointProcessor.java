@@ -372,7 +372,7 @@ public class StayPointProcessor implements Serializable {
             sumSpeed += (double) row.getAs("speed");
 
         }
-        double avgSpeed = MapUtil.formatDecimal((double) sumSpeed / trace.size(), 2);
+        double avgSpeed = MapUtil.formatDecimal(sumSpeed / trace.size(), 2);
         double stdSpeed = MathUtil.stdVariance(speedList.toArray(new Double[speedList.size()]));
 
 

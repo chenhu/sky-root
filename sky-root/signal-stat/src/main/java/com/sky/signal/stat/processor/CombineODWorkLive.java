@@ -131,9 +131,9 @@ public class CombineODWorkLive implements Serializable {
                 } else {
                     trip_purpose = 6;// 其他
                 }
-                return RowFactory.create(new Object[]{row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"),leaveGeo, row.getAs("arrive_base"), arriveGeo, row.getAs("leave_time"),
+                return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("leave_base"),leaveGeo, row.getAs("arrive_base"), arriveGeo, row.getAs("leave_time"),
                         row.getAs("arrive_time"), row.getAs("linked_distance"), row.getAs("max_speed"), row.getAs("cov_speed"), row.getAs("distance"), row.getAs("move_time"), row.getAs("age_class"),
-                        row.getAs("sex"), row.getAs("person_class"),row.getAs("region"), liveBase, row.getAs("live_geo"), workBase, row.getAs("work_geo"), trip_purpose});
+                        row.getAs("sex"), row.getAs("person_class"),row.getAs("region"), liveBase, row.getAs("live_geo"), workBase, row.getAs("work_geo"), trip_purpose);
             }
         });
         DataFrame joinedDf = sqlContext.createDataFrame(joinedRDD, ODSchemaProvider.OD_STAT_SCHEMA);

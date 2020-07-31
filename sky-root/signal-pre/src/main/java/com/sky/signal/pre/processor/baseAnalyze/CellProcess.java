@@ -129,7 +129,7 @@ public class CellProcess implements Serializable {
             String position = String.format("%.6f|%.6f", row.getDouble(3),
                     row.getDouble(4));
             if (cellMap.containsKey(position)) {
-                base = cellMap.get(position).toString();
+                base = cellMap.get(position);
             } else {
                 base = row.getAs("cell").toString();
                 cellMap.put(position, base);
