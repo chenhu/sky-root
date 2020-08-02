@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import scala.Tuple2;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,17 +32,17 @@ public class DataQualityService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        Map<String, Tuple2<String, String>> signalMap = params.getSignalFilePathTuple2();
-        for(String date: signalMap.keySet()) {
-            String traceFilePath = signalMap.get(date)._2;
-            String validSignalFilePath = signalMap.get(date)._1;
-            dataQualityProcessor.processForParquet(date,traceFilePath, validSignalFilePath);
-        }
-        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, DataQualitySchemaProvider.SIGNAL_SCHEMA_BASE, params.getSavePath()
-                + "stat/dataquality/*/stat").orderBy("date");
-        FileUtil.saveFile(liveDfSumAll.repartition(1), FileUtil.FileType.CSV, params.getSavePath()
-                + "stat/dataquality-all");
-        logger.info("DataQualityService duration: " + stopwatch.toString());
+//        Map<String, Tuple2<String, List<String>>> signalMap = params.getSignalFilePathTuple2();
+//        for(String date: signalMap.keySet()) {
+//            List<String> traceFilePath = signalMap.get(date)._2;
+//            String validSignalFilePath = signalMap.get(date)._1;
+//            dataQualityProcessor.processForParquet(date,traceFilePath, validSignalFilePath);
+//        }
+//        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, DataQualitySchemaProvider.SIGNAL_SCHEMA_BASE, params.getSavePath()
+//                + "stat/dataquality/*/stat").orderBy("date");
+//        FileUtil.saveFile(liveDfSumAll.repartition(1), FileUtil.FileType.CSV, params.getSavePath()
+//                + "stat/dataquality-all");
+//        logger.info("DataQualityService duration: " + stopwatch.toString());
 
     }
 }

@@ -34,7 +34,7 @@ public class CRMProcess implements Serializable {
     @Autowired
     private transient ParamProperties params;
     public final Broadcast<Map<String, Row>> load() {
-        Row[] userRows= FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getBasePath() + "crm").collect();
+        Row[] userRows= FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getCRMSavePath()).collect();
         Map<String, Row> UserMap = new HashMap<>(userRows.length);
         for (Row row:userRows) {
             UserMap.put(row.getString(0),row);
@@ -87,7 +87,7 @@ public class CRMProcess implements Serializable {
             }
         });
         DataFrame userDf = sqlContext.createDataFrame(userRdd, CrmSchemaProvider.CRM_SCHEMA).dropDuplicates();
-        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.CSV, params.getBasePath() + "crm");
+        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.CSV, params.getCRMSavePath());
     }
 
 }

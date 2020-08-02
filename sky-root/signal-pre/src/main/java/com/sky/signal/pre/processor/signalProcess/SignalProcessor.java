@@ -502,7 +502,7 @@ public class SignalProcessor implements Serializable {
             }
         });
         DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-
+/** 本次预处理不需要Crm信息和归属地信息
         signalBaseDf = signalBaseDf.persist(StorageLevel.DISK_ONLY());
 
         // 补全CRM数据、替换外省归属地
@@ -511,11 +511,12 @@ public class SignalProcessor implements Serializable {
         // 补全归属地信息
         JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
         DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
-        //        String date=signalMerged.first().getAs("date").toString();
+ **/
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date = path.substring(path.length() - 8);
-        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "validSignal/" + date);
-        signalBaseDf.unpersist();
+//        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
+        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
+//        signalBaseDf.unpersist();
 
     }
 
@@ -525,17 +526,17 @@ public class SignalProcessor implements Serializable {
     public void process() {
 
         //普通基站信息
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getBasePath() + PathConfig.CELL_PATH);
+        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
 
-        //CRM信息
-        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
-
-        // 手机号码归属地信息
-        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
+//        //CRM信息
+//        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
+//
+//        // 手机号码归属地信息
+//        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
 
         //对轨迹数据预处理
-        for (String traceFile : params.getTraceSignalFileFullPath()) {
-            oneProcess(traceFile, cellVar, userVar, null, regionVar);
+        for (String traceFile : params.getTraceFiles("*")) {
+            oneProcess(traceFile, cellVar, null, null, null);
         }
     }
 }

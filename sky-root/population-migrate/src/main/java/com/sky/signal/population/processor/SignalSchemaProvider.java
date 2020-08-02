@@ -10,6 +10,23 @@ import org.apache.spark.sql.types.StructType;
  * description: 信令相关的Schema定义
  */
 public class SignalSchemaProvider {
+    //区县OD分析数据源格式
+    public static final StructType OD_SCHEMA = DataTypes.createStructType
+            (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("leave_base", DataTypes.StringType, false),
+                    DataTypes.createStructField("leave_lng", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("leave_lat", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("arrive_base", DataTypes.StringType, false),
+                    DataTypes.createStructField("arrive_lng", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("arrive_lat", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("linked_distance", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("max_speed", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("cov_speed", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("distance", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("move_time", DataTypes.IntegerType, false)));
     //原始数据合并了基站后的数据
     public static final StructType SIGNAL_SCHEMA_BASE = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),

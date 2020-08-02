@@ -1,11 +1,9 @@
 package com.sky.signal.pre.service.impl.TransportationHub;
 
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.processor.signalProcess.SignalLoader;
 import com.sky.signal.pre.processor.transportationhub.StationDataFilter;
 import com.sky.signal.pre.service.ComputeService;
 import lombok.extern.log4j.Log4j2;
-import org.apache.spark.sql.DataFrame;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +19,7 @@ public class StationDataFilterService implements ComputeService {
     @Autowired private transient StationDataFilter stationDataFilter;
     @Override
     public void compute() {
-        for (String validSignalFile: params.getValidSignalFileFullPath()) {
+        for (String validSignalFile: params.getValidSignalListByDays()) {
             stationDataFilter.filterData(validSignalFile);
         }
     }

@@ -24,7 +24,7 @@ public class ODService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        for (String validSignalFile: params.getValidSignalFileFullPath()) {
+        for (String validSignalFile: params.getValidSignalListByDays()) {
             stayPointProcessor.process(validSignalFile);
         }
         logger.info("ODService duration: " + stopwatch.toString());

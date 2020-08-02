@@ -28,7 +28,6 @@ public class CellLoader implements Serializable {
     /**
      * 根据路径加载预处理后的基站数据
      * 目前基站数据分为：普通基站和枢纽基站
-     *
      * @return Spark广播类型的Map数据
      * key: tac|cell
      * value: CELL_SCHEMA
@@ -39,8 +38,8 @@ public class CellLoader implements Serializable {
                 CellSchemaProvider.CELL_SCHEMA, cellPath).collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
-            Integer tac = row.getInt(1);
-            Long cell = row.getLong(2);
+            Integer tac = row.getAs("tac");
+            Long cell = row.getAs("cell");
             cellMap.put(tac.toString() + '|' + cell.toString(), row);
         }
         final Broadcast<Map<String, Row>> cellVar = sparkContext.broadcast

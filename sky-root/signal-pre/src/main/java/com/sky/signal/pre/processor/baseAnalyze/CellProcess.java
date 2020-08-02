@@ -52,31 +52,28 @@ public class CellProcess implements Serializable {
 
     /**
      * 处理两种基站信息，并生成对应基站信息的geohash和经纬度对照表
-     *
-     * @return
      */
-    public Tuple2 process() {
+    public void process() {
         DataFrame commonBaseDf = null, specialBaseDf = null;
         // 如果配置了普通基站文件，则处理普通基站文件
-        if (!StringUtils.isEmpty(params.getCellFile())) {
-            commonBaseDf = this.processBaseFile(params.getCellFile(),
-                    PathConfig.CELL_PATH);
+        if (!StringUtils.isEmpty(params.getOriginCellPath())) {
+            commonBaseDf = this.processBaseFile(params.getOriginCellPath(),
+                    params.getCellSavePath());
         }
         // 如果配置了区域基站文件，则继续处理区域基站文件
         if (!StringUtils.isEmpty(params.getSpecifiedAreaBaseFile())) {
             specialBaseDf = this.processBaseFile(params
-                    .getSpecifiedAreaBaseFile(), PathConfig.STATION_CELL_PATH);
+                    .getSpecifiedAreaBaseFile(), params.getTransCellSavePath());
         }
-        return new Tuple2<>(commonBaseDf, specialBaseDf);
     }
 
     private DataFrame processBaseFile(String filePath, String dir) {
         JavaRDD<String> lines = sparkContext.textFile(filePath);
-        final Integer cityCode = Integer.valueOf(params.getCityCode());
         JavaRDD<Row> rdd = lines.map(new Function<String, Row>() {
             @Override
             public Row call(String line) throws Exception {
-                Integer city_code = 0;
+                Integer cityCode = 0;
+                Integer districtCode = 0;
                 Integer tac = 0;
                 Long cell = 0L;
                 Double lng = 0d;
@@ -86,14 +83,15 @@ public class CellProcess implements Serializable {
                     String[] props = line.split(",");
                     if (props.length >= 4) {
                         try {
-                            city_code = cityCode;
-                            tac = Integer.valueOf(props[0]);
-                            cell = Long.valueOf(props[1]);
-                            lng = Double.valueOf(props[2]);
-                            lat = Double.valueOf(props[3]);
+                            cityCode = Integer.valueOf(props[0]);
+                            districtCode = Integer.valueOf(props[1]);
+                            tac = Integer.valueOf(props[2]);
+                            cell = Long.valueOf(props[3]);
+                            lng = Double.valueOf(props[4]);
+                            lat = Double.valueOf(props[5]);
                             geoHash = GeoUtil.geo(lat, lng);
                         } catch (Exception e) {
-                            city_code = 0;
+                            cityCode = 0;
                             tac = 0;
                             cell = 0L;
                             lng = 0d;
@@ -102,7 +100,7 @@ public class CellProcess implements Serializable {
                         }
                     }
                 }
-                return RowFactory.create(city_code, tac, cell, lng, lat,
+                return RowFactory.create(cityCode, districtCode, tac, cell, lng, lat,
                         geoHash);
             }
         });
@@ -114,11 +112,11 @@ public class CellProcess implements Serializable {
         //对数据按照cell字段作升序排序，这样能保证取到最小的cell值为基站编码一部分
         Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf
                 (new com.google.common.base.Function<Row, Long>() {
-            @Override
-            public Long apply(Row row) {
-                return row.getAs("cell");
-            }
-        });
+                    @Override
+                    public Long apply(Row row) {
+                        return row.getAs("cell");
+                    }
+                });
         List<Row> rows = ordering.sortedCopy(df.collectAsList());
 
         //位置相同的基站使用同一个基站编号base
@@ -126,8 +124,8 @@ public class CellProcess implements Serializable {
         Map<String, String> cellMap = new HashMap<>();
         for (Row row : rows) {
             String base = null;
-            String position = String.format("%.6f|%.6f", row.getDouble(3),
-                    row.getDouble(4));
+            String position = String.format("%.6f|%.6f", row.getDouble(4),
+                    row.getDouble(5));
             if (cellMap.containsKey(position)) {
                 base = cellMap.get(position);
             } else {
@@ -135,24 +133,28 @@ public class CellProcess implements Serializable {
                 cellMap.put(position, base);
             }
             base = row.getAs("tac").toString() + '|' + base;
-            newRows.add(RowFactory.create(row.getInt(0), row.getInt(1), row
-                    .getLong(2), base, row.getDouble(3), row.getDouble(4),
-                    row.getString(5)));
+            newRows.add(RowFactory.create(
+                    row.getAs("city_code"),
+                    row.getAs("district_code"),
+                    row.getAs("tac"),
+                    row.getAs("cell"),
+                    base,
+                    row.getAs("lng"),
+                    row.getAs("lat"),
+                    row.getAs("geohash")
+            ));
         }
 
-        df = sqlContext.createDataFrame(newRows, CellSchemaProvider
-                .CELL_SCHEMA);
+        df = sqlContext.createDataFrame(newRows, CellSchemaProvider.CELL_SCHEMA).cache();
 
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV,
-                params.getBasePath() + dir);
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, dir);
         // 生成geohash和经纬度对应表
         FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates()
-                .repartition(1), FileUtil.FileType.CSV, params.getSavePath() +
-                PathConfig.GEOHASH_PATH + "/" + dir);
+                .repartition(1), FileUtil.FileType.CSV, params.getGeoHashSavePath());
         return df;
     }
 }

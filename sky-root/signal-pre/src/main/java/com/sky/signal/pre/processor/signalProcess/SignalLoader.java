@@ -104,7 +104,6 @@ public class SignalLoader implements Serializable {
      * @return
      */
     public DataFrame mergeCell(DataFrame df) {
-        final Integer  cityCode = Integer.valueOf(params.getCityCode());
         JavaRDD<Row> rdd = df.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
@@ -112,10 +111,11 @@ public class SignalLoader implements Serializable {
                 String endTime = row.getAs("end_time").toString();
                 Integer date = Integer.valueOf(DateTime.parse(startTime, FORMATTER).toString(FORMATTED));
                 String msisdn = row.getAs("msisdn").toString();
-                Integer city_code = cityCode;
                 Integer region = Integer.valueOf(row.getAs("reg_city").toString());
                 Integer tac = Integer.valueOf(row.getAs("lac").toString());
                 Long cell = Long.valueOf(row.getAs("start_ci").toString());
+                Integer cityCode = 0;
+                Integer districtCode = 0;
                 String base = null;
                 double lng = 0d;
                 double lat = 0d;
@@ -126,12 +126,14 @@ public class SignalLoader implements Serializable {
                 if (cellRow == null) {
                     //Do nothing
                 } else {
-                    base = cellRow.getString(3);
-                    lng = cellRow.getDouble(4);
-                    lat = cellRow.getDouble(5);
+                    base = cellRow.getAs("base");
+                    lng = cellRow.getAs("lng");
+                    lat = cellRow.getAs("lat");
+                    cityCode = cellRow.getAs("city_code");
+                    districtCode = cellRow.getAs("district_code");
                 }
 
-                Row track = RowFactory.create(date, msisdn, region, city_code, tac, cell, base, lng, lat, begin_time, end_time);
+                Row track = RowFactory.create(date, msisdn, region, cityCode, districtCode, tac, cell, base, lng, lat, begin_time, end_time);
                 return track;
             }
         });
@@ -359,6 +361,13 @@ public class SignalLoader implements Serializable {
 
     public DataFrame load(String validSignalFile) {
         DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, validSignalFile)
+                .repartition(params.getPartitions());
+        return df;
+    }
+
+
+    public DataFrame load1(String validSignalFile) {
+        DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1, validSignalFile)
                 .repartition(params.getPartitions());
         return df;
     }

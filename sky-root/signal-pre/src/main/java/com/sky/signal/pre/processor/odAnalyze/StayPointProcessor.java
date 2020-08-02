@@ -452,7 +452,8 @@ public class StayPointProcessor implements Serializable {
             partitions = params.getPartitions();
         }
 
-        DataFrame df = signalLoader.load(validSignalFile);
+//        DataFrame df = signalLoader.load(validSignalFile);
+        DataFrame df = signalLoader.load1(validSignalFile);
         //手机号码->信令数据
         JavaPairRDD<String, Row> rdd1 = df.javaRDD().mapToPair(new PairFunction<Row, String, Row>
                 () {
@@ -468,18 +469,18 @@ public class StayPointProcessor implements Serializable {
         List<Row> rows = Lists.newArrayList();
         JavaPairRDD<String, List<Row>> rdd2 = rdd1.aggregateByKey(rows, params.getPartitions(),
                 new Function2<List<Row>, Row, List<Row>>() {
-            @Override
-            public List<Row> call(List<Row> rows, Row row) throws Exception {
-                rows.add(row);
-                return rows;
-            }
-        }, new Function2<List<Row>, List<Row>, List<Row>>() {
-            @Override
-            public List<Row> call(List<Row> rows1, List<Row> rows2) throws Exception {
-                rows1.addAll(rows2);
-                return rows1;
-            }
-        });
+                    @Override
+                    public List<Row> call(List<Row> rows, Row row) throws Exception {
+                        rows.add(row);
+                        return rows;
+                    }
+                }, new Function2<List<Row>, List<Row>, List<Row>>() {
+                    @Override
+                    public List<Row> call(List<Row> rows1, List<Row> rows2) throws Exception {
+                        rows1.addAll(rows2);
+                        return rows1;
+                    }
+                });
 
         //按手机号码进行停驻点分析
         JavaRDD<Tuple3<List<Row>, List<Row>, Row>> rdd3 = rdd2.values().map(new Function<List<Row>, Tuple3<List<Row>, List<Row>, Row>>() {
@@ -550,9 +551,7 @@ public class StayPointProcessor implements Serializable {
         df = sqlContext.createDataFrame(rdd4, ODSchemaProvider.OD_TRACE_SCHEMA);
         df = df.orderBy("msisdn", "leave_time");
         String date = df.first().getAs("date").toString();
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath()
-                + "od_trace/" +
-                date);
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getODTracePath(date));
 
         JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
                 Row>() {
@@ -562,8 +561,7 @@ public class StayPointProcessor implements Serializable {
             }
         });
         DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
-        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params
-                .getSavePath() + "od/" + date);
+        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
 
         JavaRDD<Row> statTripRDD = rdd3.map(new Function<Tuple3<List<Row>, List<Row>, Row>, Row>() {
             @Override
@@ -571,11 +569,8 @@ public class StayPointProcessor implements Serializable {
                 return tuple3._3();
             }
         });
-        DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider
-                .OD_TRIP_STAT_SCHEMA);
-        FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params
-                .getSavePath() +
-                "stat_trip/" + date);
+        DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
+        FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
         rdd3.unpersist();
     }
 }

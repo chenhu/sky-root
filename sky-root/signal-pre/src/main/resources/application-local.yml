@@ -1,6 +1,5 @@
 param:
   masterUrl: local[2]
-  cityCode: 1000512
   savePath: /Users/chenhu/data/changshu/save/
   cellFile: file:///Users/chenhu/data/changshu/cell/cell.csv
   basePath: /Users/chenhu/data/changshu/轨迹数据/

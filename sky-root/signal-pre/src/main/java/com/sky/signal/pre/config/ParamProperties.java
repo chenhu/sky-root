@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -43,21 +44,6 @@ public class ParamProperties {
      */
     private String savePath;
 
-    /**
-     * 基站数据文件
-     */
-    private String cellFile;
-
-    /**
-     * description: 当前处理的地市
-     * param:
-     * return:
-     **/
-    private Integer cityCode;
-
-    /**
-     * 手机号段归属地数据文件
-     */
     private String phoneCityFile;
 
     /**
@@ -123,16 +109,12 @@ public class ParamProperties {
     /**
      * 处理日期
      */
-    //    private int year, month, day;
-    public static final String YEAR = "year", MONTH = "month", DAY = "day";
-    private String strYear, strMonth, strDay;
+    public static final String DAY = "day";
+    private String strDay;
     // 服务名称注入
     private String SERVICENAME = "service";
     private static final Logger logger = LoggerFactory.getLogger
             (ParamProperties.class);
-
-    // 轨迹文件路径前面统一字符，比如track_、dt= ,后面带有日期yyyyMMdd
-    public String trackPre;
 
     /**
      * 注入程序参数
@@ -155,78 +137,72 @@ public class ParamProperties {
                     "partitions will be use the default value {}", partitions);
         }
 
-        //通过程序参数指定数据年份: --year=2017
-        if (args.containsOption(YEAR)) {
-            strYear = args.getOptionValues(YEAR).get(0).trim();
-            //            year = Integer.valueOf(strYear);
-        }
-
-        //通过程序参数指定数据月份: --month=9
-        if (args.containsOption(MONTH)) {
-            if (args.containsOption(YEAR)) {
-                strMonth = args.getOptionValues(MONTH).get(0).trim();
-                //                month = Integer.valueOf(strMonth);
-            } else {
-                throw new RuntimeException("Should passing the [year] " +
-                        "argument first if you want to use the [month] " +
-                        "argument , using: --year --month ");
-            }
-        }
-
         //通过程序参数指定数据日期的天部分: --day=24,25,26 ,通过逗号分割的天
         if (args.containsOption(DAY)) {
-            if (args.containsOption(MONTH)) {
-                strDay = args.getOptionValues(DAY).get(0).trim();
-                //                day = Integer.valueOf(strDay);
-            } else {
-                throw new RuntimeException("Should passing the [month] " +
-                        "argument first if you want to use the [day] argument" +
-                        " , using: --year --month --day");
-            }
+            strDay = args.getOptionValues(DAY).get(0).trim();
         }
     }
 
     /**
-     * 获取客户hdfs上面原始信令数据路径
-     * 目前客户hdfs上面文件路径为 basepath/YYYYMMDD/xxxx.gz
-     * 此方法后面要根据实际情况作改动
+     * 获取当前要处理省轨迹数据路径列表
      *
      * @return
      */
-    public List<String> getTraceSignalFileFullPath() {
-        String orignal = this.getBasePath();
-        String sep = java.io.File.separator;
+    public List<String> getTraceFiles() {
+        List<String> tracePathList = new ArrayList<>();
+        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
+        String[] days = strDay.split(",");
+        for (String day : days) {
+            tracePathList.add(tracePath.concat(day));
+        }
+        return tracePathList;
+    }
+    /**
+     * 获取当前要处理省轨迹数据路径列表
+     *
+     * @return
+     */
+    public List<String> getTraceFiles(String cityCode) {
+        List<String> tracePathList = new ArrayList<>();
+        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
+        String[] days = strDay.split(",");
+        for (String day : days) {
+            tracePathList.add(tracePath.concat(day).concat(java.io.File.separator).concat(cityCode).concat(java.io.File.separator));
+        }
+        return tracePathList;
+    }
+
+    /**
+     * 获取需要处理的有效信令路径列表
+     *
+     * @return
+     */
+    public List<String> getValidSignalListByDays() {
         String[] days = strDay.split(",");
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
-            if (orignal.endsWith(sep)) {
-                fileList.add(orignal + trackPre + strYear + strMonth + day);
-            } else {
-                fileList.add(orignal + sep + trackPre + strYear + strMonth +
-                        day);
-            }
+            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                    .concat(day));
         }
         return fileList;
     }
 
     /**
-     * description: 获取有效信令文件路径
-     * param: []
-     * return: java.lang.String
-     **/
-    public List<String> getValidSignalFileFullPath() {
-        String orignal = this.getSavePath();
-        String sep = java.io.File.separator;
+     * 获取需要处理的有效信令路径列表
+     *
+     * @return
+     */
+    public List<String> getValidSignalListByCityCodeAndDays(String cityCode) {
         String[] days = strDay.split(",");
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
-            if (orignal.endsWith(sep)) {
-                fileList.add(orignal + "validSignal" + sep + strYear +
-                        strMonth + day);
-            } else {
-                fileList.add(orignal + sep + "validSignal" + sep + strYear +
-                        strMonth + day);
-            }
+            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                    .concat(cityCode)
+                    .concat(java.io.File.separator)
+                    .concat(day)
+                    .concat(java.io.File.separator));
         }
         return fileList;
     }
@@ -243,12 +219,9 @@ public class ParamProperties {
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
             if (orignal.endsWith(sep)) {
-                fileList.add(orignal + PathConfig.STATION_DATA_PATH + strYear +
-                        strMonth + day);
+                fileList.add(orignal + PathConfig.STATION_DATA_PATH + day);
             } else {
-                fileList.add(orignal + sep + PathConfig.STATION_DATA_PATH +
-                        strYear +
-                        strMonth + day);
+                fileList.add(orignal + sep + PathConfig.STATION_DATA_PATH + day);
             }
         }
         return fileList;
@@ -261,24 +234,116 @@ public class ParamProperties {
      * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,
      * java.lang.String>>
      **/
-    public Map<String, Tuple2<String, String>> getSignalFilePathTuple2() {
-        String basePath = this.getBasePath();
-        String savePath = this.getSavePath();
+    public Map<String, Tuple2<String, List<String>>> getSignalFilePathTuple2() {
         String sep = java.io.File.separator;
         String[] days = strDay.split(",");
-        Map<String, Tuple2<String, String>> resultMap = new HashMap<>();
+        Map<String, Tuple2<String, List<String>>> resultMap = new HashMap<>();
         for (String day : days) {
-            String date = strYear + strMonth + day;
-            if (basePath.endsWith(sep)) {
-                String orginalPath = basePath + trackPre;
-                resultMap.put(date, new Tuple2<>(savePath + "validSignal" +
-                        sep + date, orginalPath + date));
-            } else {
-                String orginalPath = basePath + sep + trackPre;
-                resultMap.put(date, new Tuple2<>(savePath + sep +
-                        "validSignal" + sep + date, orginalPath + date));
-            }
+            resultMap.put(day, new Tuple2<>(getValidSignalSavePath(day), getTraceFiles("*")));
         }
         return resultMap;
+    }
+
+
+    /**
+     * 获取预处理后的全省基站文件保存路径
+     */
+    public String getCellSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (PathConfig.CELL_PATH);
+    }
+
+    /**
+     * 获取预处理后的枢纽基站文件保存路径
+     */
+    public String getTransCellSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (PathConfig.STATION_CELL_PATH);
+    }
+
+    /**
+     * 获取全省基站的经纬度和geohash对照表文件路径
+     *
+     * @return
+     */
+    public String getGeoHashSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (PathConfig.GEOHASH_PATH);
+    }
+
+    /**
+     * 用户CRM信息预处理后保存路径
+     *
+     * @return
+     */
+    public String getCRMSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (PathConfig.CRM_SAVE_PATH);
+    }
+
+    /**
+     * 有效信令保存路径
+     *
+     * @return
+     */
+    public String getValidSignalSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH);
+    }
+
+    /**
+     * 有效信令保存路径
+     *
+     * @return
+     */
+    public String getValidSignalSavePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(date)
+                .concat(java.io.File.separator);
+    }
+
+    /**
+     * 有效信令保存路径
+     *
+     * @return
+     */
+    public String getValidSignalSavePath(String cityCode, String date) {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(cityCode)
+                .concat(java.io.File.separator)
+                .concat(date)
+                .concat(java.io.File.separator);
+    }
+
+    /**
+     * 原始基站文件路径
+     * @return
+     */
+    public String getOriginCellPath() {
+        return this.getBasePath().concat(PathConfig.ORN_CELL_PATH);
+    }
+    /**
+     * OD trace
+     * @return
+     */
+    public String getODTracePath(String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_TRACE_SAVE_PATH).concat(day);
+    }
+    /**
+     * 基础OD结果
+     * @return
+     */
+    public String getODResultPath(String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_SAVE_PATH).concat(day);
+    }
+    /**
+     * od分析中间统计结果
+     * @return
+     */
+    public String getODStatTripPath(String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_STAT_TRIP_SAVE_PATH).concat(day);
     }
 }
