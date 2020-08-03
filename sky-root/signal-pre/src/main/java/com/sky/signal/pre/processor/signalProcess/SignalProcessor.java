@@ -476,7 +476,8 @@ public class SignalProcessor implements Serializable {
 
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
-        DataFrame validSignalDf = signalLoader.cell(cellVar).mergeCell(sqlContext.read().parquet(path));
+        DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
+        DataFrame validSignalDf = signalLoader.cell(cellVar).mergeCell(sourceDf).persist(StorageLevel.DISK_ONLY());
         //按手机号码对信令数据预处理
         JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(validSignalDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
@@ -517,6 +518,8 @@ public class SignalProcessor implements Serializable {
 //        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
         FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
 //        signalBaseDf.unpersist();
+
+        validSignalDf.unpersist();
 
     }
 

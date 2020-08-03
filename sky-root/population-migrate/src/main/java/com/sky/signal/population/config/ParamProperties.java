@@ -48,7 +48,7 @@ public class ParamProperties {
     /**
      * 当前处理的区县编码
      */
-    private String districtCode;
+    private Integer districtCode;
     /**
      * 区域OD分析判定方式
      * odMode = 0, 只要在区县有停留点，则算一次OD出行，不用满足停留时间满足阀值

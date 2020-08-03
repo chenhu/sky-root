@@ -13,13 +13,13 @@ public class PathConfig {
     public static final String GEOHASH_PATH = "geohash/";
     //目标区县od点保存路径，应该在"_"之前连接上当前区县编号
     public static final String DEST_DESTRICT_OD_PATH = "_destrict_od/";
-    //全省范围内目标区县手机的轨迹od保存路径
-    public static final String PROVINCE_MSISDN_OD_PATH = "privince_od/";
     //处理过程中结果和中间数据保存路径
     public static final String APP_SAVE_PATH = "save/";
 
     //原始信令文件夹名称
     public static final String TRACE_PATH = "trace/dt=";
+    //基础OD结果
+    public static final String PROVINCE_MSISDN_OD_PATH = "od/";
 
 
 

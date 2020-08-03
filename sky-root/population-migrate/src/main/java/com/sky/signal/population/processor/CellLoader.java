@@ -28,13 +28,12 @@ public class CellLoader implements Serializable {
     private transient ParamProperties params;
 
     /**
-     * 加载指定区县的基站数据
-     * @param districtCode 区县编码
-     * @return
+     * 加载预处理生成的基站数据
+     * @return 广播基站
      */
     public Broadcast<Map<String, Row>> loadCell() {
         DataFrame cellDf = FileUtil.readFile(FileUtil.FileType.CSV,
-                CellSchemaProvider.CELL_SCHEMA_NEW, params.getValidProvinceCellPath());
+                CellSchemaProvider.CELL_SCHEMA, params.getValidProvinceCellPath());
         Row[] cellRows = cellDf.collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {

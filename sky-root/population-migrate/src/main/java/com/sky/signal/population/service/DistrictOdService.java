@@ -2,6 +2,7 @@ package com.sky.signal.population.service;
 
 import com.sky.signal.population.config.ParamProperties;
 import com.sky.signal.population.processor.CellLoader;
+import com.sky.signal.population.processor.OdProcess;
 import com.sky.signal.population.processor.TraceProcessor;
 import com.sky.signal.population.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,9 @@ public class DistrictOdService implements ComputeService, Serializable {
     private transient CellLoader cellLoader;
 
     @Autowired
+    private transient OdProcess odProcess;
+
+    @Autowired
     private transient SQLContext sqlContext;
 
     @Autowired
@@ -43,29 +47,18 @@ public class DistrictOdService implements ComputeService, Serializable {
 
     @Override
     public void compute() {
-        //当前要处理的区县编码
-        String districtCode = params.getDistrictCode();
-        //加载全省指定日期的信令数据
-        DataFrame traceDf = traceProcessor.loadTrace(params.getProvinceTraceFilePath());
         //基站信息合并到全省信令数据
         final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
-        DataFrame provinceSignalDf = traceProcessor.mergeCellSignal(traceDf, provinceCell).persist(StorageLevel.DISK_ONLY());
-        //根据基站内容筛选出属于当前区县的信令数据
-        DataFrame currentDistrictDf = traceProcessor.filterCurrentDistrictTrace(districtCode, provinceSignalDf);
-
-        //只保存停留时间大于等于2小时的手机号码信息
-        currentDistrictDf = traceProcessor.filterStayMsisdnTrace(currentDistrictDf).persist(StorageLevel.DISK_ONLY());
-
-        //找出符合条件的号码指定日期内在全省的轨迹数据
-        DataFrame provinceMsisdnDf = traceProcessor.filterSignalByMsisdn(currentDistrictDf, provinceSignalDf);
-        //对指定日期符合条件的号码进行全省范围内OD分析，并生成OD出行轨迹
-        DataFrame odDf = traceProcessor.provinceOd(provinceMsisdnDf);
+        //加载预处理后的OD数据
+        DataFrame odDf = odProcess.loadOd();
+        //合并区县信息到OD数据
+        odDf = odProcess.mergeOdWithCell(provinceCell, odDf).persist(StorageLevel.MEMORY_AND_DISK());
+        //找出目标区域内满足OD条件的手机号码，并用这些号码找出其在全省其他地区的OD
 
         FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getProvinceODFilePath());
 
-        currentDistrictDf.unpersist();
-        provinceSignalDf.unpersist();
-
+        //最后释放持久化的数据
+        odDf.unpersist();
 
     }
 }
