@@ -14,6 +14,26 @@ public class SignalSchemaProvider {
     public static final StructType SIGNAL_SCHEMA_ORGINAL = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("line", DataTypes.StringType, false)));
+    //原始信令格式
+    public static final StructType SIGNAL_SCHEMA_ORIGN = DataTypes.createStructType(Lists.newArrayList(
+            DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+            DataTypes.createStructField("imei", DataTypes.StringType, false),
+            DataTypes.createStructField("reg_city", DataTypes.StringType, false),//号码归属地,本省到市，外省到省
+            DataTypes.createStructField("reg_prov", DataTypes.StringType, false),//省份
+            DataTypes.createStructField("start_time", DataTypes.TimestampType, false),
+            DataTypes.createStructField("start_ci", DataTypes.StringType, false),
+            DataTypes.createStructField("start_lng", DataTypes.DoubleType, false),
+            DataTypes.createStructField("start_lat", DataTypes.DoubleType, false),
+            DataTypes.createStructField("end_time", DataTypes.TimestampType, false),
+            DataTypes.createStructField("end_ci", DataTypes.StringType, false),
+            DataTypes.createStructField("end_lng", DataTypes.DoubleType, false),
+            DataTypes.createStructField("end_lat", DataTypes.DoubleType, false),
+            DataTypes.createStructField("duration", DataTypes.IntegerType, false),
+            DataTypes.createStructField("lac", DataTypes.StringType, false),
+            DataTypes.createStructField("grid", DataTypes.StringType, false),
+            DataTypes.createStructField("data_type", DataTypes.IntegerType, false),
+            DataTypes.createStructField("imsi", DataTypes.StringType, false)
+    ));
     //原始数据合并了基站后的数据
     public static final StructType SIGNAL_SCHEMA_BASE = DataTypes.createStructType(Lists.newArrayList(
             DataTypes.createStructField("date", DataTypes.IntegerType, false),

@@ -46,10 +46,18 @@ public class ParamProperties {
 
     private String phoneCityFile;
 
+    public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512",
+            "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
+
     /**
      * 移动信令数据基础路径
      */
     private String basePath;
+
+    /**
+     * 要处理区县所在的地市编码
+     */
+    private Integer cityCode;
 
     /**
      * 当前要分析区县的编码，用于取得当前区县的信令
@@ -162,9 +170,10 @@ public class ParamProperties {
         }
         return tracePathList;
     }
+
     /**
      * 获取当前要处理省轨迹数据路径列表
-     *
+     * @param cityCode 城市代码
      * @return
      */
     public List<String> getTraceFiles(String cityCode) {
@@ -172,9 +181,20 @@ public class ParamProperties {
         String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
         String[] days = strDay.split(",");
         for (String day : days) {
-            tracePathList.add(tracePath.concat(day).concat(java.io.File.separator).concat(cityCode).concat(java.io.File.separator));
+            tracePathList.add(tracePath.concat(day).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat(cityCode).concat(java.io.File.separator));
         }
         return tracePathList;
+    }
+
+    /**
+     * 获取当前要处理省轨迹数据路径列表
+     * @param cityCode 城市代码
+     * @param date 日期
+     * @return
+     */
+    public String getTraceFiles(String cityCode, String date) {
+        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
+        return tracePath.concat(date).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat(cityCode).concat(java.io.File.separator);
     }
 
     /**
@@ -355,10 +375,18 @@ public class ParamProperties {
     /**
      * 获取区县原始信令保存路径
      * @param districtCode 区县编码
+     * @param cityCode 城市编码
+     * @param date 日期
      * @return
      */
-    public String getDistrictTraceSavePath(Integer districtCode, String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.DISTRICT_SIGNAL_ALL_SAVE_PATH).concat(districtCode.toString()).concat(java.io.File.separator).concat(date);
+    public String getDistrictTraceSavePath(Integer districtCode, String cityCode, String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.DISTRICT_SIGNAL_ALL_SAVE_PATH)
+                .concat(districtCode.toString())
+                .concat(java.io.File.separator)
+                .concat(cityCode)
+                .concat(java.io.File.separator)
+                .concat(date);
     }
 
 
@@ -371,7 +399,7 @@ public class ParamProperties {
         String[] days = strDay.split(",");
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
-            fileList.add(getDistrictTraceSavePath(districtCode, day));
+            fileList.add(getDistrictTraceSavePath(districtCode,"*",day));
         }
         return fileList;
     }

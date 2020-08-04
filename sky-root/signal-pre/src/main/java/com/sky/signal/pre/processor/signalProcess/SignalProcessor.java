@@ -543,7 +543,8 @@ public class SignalProcessor implements Serializable {
     }
 
     public void oneDayDistrict(String path) {
-
+        //普通基站信息
+        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
@@ -552,6 +553,7 @@ public class SignalProcessor implements Serializable {
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
         DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
+        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
         //按手机号码对信令数据预处理
         JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override

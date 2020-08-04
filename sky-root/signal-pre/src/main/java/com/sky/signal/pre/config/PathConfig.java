@@ -26,6 +26,7 @@ public class PathConfig {
     public static final String APP_SAVE_PATH = "save/";
     //原始信令文件夹名称
     public static final String TRACE_PATH = "trace/dt=";
+    public static final String CITY_PRE_PATH = "city=";
     //CRM预处理后的保存路径
     public static final String CRM_SAVE_PATH = "crm/";
     //有效信令的保存路径
