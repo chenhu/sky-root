@@ -3,7 +3,6 @@ package com.sky.signal.pre.processor.signalProcess;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
@@ -477,9 +476,9 @@ public class SignalProcessor implements Serializable {
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
         DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
-        DataFrame validSignalDf = signalLoader.cell(cellVar).mergeCell(sourceDf).persist(StorageLevel.DISK_ONLY());
+        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf).persist(StorageLevel.DISK_ONLY());
         //按手机号码对信令数据预处理
-        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(validSignalDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
+        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {
                 Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
@@ -503,24 +502,17 @@ public class SignalProcessor implements Serializable {
             }
         });
         DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-/** 本次预处理不需要Crm信息和归属地信息
         signalBaseDf = signalBaseDf.persist(StorageLevel.DISK_ONLY());
-
         // 补全CRM数据、替换外省归属地
         JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
         DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
         // 补全归属地信息
         JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
         DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
- **/
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date = path.substring(path.length() - 8);
-//        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
-        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
-//        signalBaseDf.unpersist();
-
-        validSignalDf.unpersist();
-
+        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
+        signalBaseDf.unpersist();
     }
 
     /**
@@ -531,15 +523,62 @@ public class SignalProcessor implements Serializable {
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
 
-//        //CRM信息
-//        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
-//
-//        // 手机号码归属地信息
-//        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
+        //CRM信息
+        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
+
+        // 手机号码归属地信息
+        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
 
         //对轨迹数据预处理
         for (String traceFile : params.getTraceFiles("*")) {
-            oneProcess(traceFile, cellVar, null, null, null);
+            oneProcess(traceFile, cellVar, userVar, null, regionVar);
         }
+    }
+
+
+    public void processDistrict() {
+        for (String traceFile : params.getDistrictTraceSavePath(params.getDistrictCode())) {
+            oneDayDistrict(traceFile);
+        }
+    }
+
+    public void oneDayDistrict(String path) {
+
+        int partitions = 1;
+        if (!ProfileUtil.getActiveProfile().equals("local")) {
+            partitions = params.getPartitions();
+        }
+
+        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
+        //补全基站信息并删除重复信令
+        DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
+        //按手机号码对信令数据预处理
+        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
+            @Override
+            public Iterable<Row> call(List<Row> rows) throws Exception {
+                Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
+                    @Override
+                    public Timestamp apply(Row row) {
+                        return row.getAs("begin_time");
+                    }
+                });
+                //按startTime排序
+                rows = ordering.sortedCopy(rows);
+                //合并同一手机连续相同基站信令数据
+                rows = mergeSameBase(rows);
+
+                //合并同一手机连续不同基站信令数据
+                rows = mergeDifferentBase(rows);
+                //合并移动时间小于5秒的信令数据
+                rows = mergeByTransferSecs(rows);
+                //合并同一手机连续不同基站信令数据
+                rows = mergeDifferentBase(rows);
+                return rows;
+            }
+        });
+        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+        //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
+        String date = path.substring(path.length() - 8);
+        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
     }
 }

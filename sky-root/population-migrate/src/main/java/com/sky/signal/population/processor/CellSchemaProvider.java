@@ -81,4 +81,3 @@ public class CellSchemaProvider {
             DataTypes.createStructField("lat", DataTypes.DoubleType, false),
             DataTypes.createStructField("geohash", DataTypes.StringType, false)));
 }
-}

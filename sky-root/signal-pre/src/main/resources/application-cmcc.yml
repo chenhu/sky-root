@@ -1,6 +1,8 @@
 param:
   basePath: /user/bdoc/17/services/hdfs/132/batch1/jiangsu/
   odMode: 0
+#  districtCode: 1051206
+  districtCode: 320581
 
 
 

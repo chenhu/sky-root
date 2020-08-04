@@ -20,7 +20,8 @@ public class SignalProcessService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        signalProcessor.process();
+        signalProcessor.processDistrict();
+//        signalProcessor.process();
         logger.info("SignalProcessService duration: " + stopwatch.toString());
     }
 }

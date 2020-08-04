@@ -13,7 +13,7 @@
 
     <properties>
         <!--部署到spark时使用provided,调试时使用compile -->
-        <!--<scope.type>compile</scope.type>-->
+<!--        <scope.type>compile</scope.type>-->
         <scope.type>provided</scope.type>
     </properties>
     <dependencies>

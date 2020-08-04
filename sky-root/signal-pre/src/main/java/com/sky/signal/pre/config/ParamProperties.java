@@ -52,6 +52,11 @@ public class ParamProperties {
     private String basePath;
 
     /**
+     * 当前要分析区县的编码，用于取得当前区县的信令
+     */
+    private Integer districtCode;
+
+    /**
      * 职住分析每个批次处理有效数据天数
      */
     private Integer workliveBatchSize;
@@ -345,5 +350,29 @@ public class ParamProperties {
      */
     public String getODStatTripPath(String day) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_STAT_TRIP_SAVE_PATH).concat(day);
+    }
+
+    /**
+     * 获取区县原始信令保存路径
+     * @param districtCode 区县编码
+     * @return
+     */
+    public String getDistrictTraceSavePath(Integer districtCode, String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.DISTRICT_SIGNAL_ALL_SAVE_PATH).concat(districtCode.toString()).concat(java.io.File.separator).concat(date);
+    }
+
+
+    /**
+     * 获取区县原始信令路径列表
+     * @param districtCode 区县编码
+     * @return
+     */
+    public List<String> getDistrictTraceSavePath(Integer districtCode) {
+        String[] days = strDay.split(",");
+        List<String> fileList = new ArrayList<>();
+        for (String day : days) {
+            fileList.add(getDistrictTraceSavePath(districtCode, day));
+        }
+        return fileList;
     }
 }
