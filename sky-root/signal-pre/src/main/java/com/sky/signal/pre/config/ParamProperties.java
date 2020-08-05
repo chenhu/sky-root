@@ -130,6 +130,15 @@ public class ParamProperties {
             (ParamProperties.class);
 
     /**
+     * 参数传入的cityCode
+     * 方便灵活知道当前需要处理的city，后期可能作废
+     */
+
+    public static final String CITY = "city";
+    public String strCity;
+
+
+    /**
      * 注入程序参数
      *
      * @param args
@@ -153,6 +162,10 @@ public class ParamProperties {
         //通过程序参数指定数据日期的天部分: --day=24,25,26 ,通过逗号分割的天
         if (args.containsOption(DAY)) {
             strDay = args.getOptionValues(DAY).get(0).trim();
+        }
+        //通过程序参数指定城市: --city=1000250
+        if (args.containsOption(CITY)) {
+            strCity = args.getOptionValues(CITY).get(0).trim();
         }
     }
 

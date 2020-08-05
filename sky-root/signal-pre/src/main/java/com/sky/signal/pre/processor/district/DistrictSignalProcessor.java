@@ -1,24 +1,16 @@
 package com.sky.signal.pre.processor.district;
 
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
-import com.sky.signal.pre.processor.signalProcess.SignalLoader;
-import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.apache.spark.sql.functions.col;
 
@@ -31,14 +23,9 @@ import static org.apache.spark.sql.functions.col;
 public class DistrictSignalProcessor implements Serializable {
 
     @Autowired
-    private transient CellLoader cellLoader;
-    @Autowired
     private transient ParamProperties params;
     @Autowired
     private transient JavaSparkContext sparkContext;
-
-    @Autowired
-    private transient SignalLoader signalLoader;
 
     @Autowired
     private transient DistrictMsisdnProcessor districtMsisdnProcessor;
@@ -46,26 +33,32 @@ public class DistrictSignalProcessor implements Serializable {
     public void process() {
         //加载全省信令，按天处理
         for (String date : params.getStrDay().split(",")) {
-            for (String cityCode : params.JS_CITY_CODES) {
-                OneDaySignalProcess(date, cityCode);
-            }
+            final Broadcast<List<String>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),
+                    params.getCityCode().toString(),
+                    date);
+//            for (String cityCode : params.JS_CITY_CODES) {
+//                OneDaySignalProcess(date, cityCode, msisdnVar);
+//            }
+            OneDaySignalProcess(date, params.getStrCity(), msisdnVar);
         }
     }
-    private void OneDaySignalProcess(String date, String cityCode) {
-        final Broadcast<List<String>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),cityCode, date);
+
+    private void OneDaySignalProcess(String date, String cityCode, final Broadcast<List<String>> msisdnVar) {
+
         String tracePath = params.getTraceFiles(cityCode, date);
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
-        //合并基站信息到信令数据中
         DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
-        JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
-            final List<String> msisdnList = msisdnVar.getValue();
-            @Override
-            public Boolean call(Row row) throws Exception {
-                return msisdnList.contains(row.getAs("msisdn"));
-            }
-        });
-        FileUtil.saveFile(sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN).repartition(params.getPartitions()),
-                FileUtil.FileType.PARQUET, params.getDistrictTraceSavePath(params.getDistrictCode(), cityCode, date));
+//        JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
+//            final List<String> msisdnList = msisdnVar.getValue();
+//            @Override
+//            public Boolean call(Row row) throws Exception {
+//                return msisdnList.contains(row.getAs("msisdn"));
+//            }
+//        });
+//        FileUtil.saveFile(sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN),
+//                FileUtil.FileType.PARQUET, params.getDistrictTraceSavePath(params.getDistrictCode(), cityCode, date));
+        DataFrame resultDf = sourceDf.filter(col("msisdn").in(msisdnVar.getValue()));
+        FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getDistrictTraceSavePath(params.getDistrictCode(), cityCode, date));
 
     }
 
