@@ -403,4 +403,21 @@ public class ParamProperties {
         }
         return fileList;
     }
+
+    /**
+     *  区县中出现的手机号码持久化地址
+     * @param districtCode
+     * @param cityCode
+     * @param date
+     * @return
+     */
+    public String getDistrictMsisdnSavePath(Integer districtCode, String cityCode, String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.DISTRICT_MSISDN_SAVE_PATH)
+                .concat(date)
+                .concat(java.io.File.separator)
+                .concat(cityCode)
+                .concat(java.io.File.separator)
+                .concat(districtCode.toString());
+    }
 }

@@ -1,22 +1,21 @@
 package com.sky.signal.pre.service.impl;
 
-import com.sky.signal.pre.processor.district.DistrictSignalProcessor;
+import com.sky.signal.pre.processor.district.DistrictMsisdnProcessor;
 import com.sky.signal.pre.service.ComputeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @Description 抽取指定区县的信令数据，并保存到特定位置
+ * @Description 抽取指定日期指定区县出现的msisdn，并持久化
  * @Author chenhu
  * @Date 2020/8/4 09:23
  **/
 @Service
-public class RestoreDistrictSignalService implements ComputeService {
+public class DistrictMsisdnService implements ComputeService {
     @Autowired
-    private DistrictSignalProcessor districtSignalProcessor;
-
+    private DistrictMsisdnProcessor districtMsisdnProcessor;
     @Override
     public void compute() {
-        districtSignalProcessor.process();
+        districtMsisdnProcessor.process();
     }
 }

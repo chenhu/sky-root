@@ -1,11 +1,10 @@
-package com.sky.signal.pre.processor;
+package com.sky.signal.pre.processor.district;
 
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.signalProcess.SignalLoader;
 import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
-import com.sky.signal.pre.util.ProfileUtil;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
@@ -13,7 +12,6 @@ import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.storage.StorageLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,35 +40,19 @@ public class DistrictSignalProcessor implements Serializable {
     @Autowired
     private transient SignalLoader signalLoader;
 
+    @Autowired
+    private transient DistrictMsisdnProcessor districtMsisdnProcessor;
+
     public void process() {
         //加载全省信令，按天处理
         for (String date : params.getStrDay().split(",")) {
-            Broadcast<List<String>> msisdnVar = getExistsMsisdn(date);
             for (String cityCode : params.JS_CITY_CODES) {
-                OneDaySignalProcess(date, cityCode,msisdnVar);
+                OneDaySignalProcess(date, cityCode);
             }
         }
     }
-
-    private Broadcast<List<String>> getExistsMsisdn(String date) {
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-        //加载要处理的地市的信令
-        String tracePath = params.getTraceFiles(params.getCityCode().toString(), date);
-        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
-        //合并基站信息到信令数据中
-        DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
-        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf).persist(StorageLevel.DISK_ONLY());
-        DataFrame msisdnDf = sourceDf.filter(col("district_code").equalTo(params.getDistrictCode())).select("msisdn").dropDuplicates();
-        msisdnDf.show();
-        List<Row> msisdnRowList = msisdnDf.collectAsList();
-        List<String> msisdnList = new ArrayList<>(msisdnRowList.size());
-        for (Row row : msisdnRowList) {
-            msisdnList.add(row.getAs("msisdn").toString());
-        }
-        return sparkContext.broadcast(msisdnList);
-
-    }
-    private void OneDaySignalProcess(String date, String cityCode, final Broadcast<List<String>> msisdnVar) {
+    private void OneDaySignalProcess(String date, String cityCode) {
+        final Broadcast<List<String>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),cityCode, date);
         String tracePath = params.getTraceFiles(cityCode, date);
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //合并基站信息到信令数据中
