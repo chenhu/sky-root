@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,14 +49,14 @@ public class DistrictMsisdnProcessor implements Serializable {
         }
     }
 
-    public Broadcast<List<String>> load(Integer districtCode, String cityCode, String date) {
+    public Broadcast<Map<String, Boolean>> load(Integer districtCode, String cityCode, String date) {
         DataFrame msisdnDf = FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(districtCode,cityCode,date));
         List<Row> msisdnRowList = msisdnDf.collectAsList();
-        List<String> msisdnList = new ArrayList<>(msisdnRowList.size());
+        Map<String, Boolean> msisdnMap = new HashMap<>(msisdnRowList.size());
         for (Row row : msisdnRowList) {
-            msisdnList.add(row.getAs("msisdn").toString());
+            msisdnMap.put(row.getAs("msisdn").toString(),true );
         }
-        return sparkContext.broadcast(msisdnList);
+        return sparkContext.broadcast(msisdnMap);
     }
 
 

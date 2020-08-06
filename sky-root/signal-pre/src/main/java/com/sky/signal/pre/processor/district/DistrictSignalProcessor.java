@@ -1,18 +1,20 @@
 package com.sky.signal.pre.processor.district;
 
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.List;
-
-import static org.apache.spark.sql.functions.col;
+import java.util.Map;
 
 /**
  * @Description 抽取指定区县的原始信令数据，并保存到特定位置
@@ -33,33 +35,33 @@ public class DistrictSignalProcessor implements Serializable {
     public void process() {
         //加载全省信令，按天处理
         for (String date : params.getStrDay().split(",")) {
-            final Broadcast<List<String>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),
+            final Broadcast<Map<String, Boolean>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),
                     params.getCityCode().toString(),
                     date);
-//            for (String cityCode : params.JS_CITY_CODES) {
-//                OneDaySignalProcess(date, cityCode, msisdnVar);
-//            }
-            OneDaySignalProcess(date, params.getStrCity(), msisdnVar);
+            for (String cityCode : params.JS_CITY_CODES) {
+                OneDaySignalProcess(date, cityCode, msisdnVar);
+            }
         }
     }
 
-    private void OneDaySignalProcess(String date, String cityCode, final Broadcast<List<String>> msisdnVar) {
-
+    private void OneDaySignalProcess(String date, String cityCode, final Broadcast<Map<String, Boolean>> msisdnVar) {
         String tracePath = params.getTraceFiles(cityCode, date);
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
-//        JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
-//            final List<String> msisdnList = msisdnVar.getValue();
-//            @Override
-//            public Boolean call(Row row) throws Exception {
-//                return msisdnList.contains(row.getAs("msisdn"));
-//            }
-//        });
-//        FileUtil.saveFile(sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN),
-//                FileUtil.FileType.PARQUET, params.getDistrictTraceSavePath(params.getDistrictCode(), cityCode, date));
-        DataFrame resultDf = sourceDf.filter(col("msisdn").in(msisdnVar.getValue()));
+        JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
+            final Map<String, Boolean> msisdnMap = msisdnVar.getValue();
+            @Override
+            public Boolean call(Row row) throws Exception {
+                Boolean value = msisdnMap.get(row.getAs("msisdn").toString());
+                if (value != null) {
+                    return value;
+                } else {
+                    return false;
+                }
+            }
+        });
+        DataFrame resultDf = sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN).repartition(params.getPartitions());
         FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getDistrictTraceSavePath(params.getDistrictCode(), cityCode, date));
-
     }
 
     /**
