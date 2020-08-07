@@ -110,7 +110,7 @@ public class SignalProcessor implements Serializable {
             //基站移动到下一基站速度
             speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance / moveTime * 3.6, 2);
         }
-        return new GenericRowWithSchema(new Object[]{prior.getAs("date"), prior.getAs("msisdn"), prior.getAs("region"), prior.getAs("city_code"), prior.getAs("tac"), prior.getAs("cell"), prior.getAs("base"), prior.getAs("lng"), prior.getAs("lat"), beginTime, lastTime, distance, moveTime, speed}, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+        return new GenericRowWithSchema(new Object[]{prior.getAs("date"), prior.getAs("msisdn"), prior.getAs("region"), prior.getAs("city_code"), prior.getAs("district_code"),prior.getAs("tac"), prior.getAs("cell"), prior.getAs("base"), prior.getAs("lng"), prior.getAs("lat"), beginTime, lastTime, distance, moveTime, speed}, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
     }
 
     /**
@@ -542,14 +542,13 @@ public class SignalProcessor implements Serializable {
         }
     }
 
-    public void oneDayDistrict(String path) {
+    private void oneDayDistrict(String path) {
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
         DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());

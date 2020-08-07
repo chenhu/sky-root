@@ -34,7 +34,7 @@ public class DistrictSignalProcessor implements Serializable {
 
     public void process() {
         //加载全省信令，按天处理
-        for (String date : params.getStrDay().split(",")) {
+        for (String date : params.getStrDay().split(",", -1)) {
             final Broadcast<Map<String, Boolean>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),
                     params.getCityCode().toString(),
                     date);

@@ -202,7 +202,7 @@ public class ParamProperties {
      * @return
      */
     public List<String> getValidSignalListByDays() {
-        String[] days = strDay.split(",");
+        String[] days = strDay.split(",",-1);
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
             fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
@@ -395,7 +395,7 @@ public class ParamProperties {
      * @return
      */
     public List<String> getDistrictTraceSavePath(Integer districtCode) {
-        String[] days = strDay.split(",");
+        String[] days = strDay.split(",", -1);
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
             fileList.add(getDistrictTraceSavePath(districtCode,"*",day));
