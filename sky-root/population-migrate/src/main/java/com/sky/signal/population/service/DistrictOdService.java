@@ -32,33 +32,33 @@ import java.util.Map;
 public class DistrictOdService implements ComputeService, Serializable {
     @Autowired
     private transient ParamProperties params;
-
     @Autowired
     private transient CellLoader cellLoader;
-
     @Autowired
     private transient OdProcess odProcess;
-
-    @Autowired
-    private transient SQLContext sqlContext;
-
-    @Autowired
-    private transient TraceProcessor traceProcessor;
-
     @Override
     public void compute() {
         //基站信息合并到全省信令数据
         final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
+        //按天处理
+//        for(String path: params.getProvinceODFilePaths()) {
+//            //加载预处理后的OD数据
+//            DataFrame odDf = odProcess.loadOd(path);
+//            //合并区县信息到OD数据
+//            odDf = odProcess.mergeOdWithCell(provinceCell, odDf).persist(StorageLevel.MEMORY_AND_DISK());
+//            //合并同区县的OD并找出符合条件的OD记录
+//            odDf = odProcess.provinceResultOd(odDf);
+//            String date = odDf.first().getAs("date").toString();
+//            FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestDistrictOdFilePath(params.getDistrictCode().toString(),date));
+//        }
+
         //加载预处理后的OD数据
-        DataFrame odDf = odProcess.loadOd();
+        DataFrame odDf = odProcess.loadOd(params.getProvinceODFilePath());
         //合并区县信息到OD数据
         odDf = odProcess.mergeOdWithCell(provinceCell, odDf).persist(StorageLevel.MEMORY_AND_DISK());
-        //找出目标区域内满足OD条件的手机号码，并用这些号码找出其在全省其他地区的OD
-
-        FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getProvinceODFilePath());
-
-        //最后释放持久化的数据
-        odDf.unpersist();
-
+        //合并同区县的OD并找出符合条件的OD记录
+        odDf = odProcess.provinceResultOd2(odDf);
+        String date = odDf.first().getAs("date").toString();
+        FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestDistrictOdFilePath(params.getDistrictCode().toString()));
     }
 }

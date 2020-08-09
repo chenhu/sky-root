@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import scala.Tuple2;
 
+import java.io.File;
 import java.util.*;
 
 @Data
@@ -61,26 +62,15 @@ public class ParamProperties {
     private String basePath;
 
     /**
-     * 停驻点
-     */
-    private String traceFile;
-
-    /**
-     * OD文件
-     */
-    private String linkFile;
-
-    /**
      * 分区数
      */
     public static final String PARTITIONS = "partitions";
 
     /**
-     * 处理日期
+     * 处理日期,比如: --day=20190611,20190618
      */
-    //    private int year, month, day;
-    public static final String YEAR = "year", MONTH = "month", DAY = "day";
-    private String strYear, strMonth, strDay;
+    public static final String DAY = "day";
+    private String strDay;
     // 服务名称注入
     private String SERVICENAME = "service";
     private static final Logger logger = LoggerFactory.getLogger
@@ -116,34 +106,9 @@ public class ParamProperties {
                     "partitions will be use the default value {}", partitions);
         }
 
-        //通过程序参数指定数据年份: --year=2017
-        if (args.containsOption(YEAR)) {
-            strYear = args.getOptionValues(YEAR).get(0).trim();
-            //            year = Integer.valueOf(strYear);
-        }
-
-        //通过程序参数指定数据月份: --month=9
-        if (args.containsOption(MONTH)) {
-            if (args.containsOption(YEAR)) {
-                strMonth = args.getOptionValues(MONTH).get(0).trim();
-                //                month = Integer.valueOf(strMonth);
-            } else {
-                throw new RuntimeException("Should passing the [year] " +
-                        "argument first if you want to use the [month] " +
-                        "argument , using: --year --month ");
-            }
-        }
-
         //通过程序参数指定数据日期的天部分: --day=24,25,26 ,通过逗号分割的天
         if (args.containsOption(DAY)) {
-            if (args.containsOption(MONTH)) {
-                strDay = args.getOptionValues(DAY).get(0).trim();
-                //                day = Integer.valueOf(strDay);
-            } else {
-                throw new RuntimeException("Should passing the [month] " +
-                        "argument first if you want to use the [day] argument" +
-                        " , using: --year --month --day");
-            }
+            strDay = args.getOptionValues(DAY).get(0).trim();
         }
 
 
@@ -182,7 +147,17 @@ public class ParamProperties {
 
     /**
      * 获取区县OD分析保存路径
-     *
+     * @param districtCode 区县编码
+     * @param date 日期
+     * @return
+     */
+    public String getDestDistrictOdFilePath(String districtCode, String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+                (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH).concat(date);
+    }
+
+    /**
+     * 获取区县OD分析保存路径
      * @param districtCode 区县编码
      * @return
      */
@@ -192,12 +167,29 @@ public class ParamProperties {
     }
 
     /**
-     * 获取全省不分区县OD保存路径
+     * 获取OD保存路径list
      *
      * @return
      */
+    public List<String> getProvinceODFilePaths() {
+        List<String> pathList = new ArrayList<>();
+        String[] days = strDay.split(",");
+        for (String day : days) {
+            pathList.add(getProvinceODFilePath(day));
+        }
+        return pathList;
+    }
+
     public String getProvinceODFilePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.PROVINCE_MSISDN_OD_PATH);
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.PROVINCE_MSISDN_OD_PATH).concat("*").concat(File.separator);
+    }
+    /**
+     * 获取OD保存路径
+     *
+     * @return
+     */
+    public String getProvinceODFilePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.PROVINCE_MSISDN_OD_PATH).concat(date);
     }
 
     /**

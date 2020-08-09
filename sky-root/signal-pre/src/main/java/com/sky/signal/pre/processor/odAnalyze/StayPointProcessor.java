@@ -37,7 +37,7 @@ public class StayPointProcessor implements Serializable {
     @Autowired
     private transient SignalLoader signalLoader;
     @Autowired
-    private transient StayPointUtil stayPointUtil;
+    private  StayPointUtil stayPointUtil;
 
     private List<Row> timeAmendment(List<Row> stayPoints, List<Row> movePoints) {
         List<Row> result = new ArrayList<>();

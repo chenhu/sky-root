@@ -10,6 +10,7 @@ import org.joda.time.Seconds;
 import org.springframework.stereotype.Component;
 import scala.Tuple2;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class StayPointUtil {
+public class StayPointUtil implements Serializable {
 
     // 基站半径阀值
     public static final int RANGE_I = 800;
