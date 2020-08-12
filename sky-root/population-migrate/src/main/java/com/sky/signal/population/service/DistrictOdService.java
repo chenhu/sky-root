@@ -3,14 +3,11 @@ package com.sky.signal.population.service;
 import com.sky.signal.population.config.ParamProperties;
 import com.sky.signal.population.processor.CellLoader;
 import com.sky.signal.population.processor.OdProcess;
-import com.sky.signal.population.processor.TraceProcessor;
 import com.sky.signal.population.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SQLContext;
-import org.apache.spark.storage.StorageLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,24 +38,15 @@ public class DistrictOdService implements ComputeService, Serializable {
         //基站信息合并到全省信令数据
         final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
         //按天处理
-//        for(String path: params.getProvinceODFilePaths()) {
-//            //加载预处理后的OD数据
-//            DataFrame odDf = odProcess.loadOd(path);
-//            //合并区县信息到OD数据
-//            odDf = odProcess.mergeOdWithCell(provinceCell, odDf).persist(StorageLevel.MEMORY_AND_DISK());
-//            //合并同区县的OD并找出符合条件的OD记录
-//            odDf = odProcess.provinceResultOd(odDf);
-//            String date = odDf.first().getAs("date").toString();
-//            FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestDistrictOdFilePath(params.getDistrictCode().toString(),date));
-//        }
-
-        //加载预处理后的OD数据
-        DataFrame odDf = odProcess.loadOd(params.getProvinceODFilePath());
-        //合并区县信息到OD数据
-        odDf = odProcess.mergeOdWithCell(provinceCell, odDf).persist(StorageLevel.MEMORY_AND_DISK());
-        //合并同区县的OD并找出符合条件的OD记录
-        odDf = odProcess.provinceResultOd2(odDf);
-        String date = odDf.first().getAs("date").toString();
-        FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestDistrictOdFilePath(params.getDistrictCode().toString()));
+        for(String path: params.getProvinceODFilePaths()) {
+            //加载预处理后的OD数据
+            DataFrame odDf = odProcess.loadOd(path);
+            //合并区县信息到OD数据
+            odDf = odProcess.mergeOdWithCell(provinceCell, odDf);
+            //合并同区县的OD并找出符合条件的OD记录
+            odDf = odProcess.provinceResultOd2(odDf);
+            String date = path.substring(path.length() - 8);
+            FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestDistrictOdFilePath(params.getDistrictCode().toString(),date));
+        }
     }
 }

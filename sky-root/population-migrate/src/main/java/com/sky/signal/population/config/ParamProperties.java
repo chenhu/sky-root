@@ -152,7 +152,7 @@ public class ParamProperties {
      * @return
      */
     public String getDestDistrictOdFilePath(String districtCode, String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
                 (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH).concat(date);
     }
 
@@ -162,7 +162,7 @@ public class ParamProperties {
      * @return
      */
     public String getDestDistrictOdFilePath(String districtCode) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
                 (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH);
     }
 

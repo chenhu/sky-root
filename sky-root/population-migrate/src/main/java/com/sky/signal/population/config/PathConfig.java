@@ -20,6 +20,8 @@ public class PathConfig {
     public static final String TRACE_PATH = "trace/dt=";
     //基础OD结果
     public static final String PROVINCE_MSISDN_OD_PATH = "od/";
+    //人口迁徙分析目录
+    public static final String POPULATION_DIR = "population/";
 
 
 
