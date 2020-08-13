@@ -290,10 +290,12 @@ public class OdProcess implements Serializable {
         rows = ordering.sortedCopy(rows);
         Row pre = null;
         Row current;
+        DateTime dt = null, lastDt = null;
         //获取当天时间的23:59:59秒
-        DateTime dt = new DateTime(rows.get(0).getAs("leave_time"));
-        DateTime lastDt = new DateTime(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth(), 23, 59, 59);
-
+        if(rows.size()>0) {
+            dt = new DateTime(rows.get(0).getAs("leave_time"));
+            lastDt = new DateTime(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth(), 23, 59, 59);
+        }
         int loops = 0;
         for (Row row : rows) {
             current = row;
@@ -316,7 +318,7 @@ public class OdProcess implements Serializable {
                             pre.getAs("arrive_time"),
                             pre.getAs("duration_o"),
                             current.getAs("duration_o"),
-                            pre.getAs("arrive_time")
+                            pre.getAs("move_time")
                     }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
                     result.add(mergedRow);
                     pre = current;
@@ -336,7 +338,7 @@ public class OdProcess implements Serializable {
                                 current.getAs("arrive_time"),
                                 current.getAs("duration_o"),
                                 durationD,
-                                current.getAs("arrive_time")
+                                current.getAs("move_time")
                         }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
                         result.add(lastRow);
                     }
@@ -345,27 +347,6 @@ public class OdProcess implements Serializable {
             }
         }
         return result;
-    }
-
-
-    /**
-     * 有停留时间要求的情况：给区县出行OD增加O点逗留时长和D点逗留时长，并重新组成符合条件的出行OD
-     *
-     * @param rows
-     * @return
-     */
-    private List<Row> addDurationForOD1(List<Row> rows) {
-        return null;
-    }
-
-    /**
-     * 没有有停留时间要求的情况：给区县出行OD增加O点逗留时长和D点逗留时长
-     *
-     * @param rows
-     * @return
-     */
-    private List<Row> addDurationForOD2(List<Row> rows) {
-        return null;
     }
 
     /**
@@ -428,12 +409,20 @@ public class OdProcess implements Serializable {
                 return rows;
             }
         });
-        odDf =  sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
-        //找出逗留时间满足要求的od
-        final Integer odMode = params.getOdMode();
-        if (odMode != 0) {//对逗留时间有要求，对OD进行过滤
-            odDf = odDf.filter(col("duration_o").geq(DISTRICT_STAY_MINUTE).and(col("duration_d").geq(DISTRICT_STAY_MINUTE)));
-        }
-        return odDf;
+        return   sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
     }
+
+    /**
+     * 根据对区县停留点的停留时长要求，重新组成符合要求的区县出行OD
+     * @param rows
+     * @return
+     */
+    public List<Row> rebuildDistrictOd(List<Row> rows) {
+
+
+        return null;
+    }
+
+
+
 }

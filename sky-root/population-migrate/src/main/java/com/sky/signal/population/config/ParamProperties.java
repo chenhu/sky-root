@@ -163,7 +163,7 @@ public class ParamProperties {
      */
     public String getDestDistrictOdFilePath(String districtCode) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
-                (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH);
+                (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH).concat("*").concat(File.separator);
     }
 
     /**
@@ -208,5 +208,15 @@ public class ParamProperties {
                     "--odays=yyyyMMdd, yyyyMMdd");
         }
         return tracePathList;
+    }
+
+    /**
+     * 获取人口分析报表存储目录
+     * @param districtCode
+     * @return
+     */
+    public String getPopulationStatPath(String districtCode) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
+                (districtCode).concat(PathConfig.STAT_DIR);
     }
 }

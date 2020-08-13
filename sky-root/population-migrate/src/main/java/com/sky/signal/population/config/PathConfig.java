@@ -23,6 +23,9 @@ public class PathConfig {
     //人口迁徙分析目录
     public static final String POPULATION_DIR = "population/";
 
+    //区县出行OD统计报表目录
+    public static final String STAT_DIR = "_district_stat/";
+
 
 
 

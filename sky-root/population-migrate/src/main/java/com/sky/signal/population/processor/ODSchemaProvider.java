@@ -58,4 +58,15 @@ public class ODSchemaProvider {
                     DataTypes.createStructField("duration_o", DataTypes.IntegerType, false),
                     DataTypes.createStructField("duration_d", DataTypes.IntegerType, false),
                     DataTypes.createStructField("move_time", DataTypes.IntegerType, false)));
+    public static final StructType OD_DISTRICT_SCHEMA_CLASSIC = DataTypes.createStructType
+            (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("leave_city", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("leave_district", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("arrive_city", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("arrive_district", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("move_time", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("duration_o_classic", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("duration_d_classic", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("move_time_classic", DataTypes.IntegerType, false)));
 }
