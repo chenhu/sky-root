@@ -16,6 +16,8 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.storage.StorageLevel;
+import org.joda.time.DateTime;
+import org.joda.time.Seconds;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import scala.Tuple2;
@@ -37,7 +39,7 @@ public class StayPointProcessor implements Serializable {
     @Autowired
     private transient SignalLoader signalLoader;
     @Autowired
-    private  StayPointUtil stayPointUtil;
+    private StayPointUtil stayPointUtil;
 
     private List<Row> timeAmendment(List<Row> stayPoints, List<Row> movePoints) {
         List<Row> result = new ArrayList<>();
@@ -228,8 +230,7 @@ public class StayPointProcessor implements Serializable {
         List<Row> traceOD = new ArrayList<>();
         for (Tuple3<String, String, Timestamp> tuple3 : odTraceMap.keySet()) {
             LinkedList<Row> trace = (LinkedList<Row>) odTraceMap.get(tuple3);
-            if (shouldRemoveOD.contains(new Tuple2<>(tuple3._1(), tuple3._2())) || shouldRemoveOD
-                    .contains(new Tuple2<>(tuple3._2(), tuple3._1()))) {
+            if (shouldRemoveOD.contains(new Tuple2<>(tuple3._1(), tuple3._2())) || shouldRemoveOD.contains(new Tuple2<>(tuple3._2(), tuple3._1()))) {
                 continue;
             }
             Row o = trace.peekFirst();
@@ -237,6 +238,9 @@ public class StayPointProcessor implements Serializable {
             Timestamp originEnd = o.getAs("last_time");
             Timestamp destBegin = d.getAs("begin_time");
             int moveTime = stayPointUtil.getTimeDiff(originEnd, destBegin);
+            //增加O点逗留时间
+            Timestamp originBegin = o.getAs("begin_time");
+            int durationO = Math.abs(Seconds.secondsBetween(new DateTime(originEnd), new DateTime(originBegin)).getSeconds());
             if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400)) {
                 shouldRemoveOD.add(new Tuple2<>(tuple3._1(), tuple3._2()));
                 shouldRemoveOD.add(new Tuple2<>(tuple3._2(), tuple3._1()));
@@ -283,10 +287,16 @@ public class StayPointProcessor implements Serializable {
                 int distance = MapUtil.getDistance((double) o.getAs("lng"), (double) o.getAs
                         ("lat"), (double) d.getAs("lng"), (double) d.getAs("lat"));
 
-                Row od = new GenericRowWithSchema(new Object[]{o.getAs("date"), o.getAs("msisdn")
-                        , o.getAs("base"), o.getAs("lng"), o.getAs("lat"), d.getAs("base"), d
-                        .getAs("lng"), d.getAs("lat"), originEnd, destBegin, linkedDistance,
-                        maxSpeed, covSpeed, distance, moveTime}, ODSchemaProvider.OD_SCHEMA);
+                Row od = new GenericRowWithSchema(new Object[]{o.getAs("date"),
+                        o.getAs("msisdn"),
+                        o.getAs("base"),
+                        o.getAs("lng"),
+                        o.getAs("lat"),
+                        d.getAs("base"),
+                        d.getAs("lng"),
+                        d.getAs("lat"),
+                        originEnd, destBegin, linkedDistance,
+                        maxSpeed, covSpeed, distance, durationO, moveTime}, ODSchemaProvider.OD_SCHEMA);
                 odResult.add(od);
                 if (trace.size() > 1) {
                     traceOD.addAll(createODTrace(trace));
@@ -507,8 +517,7 @@ public class StayPointProcessor implements Serializable {
                 } while (beforeSize - afterSize > 0);
 
                 // 单独抽出确定停留点和可能停留点，合并连续确定停留点
-                Tuple2<List<Row>, List<Row>> pointSplit = stayPointUtil.mergeStayPoint(rows, new
-                        ArrayList<Row>());
+                Tuple2<List<Row>, List<Row>> pointSplit = stayPointUtil.mergeStayPoint(rows, new ArrayList<Row>());
                 rows = pointSplit._1();
                 List<Row> moveList = pointSplit._2();
                 // 判断可能停留点状态

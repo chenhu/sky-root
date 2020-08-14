@@ -76,12 +76,12 @@ public class ODSchemaProvider {
                     DataTypes.createStructField("max_speed", DataTypes.DoubleType, false),
                     DataTypes.createStructField("cov_speed", DataTypes.DoubleType, false),
                     DataTypes.createStructField("distance", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("duration_o", DataTypes.IntegerType, false),
                     DataTypes.createStructField("move_time", DataTypes.IntegerType, false)));
-    public static final StructType OD_TRIP_STAT_SCHEMA = DataTypes
-            .createStructType(Lists.newArrayList(DataTypes.createStructField
-                            ("date", DataTypes.IntegerType, false), DataTypes
-                            .createStructField("msisdn", DataTypes.StringType, false)
-                    , DataTypes.createStructField("has_trip", DataTypes
-                            .ByteType, false), DataTypes.createStructField
-                            ("staypoint_count", DataTypes.IntegerType, false)));
+    public static final StructType OD_TRIP_STAT_SCHEMA = DataTypes.createStructType(
+            Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+            DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+            DataTypes.createStructField("has_trip", DataTypes.ByteType, false),
+            DataTypes.createStructField("staypoint_count",
+            DataTypes.IntegerType, false)));
 }

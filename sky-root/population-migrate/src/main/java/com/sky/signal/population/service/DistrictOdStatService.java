@@ -94,12 +94,39 @@ public class DistrictOdStatService implements ComputeService, Serializable {
                 .withColumnRenamed("leave_district","leave_o")
                 .select("date","leave_o","trip_num","peo_num")
                 .orderBy("date","leave_o");
+
         //3. 合并地市和区县的统计结果
         DataFrame table3 = city.unionAll(district);
         FileUtil.saveFile(table3.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath(params.getDistrictCode().toString()).concat("table3"));
+        odClassicDf.unpersist();
+
 
         //最后一张表
-        DataFrame table4 = odClassicDf.groupBy("date",
+        String durationLimitedOdPath = params.getLimitedDestDistrictOdFilePath(params.getDistrictCode().toString());
+        DataFrame durationLimitedOdDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET, durationLimitedOdPath).cache();
+
+        JavaRDD<Row> durationLimitedRDD = durationLimitedOdDf.javaRDD().map(new Function<Row, Row>() {
+            @Override
+            public Row call(Row row) throws Exception {
+                int moveTimeClassic = transformMoveTimeClassic((Integer) row.getAs("move_time"));
+                int durationOClassic = transformDurationODClassic((Integer) row.getAs("duration_o"));
+                int durationDClassic = transformDurationODClassic((Integer) row.getAs("duration_d"));
+                return RowFactory.create(row.getAs("date"),
+                        row.getAs("msisdn"),
+                        row.getAs("leave_city"),
+                        row.getAs("leave_district"),
+                        row.getAs("arrive_city"),
+                        row.getAs("arrive_district"),
+                        row.getAs("move_time"),
+                        durationOClassic,
+                        durationDClassic,
+                        moveTimeClassic);
+            }
+        });
+
+        DataFrame classicDf = sqlContext.createDataFrame(durationLimitedRDD,ODSchemaProvider.OD_DISTRICT_SCHEMA_CLASSIC);
+
+        DataFrame table4 = classicDf.groupBy("date",
                 "leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic")
                 .agg(sum("move_time").divide(60).cast(new DecimalType(10,1)).as("move_time_min"), count("msisdn").as("trip_num"))
                 .select("date","leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic","move_time_min","trip_num")

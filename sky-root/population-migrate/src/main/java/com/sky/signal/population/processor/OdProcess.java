@@ -12,6 +12,7 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.joda.time.DateTime;
@@ -23,6 +24,7 @@ import scala.Tuple2;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +84,8 @@ public class OdProcess implements Serializable {
                         arriveCityCode,
                         arriveDistrictCode,
                         row.getAs("leave_time"),
-                        row.getAs("arrive_time")
+                        row.getAs("arrive_time"),
+                        row.getAs("duration_o")
                 }, ODSchemaProvider.OD_DISTRICT_SCHEMA);
             }
         });
@@ -133,6 +136,7 @@ public class OdProcess implements Serializable {
                     }
                     continue;
                 } else if(currentLeaveDistrict ==currentArriveDistrict && preLeaveDistrict==currentLeaveDistrict) {//pre和current都在相同区县，合并
+                    int durationO = (Integer) pre.getAs("duration_o") + (Integer) current.getAs("duration_o");
                     Row mergedRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
                             pre.getAs("msisdn"),
                             pre.getAs("leave_city"),
@@ -140,7 +144,8 @@ public class OdProcess implements Serializable {
                             pre.getAs("arrive_city"),
                             pre.getAs("arrive_district"),
                             pre.getAs("leave_time"),
-                            current.getAs("arrive_time")}, ODSchemaProvider.OD_DISTRICT_SCHEMA);
+                            current.getAs("arrive_time"),
+                            durationO}, ODSchemaProvider.OD_DISTRICT_SCHEMA);
                     result.add(mergedRow);
                     pre = null;
                     continue;
@@ -194,11 +199,13 @@ public class OdProcess implements Serializable {
                 int currentArriveDistrict = (Integer) current.getAs("arrive_district");
                 //判断两条od出发点和到达点是否在一个区县
                 if(preLeaveDistrict != preArriveDistrict) {//不同区县，加入结果列表，进入下次循环，pre指向current
-                    Integer durationO = 0;
+                    Integer durationO ;
                     if(preAdd != null && preAdd.getAs("arrive_district").equals(preLeaveDistrict)) {
                         durationO = Math.abs(Seconds.secondsBetween(new DateTime(preAdd
                                 .getAs("arrive_time")), new DateTime(pre.getAs
                                 ("leave_time"))).getSeconds());
+                    } else {
+                        durationO = (Integer) pre.getAs("duration_o");
                     }
                     Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
                             .getAs("arrive_time")), new DateTime(current.getAs
@@ -412,15 +419,144 @@ public class OdProcess implements Serializable {
         return   sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
     }
 
+
+    /**
+     * 根据已经生成的，停留时间没有时间限制的区县出行OD，生成有停留时间限制的区县出行OD
+     * @param odDf 停留时间没有时间限制的区县出行OD
+     * @return 有停留时间限制的区县出行OD
+     */
+    public DataFrame provinceDurationLimitedOd(DataFrame odDf) {
+        JavaRDD<Row> odRDD = this.signalToJavaPairRDD(odDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
+            @Override
+            public Iterable<Row> call(List<Row> rows) throws Exception {
+                int beforeSize, afterSize;
+                //合并连续起点和终点相同的od,同一个区县内，应该为a-a,a-b这样的od
+                do {
+                    beforeSize = rows.size();
+                    rows = rebuildDistrictOd(rows);
+                    afterSize = rows.size();
+                } while (beforeSize - afterSize > 0);
+                return rows;
+            }
+        });
+        return   sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
+    }
+
+
     /**
      * 根据对区县停留点的停留时长要求，重新组成符合要求的区县出行OD
+     * 假设输入数据为:a-b,b-c,c-d ...
+     * 如果 b点的逗留时间不满足阀值，则od变为: a-c,c-d ... 以此类推
+     * 此方法需要递归执行
+     * 输入中如果发现有起点和终点一样的，直接丢弃
      * @param rows
      * @return
      */
-    public List<Row> rebuildDistrictOd(List<Row> rows) {
+    private List<Row> rebuildDistrictOd(List<Row> rows) {
+        //结果列表
+        List<Row> result = new ArrayList<>();
+        //排序
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common.base.Function<Row, Timestamp>() {
+            @Override
+            public Timestamp apply(Row row) {
+                return (Timestamp) row.getAs("leave_time");
+            }
+        });
+        //按出发时间排序
+        rows = ordering.sortedCopy(rows);
+        Row pre = null;
+        Row current;
+        int loops = 0;
+        Map<Object, Integer> timeMap = new HashMap<>();
+        for (Row row : rows) {
+            current = row;
+            loops++;
+            if (pre == null) {
+                pre = current;
+                continue;
+            } else {
+                int preLeaveDistrict = (Integer) pre.getAs("leave_district");
+                int preArriveDistrict = (Integer) pre.getAs("arrive_district");
+                int currentLeaveDistrict = (Integer) current.getAs("leave_district");
+                int currentArriveDistrict = (Integer) current.getAs("arrive_district");
 
-
-        return null;
+                int durationO = (Integer) pre.getAs("duration_o");
+                if(timeMap.get(pre.getAs("leave_district")) != null) {
+                    durationO += timeMap.get(pre.getAs("leave_district"));
+                    timeMap.remove(pre.getAs("leave_district"));
+                }
+                int durationD = (Integer) pre.getAs("duration_d");
+                //如果起点的逗留时间不满足要求，则本条od直接剔除
+                //a->b,b->c 且 a!=c这样的od
+                if(preLeaveDistrict != preArriveDistrict && currentLeaveDistrict != currentArriveDistrict && preArriveDistrict == currentLeaveDistrict && preLeaveDistrict != currentArriveDistrict) {
+                    if(durationO < DISTRICT_STAY_MINUTE) { //pre直接丢弃
+                        pre = current;
+                    } else if(durationD < DISTRICT_STAY_MINUTE) { //变为a-c
+                        Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
+                                .getAs("arrive_time")), new DateTime(pre.getAs
+                                ("leave_time"))).getSeconds());
+                        Row concatRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
+                                pre.getAs("msisdn"),
+                                pre.getAs("leave_city"),
+                                pre.getAs("leave_district"),
+                                current.getAs("arrive_city"),
+                                current.getAs("arrive_district"),
+                                pre.getAs("leave_time"),
+                                current.getAs("arrive_time"),
+                                durationO,
+                                current.getAs("duration_d"),
+                                moveTime},ODSchemaProvider.OD_DISTRICT_SCHEMA_DET) ;
+                        pre = concatRow;
+                    }  else { //pre的开始和结束逗留时间都满足要求
+                        Row concatRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
+                                pre.getAs("msisdn"),
+                                pre.getAs("leave_city"),
+                                pre.getAs("leave_district"),
+                                pre.getAs("arrive_city"),
+                                pre.getAs("arrive_district"),
+                                pre.getAs("leave_time"),
+                                pre.getAs("arrive_time"),
+                                durationO,
+                                pre.getAs("duration_d"),
+                                pre.getAs("move_time")},ODSchemaProvider.OD_DISTRICT_SCHEMA_DET) ;
+                        result.add(concatRow);
+                        pre = current;
+                    }
+                } else if( currentLeaveDistrict != currentArriveDistrict && preArriveDistrict == currentLeaveDistrict && preLeaveDistrict == currentArriveDistrict) { // a-b, b-a这样的
+                    if(durationO < DISTRICT_STAY_MINUTE) { //pre直接丢弃
+                        pre = current;
+                    } else if(durationD < DISTRICT_STAY_MINUTE) { //变为a-a ,相当于没有出行，直接移除a-b,b-a,但是要把最后在a的逗留时间加到下个od的O点上
+                        //记录下a逗留时间，用于合并到下个od的出发点上
+                        Integer duration = (Integer)pre.getAs("duration_o") + (Integer)current.getAs("duration_d");
+                        timeMap.put(pre.getAs("leave_district"), duration);
+                        pre = null;
+                    }  else { //pre的开始和结束逗留时间都满足要求
+                        Row concatRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
+                                pre.getAs("msisdn"),
+                                pre.getAs("leave_city"),
+                                pre.getAs("leave_district"),
+                                pre.getAs("arrive_city"),
+                                pre.getAs("arrive_district"),
+                                pre.getAs("leave_time"),
+                                pre.getAs("arrive_time"),
+                                durationO,
+                                pre.getAs("duration_d"),
+                                pre.getAs("move_time")},ODSchemaProvider.OD_DISTRICT_SCHEMA_DET) ;
+                        result.add(concatRow);
+                        pre = current;
+                    }
+                }
+                // 如果为最后一条记录,对current进行判断
+                if(loops == rows.size()) {
+                    int currentDurationO = (Integer) current.getAs("duration_o");
+                    int currentDurationD = (Integer) current.getAs("duration_d");
+                    if(currentArriveDistrict != currentLeaveDistrict && currentDurationO >= DISTRICT_STAY_MINUTE && currentDurationD >= DISTRICT_STAY_MINUTE) {
+                        result.add(current);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
 

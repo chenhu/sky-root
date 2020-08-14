@@ -44,9 +44,12 @@ public class DistrictOdService implements ComputeService, Serializable {
             //合并区县信息到OD数据
             odDf = odProcess.mergeOdWithCell(provinceCell, odDf);
             //合并同区县的OD并找出符合条件的OD记录
-            odDf = odProcess.provinceResultOd(odDf);
+            odDf = odProcess.provinceResultOd(odDf).cache();
             String date = path.substring(path.length() - 8);
             FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestDistrictOdFilePath(params.getDistrictCode().toString(),date));
+            //生成区县停留时间有要求的区县出行OD
+            odDf = odProcess.provinceDurationLimitedOd(odDf);
+            FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getLimitedDestDistrictOdFilePath(params.getDistrictCode().toString(),date));
         }
     }
 }

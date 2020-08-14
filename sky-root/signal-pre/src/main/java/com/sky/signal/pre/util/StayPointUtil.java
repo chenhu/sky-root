@@ -119,19 +119,10 @@ public class StayPointUtil implements Serializable {
                 int distance = MapUtil.getDistance((double) current.getAs
                         ("lng"), (double) current.getAs("lat"), (double)
                         prior.getAs("lng"), (double) prior.getAs("lat"));
-                if ((priorType == SignalProcessUtil.STAY_POINT && currentType
-                        == SignalProcessUtil.STAY_POINT &&
-                        distance <= RANGE_I) ||
-                        (((priorType == SignalProcessUtil.STAY_POINT &&
-                                currentType == SignalProcessUtil
-                                        .UNCERTAIN_POINT) || (priorType ==
-                                SignalProcessUtil.UNCERTAIN_POINT &&
-                                currentType == SignalProcessUtil.STAY_POINT))
-                                && distance <= RANGE_II) ||
-                        (priorType == SignalProcessUtil.UNCERTAIN_POINT &&
-                                currentType == SignalProcessUtil
-                                        .UNCERTAIN_POINT &&
-                                distance <= RANGE_III)) {
+                if ((priorType == SignalProcessUtil.STAY_POINT && currentType == SignalProcessUtil.STAY_POINT && distance <= RANGE_I)
+                        || (((priorType == SignalProcessUtil.STAY_POINT && currentType == SignalProcessUtil.UNCERTAIN_POINT)
+                        || (priorType == SignalProcessUtil.UNCERTAIN_POINT && currentType == SignalProcessUtil.STAY_POINT)) && distance <= RANGE_II)
+                        || (priorType == SignalProcessUtil.UNCERTAIN_POINT && currentType == SignalProcessUtil.UNCERTAIN_POINT && distance <= RANGE_III)) {
                     int moveTime1 = prior.getAs("move_time");
                     int moveTime2 = current.getAs("move_time");
                     //两点合并

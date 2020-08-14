@@ -8,7 +8,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import scala.Tuple2;
 
 import java.io.File;
 import java.util.*;
@@ -153,7 +152,22 @@ public class ParamProperties {
      */
     public String getDestDistrictOdFilePath(String districtCode, String date) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
-                (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH).concat(date);
+                (districtCode).concat(PathConfig.DEST_DISTRICT_OD_PATH).concat(date);
+    }
+
+    /**
+     * 获取有逗留时间要求的区县OD分析保存路径
+     * @param districtCode 区县编码
+     * @param date 日期
+     * @return
+     */
+    public String getLimitedDestDistrictOdFilePath(String districtCode, String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
+                (districtCode).concat(PathConfig.LIMITED_DISTRICT_OD_PATH).concat(date);
+    }
+    public String getLimitedDestDistrictOdFilePath(String districtCode) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
+                (districtCode).concat(PathConfig.LIMITED_DISTRICT_OD_PATH).concat("*").concat(File.separator);
     }
 
     /**
@@ -163,7 +177,7 @@ public class ParamProperties {
      */
     public String getDestDistrictOdFilePath(String districtCode) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
-                (districtCode).concat(PathConfig.DEST_DESTRICT_OD_PATH).concat("*").concat(File.separator);
+                (districtCode).concat(PathConfig.DEST_DISTRICT_OD_PATH).concat("*").concat(File.separator);
     }
 
     /**
