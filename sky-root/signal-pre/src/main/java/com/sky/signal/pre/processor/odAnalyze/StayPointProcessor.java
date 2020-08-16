@@ -570,7 +570,7 @@ public class StayPointProcessor implements Serializable {
             }
         });
         DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
-        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
+        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(params.getDistrictCode().toString(), date));
 
         JavaRDD<Row> statTripRDD = rdd3.map(new Function<Tuple3<List<Row>, List<Row>, Row>, Row>() {
             @Override

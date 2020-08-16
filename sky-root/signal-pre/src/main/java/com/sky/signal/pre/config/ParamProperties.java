@@ -211,6 +211,21 @@ public class ParamProperties {
         }
         return fileList;
     }
+    /**
+     * 获取需要处理的有效信令路径列表
+     * @param districtCode 区县编码
+     * @return
+     */
+    public List<String> getValidSignalListByDays(String districtCode) {
+        String[] days = strDay.split(",",-1);
+        List<String> fileList = new ArrayList<>();
+        for (String day : days) {
+            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH).concat(districtCode).concat(java.io.File.separator)
+                    .concat(day));
+        }
+        return fileList;
+    }
 
     /**
      * 获取需要处理的有效信令路径列表
@@ -332,11 +347,11 @@ public class ParamProperties {
      *
      * @return
      */
-    public String getValidSignalSavePath(String cityCode, String date) {
+    public String getValidSignalSavePath(String districtCode, String date) {
         return this.getBasePath()
                 .concat(PathConfig.APP_SAVE_PATH)
                 .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                .concat(cityCode)
+                .concat(districtCode)
                 .concat(java.io.File.separator)
                 .concat(date)
                 .concat(java.io.File.separator);
@@ -360,8 +375,12 @@ public class ParamProperties {
      * 基础OD结果
      * @return
      */
-    public String getODResultPath(String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_SAVE_PATH).concat(day);
+    public String getODResultPath(String districtCode, String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.OD_SAVE_PATH)
+                .concat(districtCode)
+                .concat(java.io.File.separator)
+                .concat(day);
     }
     /**
      * od分析中间统计结果

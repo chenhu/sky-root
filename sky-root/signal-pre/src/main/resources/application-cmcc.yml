@@ -2,7 +2,10 @@ param:
   basePath: /user/bdoc/17/services/hdfs/132/batch1/jiangsu/
   odMode: 0
 #  districtCode: 1051206
-  districtCode: 320581
+# 常熟
+#  districtCode: 320581
+# 句容
+  districtCode: 321183
   cityCode: 1000512
 
 

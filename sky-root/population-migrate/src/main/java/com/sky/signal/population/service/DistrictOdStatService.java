@@ -40,7 +40,7 @@ public class DistrictOdStatService implements ComputeService, Serializable {
     @Override
     public void compute() {
         //1.读取区县OD分析结果文件
-        String odPath = params.getDestDistrictOdFilePath(params.getDistrictCode().toString());
+        String odPath = params.getLimitedDestDistrictOdFilePath(params.getDistrictCode().toString());
         DataFrame odDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET, odPath).cache();
 
         //2. 生成相关字段的分类
@@ -102,10 +102,10 @@ public class DistrictOdStatService implements ComputeService, Serializable {
 
 
         //最后一张表
-        String durationLimitedOdPath = params.getLimitedDestDistrictOdFilePath(params.getDistrictCode().toString());
-        DataFrame durationLimitedOdDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET, durationLimitedOdPath).cache();
+        String durationNoneLimitedOdPath = params.getDestDistrictOdFilePath(params.getDistrictCode().toString());
+        DataFrame durationNoneLimitedOdDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET, durationNoneLimitedOdPath).cache();
 
-        JavaRDD<Row> durationLimitedRDD = durationLimitedOdDf.javaRDD().map(new Function<Row, Row>() {
+        JavaRDD<Row> durationLimitedRDD = durationNoneLimitedOdDf.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
                 int moveTimeClassic = transformMoveTimeClassic((Integer) row.getAs("move_time"));

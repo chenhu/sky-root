@@ -38,7 +38,7 @@ public class DistrictOdService implements ComputeService, Serializable {
         //基站信息合并到全省信令数据
         final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
         //按天处理
-        for(String path: params.getProvinceODFilePaths()) {
+        for(String path: params.getProvinceODFilePaths(params.getDistrictCode().toString())) {
             //加载预处理后的OD数据
             DataFrame odDf = odProcess.loadOd(path);
             //合并区县信息到OD数据

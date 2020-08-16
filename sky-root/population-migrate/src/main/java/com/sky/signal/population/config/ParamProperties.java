@@ -185,11 +185,11 @@ public class ParamProperties {
      *
      * @return
      */
-    public List<String> getProvinceODFilePaths() {
+    public List<String> getProvinceODFilePaths(String districtCode) {
         List<String> pathList = new ArrayList<>();
         String[] days = strDay.split(",");
         for (String day : days) {
-            pathList.add(getProvinceODFilePath(day));
+            pathList.add(getProvinceODFilePath(districtCode,day));
         }
         return pathList;
     }
@@ -202,8 +202,12 @@ public class ParamProperties {
      *
      * @return
      */
-    public String getProvinceODFilePath(String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.PROVINCE_MSISDN_OD_PATH).concat(date);
+    public String getProvinceODFilePath(String districtCode,String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.PROVINCE_MSISDN_OD_PATH)
+                .concat(districtCode)
+                .concat(java.io.File.separator)
+                .concat(date);
     }
 
     /**

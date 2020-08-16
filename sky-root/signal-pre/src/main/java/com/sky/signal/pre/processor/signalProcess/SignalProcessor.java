@@ -580,6 +580,6 @@ public class SignalProcessor implements Serializable {
         DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date = path.substring(path.length() - 8);
-        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
+        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(params.getDistrictCode().toString(),date));
     }
 }

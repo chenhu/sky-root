@@ -3,6 +3,7 @@ package com.sky.signal.population.processor;
 import com.google.common.collect.Ordering;
 import com.sky.signal.population.config.ParamProperties;
 import com.sky.signal.population.util.FileUtil;
+import lombok.Data;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -12,7 +13,6 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.joda.time.DateTime;
@@ -207,8 +207,8 @@ public class OdProcess implements Serializable {
                     } else {
                         durationO = (Integer) pre.getAs("duration_o");
                     }
-                    Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
-                            .getAs("arrive_time")), new DateTime(current.getAs
+                    Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(pre
+                            .getAs("arrive_time")), new DateTime(pre.getAs
                             ("leave_time"))).getSeconds());
                     Row mergedRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
                             pre.getAs("msisdn"),
@@ -429,14 +429,14 @@ public class OdProcess implements Serializable {
         JavaRDD<Row> odRDD = this.signalToJavaPairRDD(odDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
             @Override
             public Iterable<Row> call(List<Row> rows) throws Exception {
-                int beforeSize, afterSize;
-                //合并连续起点和终点相同的od,同一个区县内，应该为a-a,a-b这样的od
-                do {
-                    beforeSize = rows.size();
-                    rows = rebuildDistrictOd(rows);
-                    afterSize = rows.size();
-                } while (beforeSize - afterSize > 0);
-                return rows;
+//                int beforeSize, afterSize;
+//                //合并连续起点和终点相同的od,同一个区县内，应该为a-a,a-b这样的od
+//                do {
+//                    beforeSize = rows.size();
+//                    rows = rebuildDistrictOd(rows);
+//                    afterSize = rows.size();
+//                } while (beforeSize - afterSize > 0);
+                return timeLimitedOd(rows);
             }
         });
         return   sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
@@ -557,6 +557,87 @@ public class OdProcess implements Serializable {
             }
         }
         return result;
+    }
+
+    private List<Row>  timeLimitedOd(List<Row> rows) {
+        List<Row> result = new ArrayList<>();
+        //1. 按照日期排序
+        Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common.base.Function<Row, Timestamp>() {
+            @Override
+            public Timestamp apply(Row row) {
+                return (Timestamp) row.getAs("leave_time");
+            }
+        });
+        rows = ordering.sortedCopy(rows);
+        //2. 并把od拆开，变为a-b-c-d这样的，把符合时间要求的点加入到有序列表中
+        List<OdPoint> points = new ArrayList<>();
+        for(Row row: rows) {
+            if((Integer)row.getAs("duration_o") >= DISTRICT_STAY_MINUTE ) {
+                OdPoint odPoint = new OdPoint();
+                odPoint.setMsisdn(row.getAs("msisdn").toString());
+                odPoint.setDate((Integer)row.getAs("date"));
+                odPoint.setDuration((Integer)(row.getAs("duration_o")));
+                odPoint.setCity((Integer)(row.getAs("leave_city")));
+                odPoint.setDistrict((Integer)(row.getAs("leave_district")));
+                odPoint.setMoveTime((Integer)(row.getAs("move_time")));
+                odPoint.setTime((Timestamp)(row.getAs("leave_time")));
+                points.add(odPoint);
+            }
+            if((Integer)row.getAs("duration_d") >= DISTRICT_STAY_MINUTE ) {
+                OdPoint odPoint = new OdPoint();
+                odPoint.setMsisdn(row.getAs("msisdn").toString());
+                odPoint.setDate((Integer)row.getAs("date"));
+                odPoint.setDuration((Integer)(row.getAs("duration_d")));
+                odPoint.setCity((Integer)(row.getAs("arrive_city")));
+                odPoint.setDistrict((Integer)(row.getAs("arrive_district")));
+                odPoint.setMoveTime((Integer)(row.getAs("move_time")));
+                odPoint.setTime((Timestamp)(row.getAs("arrive_time")));
+                points.add(odPoint);
+            }
+        }
+        //3. 重新组成od
+        OdPoint pre = null;
+        OdPoint current;
+        for (OdPoint odPoint : points) {
+            current = odPoint;
+            if (pre == null) {
+                pre = current;
+                continue;
+            } else {
+                if(pre.getDistrict().intValue() != current.getDistrict().intValue()) {
+
+                    Row concatRow = new GenericRowWithSchema(new Object[]{pre.getDate(),
+                            pre.getMsisdn(),
+                            pre.getCity(),
+                            pre.getDistrict(),
+                            current.getCity(),
+                            current.getDistrict(),
+                            pre.getTime(),
+                            current.getTime(),
+                            pre.getDuration(),
+                            current.getDuration(),
+                            current.getMoveTime()},ODSchemaProvider.OD_DISTRICT_SCHEMA_DET) ;
+                    result.add(concatRow);
+                    pre = current;
+                } else {
+                    pre = current;
+                    continue;
+                }
+
+            }
+        }
+        return result;
+    }
+
+    @Data
+    private class OdPoint implements Serializable{
+        private Integer date;
+        private String msisdn;
+        private Timestamp time;
+        private Integer city;
+        private Integer district;
+        private Integer duration;
+        private Integer moveTime;
     }
 
 
