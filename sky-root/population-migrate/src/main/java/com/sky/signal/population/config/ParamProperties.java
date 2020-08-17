@@ -156,6 +156,18 @@ public class ParamProperties {
     }
 
     /**
+     * 获取以全省OD数据为目标的区县od分析保存路径
+     * @param date 日期
+     * @return
+     */
+    public String getDestProvinceOdFilePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat(PathConfig.DEST_PROVINCE_OD_PATH).concat(date);
+    }
+    public String getDestProvinceOdFilePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat(PathConfig.DEST_PROVINCE_OD_PATH).concat("*").concat(File.separator);
+    }
+
+    /**
      * 获取有逗留时间要求的区县OD分析保存路径
      * @param districtCode 区县编码
      * @param date 日期
@@ -168,6 +180,12 @@ public class ParamProperties {
     public String getLimitedDestDistrictOdFilePath(String districtCode) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
                 (districtCode).concat(PathConfig.LIMITED_DISTRICT_OD_PATH).concat("*").concat(File.separator);
+    }
+    public String getLimitedProvinceOdFilePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat(PathConfig.LIMITED_PROVINCE_OD_PATH).concat("*").concat(File.separator);
+    }
+    public String getLimitedProvinceOdFilePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat(PathConfig.LIMITED_PROVINCE_OD_PATH).concat(date);
     }
 
     /**
@@ -193,10 +211,6 @@ public class ParamProperties {
         }
         return pathList;
     }
-
-    public String getProvinceODFilePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.PROVINCE_MSISDN_OD_PATH).concat("*").concat(File.separator);
-    }
     /**
      * 获取OD保存路径
      *
@@ -211,21 +225,22 @@ public class ParamProperties {
     }
 
     /**
-     * 获取当前要处理日期的全省轨迹数据路径列表
+     * 获取OD保存路径
+     *
      * @return
      */
-    public List<String> getProvinceTraceFilePath() {
-        List<String> tracePathList = new ArrayList<>();
-        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
-        if(!CollectionUtils.isEmpty(this.odays)) {
-            for(String oday: odays) {
-                tracePathList.add(tracePath.concat(oday));
-            }
-        } else {
-            throw new IllegalArgumentException("需要指定要处理的轨迹日期， " +
-                    "--odays=yyyyMMdd, yyyyMMdd");
+    public String getProvinceODFilePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.PROVINCE_MSISDN_OD_PATH)
+                .concat(date);
+    }
+    public List<String> getProvinceODFilePath() {
+        List<String> pathList = new ArrayList<>();
+        String[] days = strDay.split(",");
+        for (String day : days) {
+            pathList.add(getProvinceODFilePath(day));
         }
-        return tracePathList;
+        return pathList;
     }
 
     /**
@@ -236,5 +251,8 @@ public class ParamProperties {
     public String getPopulationStatPath(String districtCode) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat
                 (districtCode).concat(PathConfig.STAT_DIR);
+    }
+    public String getPopulationStatPath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.POPULATION_DIR).concat(PathConfig.PROVINCE_STAT_DIR);
     }
 }

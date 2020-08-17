@@ -1,6 +1,8 @@
 package com.sky.signal.pre.service.impl;
 
+import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.district.DistrictMsisdnProcessor;
+import com.sky.signal.pre.processor.district.ProvinceMsisdnProcessor;
 import com.sky.signal.pre.service.ComputeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,11 +13,20 @@ import org.springframework.stereotype.Service;
  * @Date 2020/8/4 09:23
  **/
 @Service
-public class DistrictMsisdnService implements ComputeService {
+public class MsisdnCollectionService implements ComputeService {
     @Autowired
     private DistrictMsisdnProcessor districtMsisdnProcessor;
+    @Autowired
+    private ProvinceMsisdnProcessor provinceMsisdnProcessor;
+    @Autowired
+    private ParamProperties params;
     @Override
     public void compute() {
-        districtMsisdnProcessor.process();
+        if(params.getRunMode().equals("province")) {
+            provinceMsisdnProcessor.process();
+        } else if(params.getRunMode().equals("district")) {
+            districtMsisdnProcessor.process();
+        }
+
     }
 }

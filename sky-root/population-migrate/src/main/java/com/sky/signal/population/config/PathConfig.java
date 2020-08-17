@@ -13,7 +13,11 @@ public class PathConfig {
     public static final String GEOHASH_PATH = "geohash/";
     //目标区县od点保存路径，应该在"_"之前连接上当前区县编号
     public static final String DEST_DISTRICT_OD_PATH = "_district_od/";
+    //省级分析中，无逗留时间限制的区县od结果保存路径
+    public static final String DEST_PROVINCE_OD_PATH = "province_od/";
     public static final String LIMITED_DISTRICT_OD_PATH = "_district_limited_od/";
+    //省级分析中，有逗留时间限制的区县od结果保存路径
+    public static final String LIMITED_PROVINCE_OD_PATH = "province_limited_od/";
     //处理过程中结果和中间数据保存路径
     public static final String APP_SAVE_PATH = "save/";
 
@@ -23,9 +27,10 @@ public class PathConfig {
     public static final String PROVINCE_MSISDN_OD_PATH = "od/";
     //人口迁徙分析目录
     public static final String POPULATION_DIR = "population/";
-
     //区县出行OD统计报表目录
-    public static final String STAT_DIR = "_district_stat/";
+    public static final String STAT_DIR = "_district_od_stat/";
+    //省级区县出行OD统计报表目录
+    public static final String PROVINCE_STAT_DIR = "province_od_stat/";
 
 
 

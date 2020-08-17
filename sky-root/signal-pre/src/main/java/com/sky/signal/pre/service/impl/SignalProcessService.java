@@ -1,6 +1,7 @@
 package com.sky.signal.pre.service.impl;
 
 import com.google.common.base.Stopwatch;
+import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.signalProcess.SignalProcessor;
 import com.sky.signal.pre.service.ComputeService;
 import org.slf4j.Logger;
@@ -14,14 +15,20 @@ import org.springframework.stereotype.Service;
 @Service("signalProcessService")
 public class SignalProcessService implements ComputeService {
     private static final Logger logger = LoggerFactory.getLogger(SignalProcessService.class);
-
     @Autowired
     private SignalProcessor signalProcessor;
+    @Autowired
+    private ParamProperties params;
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        signalProcessor.processDistrict();
-//        signalProcessor.process();
+        if(params.getRunMode().equals("province")) {
+            signalProcessor.processProvince();
+        }else if(params.getRunMode().equals("district")) {
+            signalProcessor.processDistrict();
+        } else {
+            signalProcessor.process();
+        }
         logger.info("SignalProcessService duration: " + stopwatch.toString());
     }
 }

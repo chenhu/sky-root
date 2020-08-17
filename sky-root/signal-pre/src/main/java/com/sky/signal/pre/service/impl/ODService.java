@@ -21,11 +21,18 @@ public class ODService implements ComputeService {
     private transient ParamProperties params;
     @Autowired
     private transient StayPointProcessor stayPointProcessor;
+
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        for (String validSignalFile: params.getValidSignalListByDays(params.getDistrictCode().toString())) {
-            stayPointProcessor.process(validSignalFile);
+        if (params.getRunMode().equals("province") || params.getRunMode().equals("common")) {
+            for (String validSignalFile : params.getValidSignalListByDays()) {
+                stayPointProcessor.process(validSignalFile);
+            }
+        } else if (params.getRunMode().equals("district")) {
+            for (String validSignalFile : params.getValidSignalListByDays(params.getDistrictCode().toString())) {
+                stayPointProcessor.process(validSignalFile);
+            }
         }
         logger.info("ODService duration: " + stopwatch.toString());
 

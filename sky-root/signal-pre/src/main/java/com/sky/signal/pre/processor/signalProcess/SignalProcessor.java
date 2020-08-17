@@ -110,7 +110,7 @@ public class SignalProcessor implements Serializable {
             //基站移动到下一基站速度
             speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance / moveTime * 3.6, 2);
         }
-        return new GenericRowWithSchema(new Object[]{prior.getAs("date"), prior.getAs("msisdn"), prior.getAs("region"), prior.getAs("city_code"), prior.getAs("district_code"),prior.getAs("tac"), prior.getAs("cell"), prior.getAs("base"), prior.getAs("lng"), prior.getAs("lat"), beginTime, lastTime, distance, moveTime, speed}, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+        return new GenericRowWithSchema(new Object[]{prior.getAs("date"), prior.getAs("msisdn"), prior.getAs("region"), prior.getAs("city_code"), prior.getAs("district_code"), prior.getAs("tac"), prior.getAs("cell"), prior.getAs("base"), prior.getAs("lng"), prior.getAs("lat"), beginTime, lastTime, distance, moveTime, speed}, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
     }
 
     /**
@@ -535,14 +535,29 @@ public class SignalProcessor implements Serializable {
         }
     }
 
-
+    /**
+     * 从区县的角度进行处理，处理对象为 一天内出现在目标区县，同时也在其他区县出现的人的手机信令
+     */
     public void processDistrict() {
         for (String traceFile : params.getDistrictTraceSavePath(params.getDistrictCode())) {
-            oneDayDistrict(traceFile);
+            //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
+            String date = traceFile.substring(traceFile.length() - 8);
+            oneDayDistrict(traceFile, date, params.getValidSignalSavePath(params.getDistrictCode().toString(), date));
         }
     }
 
-    private void oneDayDistrict(String path) {
+    /**
+     * 从全省的角度进行处理，处理对象为 一天内出现在至少两个区县的人的手机信令
+     */
+    public void processProvince() {
+        for (String traceFile : params.getPopulationTraceSavePath()) {
+            //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
+            String date = traceFile.substring(traceFile.length() - 8);
+            oneDayDistrict(traceFile, date, params.getValidSignalSavePath(date));
+        }
+    }
+
+    private void oneDayDistrict(String inputPath, String date, String outPutPath) {
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
         int partitions = 1;
@@ -551,7 +566,7 @@ public class SignalProcessor implements Serializable {
         }
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
-        DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
+        DataFrame sourceDf = sqlContext.read().parquet(inputPath).repartition(params.getPartitions());
         sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
         //按手机号码对信令数据预处理
         JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
@@ -578,8 +593,7 @@ public class SignalProcessor implements Serializable {
             }
         });
         DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-        //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
-        String date = path.substring(path.length() - 8);
-        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(params.getDistrictCode().toString(),date));
+
+        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(outPutPath, date));
     }
 }

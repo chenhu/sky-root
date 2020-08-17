@@ -64,6 +64,11 @@ public class ParamProperties {
     private Integer districtCode;
 
     /**
+     * 当前程序运行模式, province是以全省角度进行区县活动联系强度的预处理, district是以区县角度进行区县活动联系强度的预处理, common为普通程序
+     */
+    private String runMode;
+
+    /**
      * 职住分析每个批次处理有效数据天数
      */
     private Integer workliveBatchSize;
@@ -183,6 +188,15 @@ public class ParamProperties {
             tracePathList.add(tracePath.concat(day).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat(cityCode).concat(java.io.File.separator));
         }
         return tracePathList;
+    }
+
+    /**
+     * 获取指定日期所有地市下的轨迹数据
+     * @param date 日期
+     * @return
+     */
+    public String getTraceFiles(Integer date) {
+        return this.getBasePath().concat(PathConfig.TRACE_PATH).concat(date.toString()).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat("*").concat(java.io.File.separator);
     }
 
     /**
@@ -383,6 +397,15 @@ public class ParamProperties {
                 .concat(day);
     }
     /**
+     * 基础OD结果
+     * @return
+     */
+    public String getODResultPath(String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.OD_SAVE_PATH)
+                .concat(day);
+    }
+    /**
      * od分析中间统计结果
      * @return
      */
@@ -405,6 +428,29 @@ public class ParamProperties {
                 .concat(cityCode)
                 .concat(java.io.File.separator)
                 .concat(date);
+    }
+
+    /**
+     * 获取一天内在至少两个区县出现过的手机号码原始信令保存路径
+     * @param date 日期
+     * @return
+     */
+    public String getPopulationTraceSavePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.PROVINCE_MSISDN_SIGNAL_SAVE_PATH)
+                .concat(date);
+    }
+    /**
+     * 获取一天内在至少两个区县出现过的手机号码原始信令保存路径
+     * @return
+     */
+    public List<String>  getPopulationTraceSavePath() {
+        String[] days = strDay.split(",", -1);
+        List<String> fileList = new ArrayList<>();
+        for (String day : days) {
+            fileList.add(getPopulationTraceSavePath(day));
+        }
+        return fileList;
     }
 
 
@@ -437,5 +483,17 @@ public class ParamProperties {
                 .concat(cityCode)
                 .concat(java.io.File.separator)
                 .concat(districtCode.toString());
+    }
+
+    /**
+     *  区县中出现的手机号码持久化地址
+     * @param date 数据日期
+     * @return
+     */
+    public String getDistrictMsisdnSavePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.DISTRICT_MSISDN_SAVE_PATH)
+                .concat(date)
+                .concat(java.io.File.separator);
     }
 }

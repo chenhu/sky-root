@@ -461,9 +461,13 @@ public class StayPointProcessor implements Serializable {
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-
-//        DataFrame df = signalLoader.load(validSignalFile);
-        DataFrame df = signalLoader.load1(validSignalFile);
+        DataFrame df;
+        //普通模式的有效信令包含crm信息，但是区域活动联系强度的有效信令不包含crm信息
+        if (params.getRunMode().equals("common")) {
+            df = signalLoader.load(validSignalFile);
+        } else {
+            df = signalLoader.load1(validSignalFile);
+        }
         //手机号码->信令数据
         JavaPairRDD<String, Row> rdd1 = df.javaRDD().mapToPair(new PairFunction<Row, String, Row>
                 () {
@@ -547,21 +551,7 @@ public class StayPointProcessor implements Serializable {
                 return new Tuple3<>(odTrace, od, statTrip);
             }
         });
-
         rdd3 = rdd3.persist(StorageLevel.DISK_ONLY());
-
-        JavaRDD<Row> rdd4 = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
-                Row>() {
-            @Override
-            public Iterable<Row> call(Tuple3<List<Row>, List<Row>, Row> result) throws Exception {
-                return result._1();
-            }
-        });
-        df = sqlContext.createDataFrame(rdd4, ODSchemaProvider.OD_TRACE_SCHEMA);
-        df = df.orderBy("msisdn", "leave_time");
-        String date = df.first().getAs("date").toString();
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getODTracePath(date));
-
         JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
                 Row>() {
             @Override
@@ -569,17 +559,38 @@ public class StayPointProcessor implements Serializable {
                 return result._2();
             }
         });
-        DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
-        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(params.getDistrictCode().toString(), date));
-
-        JavaRDD<Row> statTripRDD = rdd3.map(new Function<Tuple3<List<Row>, List<Row>, Row>, Row>() {
-            @Override
-            public Row call(Tuple3<List<Row>, List<Row>, Row> tuple3) throws Exception {
-                return tuple3._3();
-            }
-        });
-        DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
-        FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
+        String date = validSignalFile.substring(validSignalFile.length() - 8);
+        if (params.getRunMode().equals("common")) {
+            JavaRDD<Row> rdd4 = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
+                    Row>() {
+                @Override
+                public Iterable<Row> call(Tuple3<List<Row>, List<Row>, Row> result) throws Exception {
+                    return result._1();
+                }
+            });
+            df = sqlContext.createDataFrame(rdd4, ODSchemaProvider.OD_TRACE_SCHEMA);
+            df = df.orderBy("msisdn", "leave_time");
+            FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getODTracePath(date));
+            DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
+            //统一处理所有区县的od，按天存储
+            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
+            JavaRDD<Row> statTripRDD = rdd3.map(new Function<Tuple3<List<Row>, List<Row>, Row>, Row>() {
+                @Override
+                public Row call(Tuple3<List<Row>, List<Row>, Row> tuple3) throws Exception {
+                    return tuple3._3();
+                }
+            });
+            DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
+            FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
+        } else if (params.getRunMode().equals("district")) {
+            DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
+            //区县为单位存储od
+            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(params.getDistrictCode().toString(), date));
+        } else if(params.getRunMode().equals("province")) {
+            DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
+            //省为单位存储od
+            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
+        }
         rdd3.unpersist();
     }
 }
