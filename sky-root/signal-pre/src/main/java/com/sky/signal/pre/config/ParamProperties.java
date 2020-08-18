@@ -492,7 +492,7 @@ public class ParamProperties {
      */
     public String getDistrictMsisdnSavePath(String date) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.DISTRICT_MSISDN_SAVE_PATH)
+                .concat(PathConfig.PROVINCE_MSISDN_SAVE_PATH)
                 .concat(date)
                 .concat(java.io.File.separator);
     }
