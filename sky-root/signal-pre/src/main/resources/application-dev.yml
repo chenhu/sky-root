@@ -1,0 +1,12 @@
+param:
+  basePath: /user/root/examples/apps/jiangsu/
+  odMode: 0
+  runMode: province
+  #  districtCode: 1051206
+  # 常熟
+  #  districtCode: 320581
+  #  cityCode: 1000511
+  # 句容
+  districtCode: 321183
+  cityCode: 1000511
+
