@@ -32,8 +32,8 @@ import static org.apache.spark.sql.functions.col;
 
 @Component
 public class OdProcess implements Serializable {
-    //在单个区域逗留时间阀值为120分钟
-    private static final int DISTRICT_STAY_MINUTE = 2 * 60 * 60;
+    //在单个区域逗留时间阀值为60分钟
+    private static final int DISTRICT_STAY_MINUTE = 1 * 60 * 60;
     @Autowired
     private transient SQLContext sqlContext;
     @Autowired
