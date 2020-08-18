@@ -542,7 +542,7 @@ public class SignalProcessor implements Serializable {
         for (String traceFile : params.getDistrictTraceSavePath(params.getDistrictCode())) {
             //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
             String date = traceFile.substring(traceFile.length() - 8);
-            oneDayDistrict(traceFile, date, params.getValidSignalSavePath(params.getDistrictCode().toString(), date));
+            oneDayDistrict(traceFile,params.getValidSignalSavePath(params.getDistrictCode().toString(), date));
         }
     }
 
@@ -553,11 +553,11 @@ public class SignalProcessor implements Serializable {
         for (String traceFile : params.getPopulationTraceSavePath()) {
             //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
             String date = traceFile.substring(traceFile.length() - 8);
-            oneDayDistrict(traceFile, date, params.getValidSignalSavePath(date));
+            oneDayDistrict(traceFile, params.getValidSignalSavePath(date));
         }
     }
 
-    private void oneDayDistrict(String inputPath, String date, String outPutPath) {
+    private void oneDayDistrict(String inputPath, String outPutPath) {
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
         int partitions = 1;
@@ -594,6 +594,6 @@ public class SignalProcessor implements Serializable {
         });
         DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
 
-        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(outPutPath, date));
+        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.CSV, outPutPath);
     }
 }
