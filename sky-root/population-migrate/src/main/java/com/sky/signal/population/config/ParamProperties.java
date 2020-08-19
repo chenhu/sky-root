@@ -95,6 +95,12 @@ public class ParamProperties {
         if (args.containsOption(SERVICENAME)) {
             service = args.getOptionValues(SERVICENAME).get(0).trim();
         }
+        if (args.containsOption("districtCode")) {
+            districtCode = Integer.valueOf(args.getOptionValues("districtCode").get(0)) ;
+        }
+        if (args.containsOption("cityCode")) {
+            cityCode = Integer.valueOf(args.getOptionValues("cityCode").get(0).trim());
+        }
 
         //通过程序参数指定分区数: --partitions=100
         if (args.containsOption(PARTITIONS)) {

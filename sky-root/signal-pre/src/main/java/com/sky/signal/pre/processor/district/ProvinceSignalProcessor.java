@@ -34,16 +34,16 @@ public class ProvinceSignalProcessor implements Serializable {
     public void process() {
         //加载全省信令，按天处理
         for (String date : params.getStrDay().split(",", -1)) {
-            final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
-            OneDaySignalProcess(date,msisdnVar);
+            OneDaySignalProcess(date);
         }
     }
 
-    private void OneDaySignalProcess(String date,final Broadcast<Map<String, Boolean>> msisdnVar) {
+    private void OneDaySignalProcess(String date) {
         String tracePath = params.getTraceFiles(Integer.valueOf(date));
-        DataFrame sourceDf = FileUtil.readFile(FileUtil.FileType.PARQUET,null, tracePath).repartition(params.getPartitions());
+        DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());
+        final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
         JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
-            final Map<String, Boolean> msisdnMap = msisdnVar.getValue();
+            Map<String, Boolean> msisdnMap = msisdnVar.value();
             @Override
             public Boolean call(Row row) throws Exception {
                 Boolean value = msisdnMap.get(row.getAs("msisdn").toString());
