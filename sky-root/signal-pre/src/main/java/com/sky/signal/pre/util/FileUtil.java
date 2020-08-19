@@ -60,7 +60,7 @@ public class FileUtil {
                     df = sqlContext.read().format(CSV_FORMAT).schema(schema).option("header", "true").option("nullValue", "null").option("treatEmptyValuesAsNulls,","true").load(fileName);
                     break;
                 case PARQUET:
-                    df = sqlContext.read().load(fileName);
+                    df = sqlContext.read().parquet(fileName);
                     break;
             }
             if (result == null) {

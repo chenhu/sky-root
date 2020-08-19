@@ -4,7 +4,6 @@ import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.FileUtil;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
@@ -27,10 +26,10 @@ public class ProvinceSignalProcessor implements Serializable {
     @Autowired
     private transient ParamProperties params;
     @Autowired
-    private transient JavaSparkContext sparkContext;
-
+    private transient SQLContext sqlContext;
     @Autowired
     private transient ProvinceMsisdnProcessor provinceMsisdnProcessor;
+
 
     public void process() {
         //加载全省信令，按天处理
@@ -42,8 +41,7 @@ public class ProvinceSignalProcessor implements Serializable {
 
     private void OneDaySignalProcess(String date,final Broadcast<Map<String, Boolean>> msisdnVar) {
         String tracePath = params.getTraceFiles(Integer.valueOf(date));
-        SQLContext sqlContext = new SQLContext(sparkContext);
-        DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
+        DataFrame sourceDf = FileUtil.readFile(FileUtil.FileType.PARQUET,null, tracePath).repartition(params.getPartitions());
         JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
             final Map<String, Boolean> msisdnMap = msisdnVar.getValue();
             @Override

@@ -17,7 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.spark.sql.functions.*;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.count;
 
 /**
  * @Description
@@ -32,18 +33,19 @@ public class ProvinceMsisdnProcessor implements Serializable {
     @Autowired
     private transient ParamProperties params;
     @Autowired
-    private transient JavaSparkContext sparkContext;
-    @Autowired
     private transient SignalLoader signalLoader;
+    @Autowired
+    private transient SQLContext sqlContext;
+    @Autowired
+    private transient JavaSparkContext sparkContext;
 
     public void process() {
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
         for (String date : params.getStrDay().split(",")) {
             //加载要处理的地市的信令
             String tracePath = params.getTraceFiles(Integer.valueOf(date));
-            SQLContext sqlContext = new SQLContext(sparkContext);
             //合并基站信息到信令数据中
-            DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
+            DataFrame sourceDf = FileUtil.readFile(FileUtil.FileType.PARQUET,null, tracePath).repartition(params.getPartitions());
             sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf)
                     .groupBy("msisdn","district_code")
                     .agg(count("msisdn").as("num")).filter(col("num").geq(2))
@@ -53,7 +55,8 @@ public class ProvinceMsisdnProcessor implements Serializable {
     }
 
     public Broadcast<Map<String, Boolean>> load(String date) {
-        DataFrame msisdnDf = FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date));
+        DataFrame msisdnDf =
+                FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date)).repartition(params.getPartitions());
         List<Row> msisdnRowList = msisdnDf.collectAsList();
         Map<String, Boolean> msisdnMap = new HashMap<>(msisdnRowList.size());
         for (Row row : msisdnRowList) {
