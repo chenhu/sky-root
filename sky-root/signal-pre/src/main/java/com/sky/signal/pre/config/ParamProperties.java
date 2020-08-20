@@ -448,8 +448,19 @@ public class ParamProperties {
     public String getPopulationTraceSavePath(String date) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
                 .concat(PathConfig.PROVINCE_MSISDN_SIGNAL_SAVE_PATH)
+                .concat("*")
+                .concat(java.io.File.separator)
                 .concat(date);
     }
+
+    public String getTraceSavePath(String cityCode, String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.PROVINCE_MSISDN_SIGNAL_SAVE_PATH)
+                .concat(cityCode)
+                .concat(java.io.File.separator)
+                .concat(date);
+    }
+
     /**
      * 获取一天内在至少两个区县出现过的手机号码原始信令保存路径
      * @return

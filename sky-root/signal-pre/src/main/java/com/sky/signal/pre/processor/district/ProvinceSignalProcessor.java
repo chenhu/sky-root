@@ -34,14 +34,17 @@ public class ProvinceSignalProcessor implements Serializable {
     public void process() {
         //加载全省信令，按天处理
         for (String date : params.getStrDay().split(",", -1)) {
-            OneDaySignalProcess(date);
+            final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
+            for(String cityCode: params.JS_CITY_CODES) {
+                OneDaySignalProcess(cityCode,date, msisdnVar);
+            }
+
         }
     }
 
-    private void OneDaySignalProcess(String date) {
-        String tracePath = params.getTraceFiles(Integer.valueOf(date));
+    private void OneDaySignalProcess(String cityCode, String date, final Broadcast<Map<String, Boolean>> msisdnVar) {
+        String tracePath = params.getTraceFiles(cityCode,date);
         DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());
-        final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
         JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
             Map<String, Boolean> msisdnMap = msisdnVar.value();
             @Override
@@ -55,6 +58,6 @@ public class ProvinceSignalProcessor implements Serializable {
             }
         });
         DataFrame resultDf = sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN).repartition(params.getPartitions());
-        FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getPopulationTraceSavePath(date));
+        FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getTraceSavePath(cityCode,date));
     }
 }

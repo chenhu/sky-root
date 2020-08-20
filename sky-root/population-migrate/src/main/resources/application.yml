@@ -7,10 +7,3 @@ logging:
     com.sky: info
 param:
   appName: wildsky-population-od
-  #  districtCode: 1051206
-  # 常熟
-  #  districtCode: 320581
-  #  cityCode: 1000511
-  # 句容
-#  districtCode: 321183
-#  cityCode: 1000511

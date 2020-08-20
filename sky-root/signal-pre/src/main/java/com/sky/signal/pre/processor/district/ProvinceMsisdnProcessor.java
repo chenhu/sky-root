@@ -56,7 +56,7 @@ public class ProvinceMsisdnProcessor implements Serializable {
 
     public Broadcast<Map<String, Boolean>> load(String date) {
         DataFrame msisdnDf =
-                FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date)).repartition(params.getPartitions());
+                FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date));
         List<Row> msisdnRowList = msisdnDf.collectAsList();
         Map<String, Boolean> msisdnMap = new HashMap<>(msisdnRowList.size());
         for (Row row : msisdnRowList) {
