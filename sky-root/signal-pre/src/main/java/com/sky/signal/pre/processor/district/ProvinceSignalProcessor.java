@@ -11,6 +11,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import static org.apache.spark.sql.functions.*;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -34,14 +35,15 @@ public class ProvinceSignalProcessor implements Serializable {
     public void process() {
         //加载全省信令，按天处理
         for (String date : params.getStrDay().split(",", -1)) {
-            final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
+//            final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
+            DataFrame msisdnDf = provinceMsisdnProcessor.loadDf(date).cache();
             for(String cityCode: params.JS_CITY_CODES) {
-                OneDaySignalProcess(cityCode,date, msisdnVar);
+                OneDaySignalProcess(cityCode,date, msisdnDf);
             }
+            msisdnDf.unpersist();
 
         }
     }
-
     private void OneDaySignalProcess(String cityCode, String date, final Broadcast<Map<String, Boolean>> msisdnVar) {
         String tracePath = params.getTraceFiles(cityCode,date);
         DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());
@@ -49,7 +51,7 @@ public class ProvinceSignalProcessor implements Serializable {
             Map<String, Boolean> msisdnMap = msisdnVar.value();
             @Override
             public Boolean call(Row row) throws Exception {
-                Boolean value = msisdnMap.get(row.getAs("msisdn").toString());
+                Boolean value = msisdnMap.get(row.getAs("msisdn").toString().intern());
                 if (value != null) {
                     return value;
                 } else {
@@ -58,6 +60,12 @@ public class ProvinceSignalProcessor implements Serializable {
             }
         });
         DataFrame resultDf = sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN).repartition(params.getPartitions());
+        FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getTraceSavePath(cityCode,date));
+    }
+    private void OneDaySignalProcess(String cityCode, String date, DataFrame msisdnDf) {
+        String tracePath = params.getTraceFiles(cityCode,date);
+        DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());
+        DataFrame resultDf = msisdnDf.join(sourceDf,msisdnDf.col("msisdn").equalTo(sourceDf.col("msisdn")), "left_outer").drop(msisdnDf.col("msisdn"));
         FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getTraceSavePath(cityCode,date));
     }
 }

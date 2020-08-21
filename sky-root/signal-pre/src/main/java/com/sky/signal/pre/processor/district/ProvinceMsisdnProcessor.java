@@ -56,13 +56,17 @@ public class ProvinceMsisdnProcessor implements Serializable {
 
     public Broadcast<Map<String, Boolean>> load(String date) {
         DataFrame msisdnDf =
-                FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date));
+                FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date)).repartition(200);
         List<Row> msisdnRowList = msisdnDf.collectAsList();
         Map<String, Boolean> msisdnMap = new HashMap<>(msisdnRowList.size());
         for (Row row : msisdnRowList) {
-            msisdnMap.put(row.getAs("msisdn").toString(),true );
+            msisdnMap.put(row.getAs("msisdn").toString().intern(),true );
         }
         return sparkContext.broadcast(msisdnMap);
+    }
+
+    public DataFrame loadDf(String date) {
+        return FileUtil.readFile(FileUtil.FileType.PARQUET,MsisdnSchemaProvider.MSISDN,params.getDistrictMsisdnSavePath(date)).repartition(200);
     }
 
 
