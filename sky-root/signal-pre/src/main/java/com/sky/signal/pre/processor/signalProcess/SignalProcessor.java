@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.spark.sql.functions.col;
+
 /**
  * 原始手机信令数据生成有效手机信令数据
  */
@@ -566,7 +568,7 @@ public class SignalProcessor implements Serializable {
         }
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
-        DataFrame sourceDf = sqlContext.read().parquet(inputPath).repartition(params.getPartitions());
+        DataFrame sourceDf = sqlContext.read().parquet(inputPath).filter(col("msisdn").isNotNull()).repartition(params.getPartitions());
         sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
         //按手机号码对信令数据预处理
         JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {

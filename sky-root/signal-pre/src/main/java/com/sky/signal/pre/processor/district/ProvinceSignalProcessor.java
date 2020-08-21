@@ -65,7 +65,8 @@ public class ProvinceSignalProcessor implements Serializable {
     private void OneDaySignalProcess(String cityCode, String date, DataFrame msisdnDf) {
         String tracePath = params.getTraceFiles(cityCode,date);
         DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());
-        DataFrame resultDf = msisdnDf.join(sourceDf,msisdnDf.col("msisdn").equalTo(sourceDf.col("msisdn")), "left_outer").drop(msisdnDf.col("msisdn"));
+        DataFrame resultDf = msisdnDf.join(sourceDf,msisdnDf.col("msisdn").equalTo(sourceDf.col("msisdn")), "left_outer")
+                .drop(msisdnDf.col("msisdn")).filter(col("msisdn").isNotNull());
         FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getTraceSavePath(cityCode,date));
     }
 }
