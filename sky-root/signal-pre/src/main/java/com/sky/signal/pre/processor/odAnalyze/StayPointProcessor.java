@@ -585,11 +585,11 @@ public class StayPointProcessor implements Serializable {
         } else if (params.getRunMode().equals("district")) {
             DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
             //区县为单位存储od
-            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(params.getDistrictCode().toString(), date));
+            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getODResultPath(params.getDistrictCode().toString(), date));
         } else if(params.getRunMode().equals("province")) {
             DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
             //省为单位存储od
-            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
+            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getODResultPath(date));
         }
         rdd3.unpersist();
     }

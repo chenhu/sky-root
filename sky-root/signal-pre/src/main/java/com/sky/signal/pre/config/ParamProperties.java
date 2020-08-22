@@ -382,6 +382,21 @@ public class ParamProperties {
     }
 
     /**
+     * 有效信令保存路径
+     *
+     * @return
+     */
+    public String getValidSignalSavePath1(String cityCde, String date) {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(cityCde)
+                .concat(java.io.File.separator)
+                .concat(date)
+                .concat(java.io.File.separator);
+    }
+
+    /**
      * 原始基站文件路径
      * @return
      */
@@ -445,10 +460,10 @@ public class ParamProperties {
      * @param date 日期
      * @return
      */
-    public String getPopulationTraceSavePath(String date) {
+    public String getProvinceTracePath(String date, String cityCde) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
                 .concat(PathConfig.PROVINCE_MSISDN_SIGNAL_SAVE_PATH)
-                .concat("*")
+                .concat(cityCde)
                 .concat(java.io.File.separator)
                 .concat(date);
     }
@@ -465,11 +480,11 @@ public class ParamProperties {
      * 获取一天内在至少两个区县出现过的手机号码原始信令保存路径
      * @return
      */
-    public List<String>  getPopulationTraceSavePath() {
+    public List<String>  getProvinceSavePathTraceByCityCode(String cityCde) {
         String[] days = strDay.split(",", -1);
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
-            fileList.add(getPopulationTraceSavePath(day));
+            fileList.add(getProvinceTracePath(day,cityCde));
         }
         return fileList;
     }

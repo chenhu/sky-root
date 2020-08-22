@@ -367,7 +367,7 @@ public class SignalLoader implements Serializable {
 
 
     public DataFrame load1(String validSignalFile) {
-        DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1, validSignalFile)
+        DataFrame df = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1, validSignalFile)
                 .repartition(params.getPartitions());
         return df;
     }

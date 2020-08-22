@@ -47,7 +47,7 @@ public class OdProcess implements Serializable {
      * @return: org.apache.spark.sql.DataFrame
      **/
     public DataFrame loadOd(String path) {
-        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_SCHEMA, path);
+        return FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_SCHEMA, path);
     }
 
     /**
