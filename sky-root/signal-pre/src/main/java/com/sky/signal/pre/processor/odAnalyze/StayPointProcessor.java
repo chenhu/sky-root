@@ -551,16 +551,17 @@ public class StayPointProcessor implements Serializable {
                 return new Tuple3<>(odTrace, od, statTrip);
             }
         });
-        rdd3 = rdd3.persist(StorageLevel.DISK_ONLY());
-        JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
-                Row>() {
-            @Override
-            public Iterable<Row> call(Tuple3<List<Row>, List<Row>, Row> result) throws Exception {
-                return result._2();
-            }
-        });
+
         String date = validSignalFile.substring(validSignalFile.length() - 8);
         if (params.getRunMode().equals("common")) {
+            rdd3 = rdd3.persist(StorageLevel.DISK_ONLY());
+            JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
+                    Row>() {
+                @Override
+                public Iterable<Row> call(Tuple3<List<Row>, List<Row>, Row> result) throws Exception {
+                    return result._2();
+                }
+            });
             JavaRDD<Row> rdd4 = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
                     Row>() {
                 @Override
@@ -582,16 +583,30 @@ public class StayPointProcessor implements Serializable {
             });
             DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
             FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
+            rdd3.unpersist();
         } else if (params.getRunMode().equals("district")) {
+            JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
+                    Row>() {
+                @Override
+                public Iterable<Row> call(Tuple3<List<Row>, List<Row>, Row> result) throws Exception {
+                    return result._2();
+                }
+            });
             DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
             //区县为单位存储od
             FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getODResultPath(params.getDistrictCode().toString(), date));
         } else if(params.getRunMode().equals("province")) {
+            JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple3<List<Row>, List<Row>, Row>,
+                    Row>() {
+                @Override
+                public Iterable<Row> call(Tuple3<List<Row>, List<Row>, Row> result) throws Exception {
+                    return result._2();
+                }
+            });
             DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
             //省为单位存储od
             FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getODResultPath(date));
         }
-        rdd3.unpersist();
     }
 }
 
