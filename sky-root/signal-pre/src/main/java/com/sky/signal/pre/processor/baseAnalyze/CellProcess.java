@@ -3,7 +3,6 @@ package com.sky.signal.pre.processor.baseAnalyze;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.GeoUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -18,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import scala.Tuple2;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -54,17 +51,7 @@ public class CellProcess implements Serializable {
      * 处理两种基站信息，并生成对应基站信息的geohash和经纬度对照表
      */
     public void process() {
-        DataFrame commonBaseDf = null, specialBaseDf = null;
-        // 如果配置了普通基站文件，则处理普通基站文件
-        if (!StringUtils.isEmpty(params.getOriginCellPath())) {
-            commonBaseDf = this.processBaseFile(params.getOriginCellPath(),
-                    params.getCellSavePath());
-        }
-        // 如果配置了区域基站文件，则继续处理区域基站文件
-        if (!StringUtils.isEmpty(params.getSpecifiedAreaBaseFile())) {
-            specialBaseDf = this.processBaseFile(params
-                    .getSpecifiedAreaBaseFile(), params.getTransCellSavePath());
-        }
+        processBaseFile(params.getOriginCellPath(), params.getCellSavePath());
     }
 
     private DataFrame processBaseFile(String filePath, String dir) {

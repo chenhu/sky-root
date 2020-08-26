@@ -43,8 +43,6 @@ public class ParamProperties {
      */
     private String savePath;
 
-    private String phoneCityFile;
-
     public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512",
             "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
 
@@ -69,54 +67,9 @@ public class ParamProperties {
     private String runMode;
 
     /**
-     * 职住分析每个批次处理有效数据天数
-     */
-    private Integer workliveBatchSize;
-    /**
-     * 有效信令数据文件
-     */
-    private List<String> validSignalFilesForWorkLive;
-
-    /**
-     * 用来做工作地处理的有效信令文件
-     */
-    private List<String> validSignalForWork;
-    /**
-     * 用来做居住地处理的有效信令文件
-     */
-    private List<String> validSignalForLive;
-
-    /**
-     * 职住分析结果文件存储位置
-     */
-    private String workliveSavePath;
-
-    /**
-     * 停驻点
-     */
-    private String traceFile;
-
-    /**
      * OD文件
      */
     private String linkFile;
-
-    /**
-     * 当处理的信令是在一个区域内的时候，指定的一个区域内的基站信息
-     */
-    private String specifiedAreaBaseFile;
-
-    /**
-     * 枢纽分析中虚拟基站的经纬度，以及虚拟基站的Base(tac|cell)
-     */
-    private Double visualLng;
-    private Double visualLat;
-    private String visualStationBase;
-
-    /**
-     * 用户信息
-     */
-    private String userFile;
 
     /**
      * 分区数
@@ -130,8 +83,7 @@ public class ParamProperties {
     private String strDay;
     // 服务名称注入
     private String SERVICENAME = "service";
-    private static final Logger logger = LoggerFactory.getLogger
-            (ParamProperties.class);
+    private static final Logger logger = LoggerFactory.getLogger(ParamProperties.class);
 
     /**
      * 注入程序参数
@@ -269,78 +221,12 @@ public class ParamProperties {
     }
 
     /**
-     * 获取需要处理的有效信令路径列表
-     *
-     * @return
-     */
-    public List<String> getValidSignalListByCityCodeAndDays(String cityCode) {
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                    .concat(cityCode)
-                    .concat(java.io.File.separator)
-                    .concat(day)
-                    .concat(java.io.File.separator));
-        }
-        return fileList;
-    }
-
-    /**
-     * description: 获取枢纽有效信令文件路径,文件内容带有停留点类型
-     * param: []
-     * return: java.lang.String
-     **/
-    public List<String> getStationTraceFileFullPath() {
-        String orignal = this.getSavePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            if (orignal.endsWith(sep)) {
-                fileList.add(orignal + PathConfig.STATION_DATA_PATH + day);
-            } else {
-                fileList.add(orignal + sep + PathConfig.STATION_DATA_PATH + day);
-            }
-        }
-        return fileList;
-    }
-
-
-    /**
-     * description: 返回根据日期参数拼接成的 日期、有效数据路径、原始数据路径 的 map
-     * param: []
-     * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,
-     * java.lang.String>>
-     **/
-    public Map<String, Tuple2<String, List<String>>> getSignalFilePathTuple2() {
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        Map<String, Tuple2<String, List<String>>> resultMap = new HashMap<>();
-        for (String day : days) {
-            resultMap.put(day, new Tuple2<>(getValidSignalSavePath(day), getTraceFiles("*")));
-        }
-        return resultMap;
-    }
-
-
-    /**
      * 获取预处理后的全省基站文件保存路径
      */
     public String getCellSavePath() {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
                 (PathConfig.CELL_PATH);
     }
-
-    /**
-     * 获取预处理后的枢纽基站文件保存路径
-     */
-    public String getTransCellSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
-                (PathConfig.STATION_CELL_PATH);
-    }
-
     /**
      * 获取全省基站的经纬度和geohash对照表文件路径
      *
@@ -350,27 +236,6 @@ public class ParamProperties {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
                 (PathConfig.GEOHASH_PATH);
     }
-
-    /**
-     * 用户CRM信息预处理后保存路径
-     *
-     * @return
-     */
-    public String getCRMSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
-                (PathConfig.CRM_SAVE_PATH);
-    }
-
-    /**
-     * 有效信令保存路径
-     *
-     * @return
-     */
-    public String getValidSignalSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH);
-    }
-
     /**
      * 有效信令保存路径
      *

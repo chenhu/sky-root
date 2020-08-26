@@ -26,8 +26,6 @@ public class SignalProcessService implements ComputeService {
             signalProcessor.processProvince();
         }else if(params.getRunMode().equals("district")) {
             signalProcessor.processDistrict();
-        } else {
-            signalProcessor.process();
         }
         logger.info("SignalProcessService duration: " + stopwatch.toString());
     }

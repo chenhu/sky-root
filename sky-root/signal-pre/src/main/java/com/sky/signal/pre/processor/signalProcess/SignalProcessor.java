@@ -3,9 +3,7 @@ package com.sky.signal.pre.processor.signalProcess;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
-import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -18,7 +16,6 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
-import org.apache.spark.storage.StorageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +29,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.spark.sql.functions.col;
 
 /**
  * 原始手机信令数据生成有效手机信令数据
@@ -55,10 +50,6 @@ public class SignalProcessor implements Serializable {
     private transient JavaSparkContext sparkContext;
     @Autowired
     private transient CellLoader cellLoader;
-    @Autowired
-    private transient CRMProcess crmProcess;
-    @Autowired
-    private transient PhoneAttributionProcess phoneAttributionProcess;
 
     /**
      * 合并同一手机连续相同基站信令数据
@@ -464,79 +455,6 @@ public class SignalProcessor implements Serializable {
 
         return result;
     }
-
-    /**
-     * 对一天的信令数据进行预处理
-     */
-    public void oneProcess(String path, final Broadcast<Map<String, Row>> cellVar, final Broadcast<Map<String, Row>> userVar, final Broadcast<Map<String, Row>> areaVar, final Broadcast<Map<Integer, Row>> regionVar) {
-
-        int partitions = 1;
-        if (!ProfileUtil.getActiveProfile().equals("local")) {
-            partitions = params.getPartitions();
-        }
-
-        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
-        //补全基站信息并删除重复信令
-        DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
-        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf).persist(StorageLevel.DISK_ONLY());
-        //按手机号码对信令数据预处理
-        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
-            @Override
-            public Iterable<Row> call(List<Row> rows) throws Exception {
-                Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
-                    @Override
-                    public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
-                    }
-                });
-                //按startTime排序
-                rows = ordering.sortedCopy(rows);
-                //合并同一手机连续相同基站信令数据
-                rows = mergeSameBase(rows);
-
-                //合并同一手机连续不同基站信令数据
-                rows = mergeDifferentBase(rows);
-                //合并移动时间小于5秒的信令数据
-                rows = mergeByTransferSecs(rows);
-                //合并同一手机连续不同基站信令数据
-                rows = mergeDifferentBase(rows);
-                return rows;
-            }
-        });
-        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-        signalBaseDf = signalBaseDf.persist(StorageLevel.DISK_ONLY());
-        // 补全CRM数据、替换外省归属地
-        JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
-        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
-        // 补全归属地信息
-        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
-        DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
-        //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
-        String date = path.substring(path.length() - 8);
-        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
-        signalBaseDf.unpersist();
-    }
-
-    /**
-     * 手机信令数据预处理
-     */
-    public void process() {
-
-        //普通基站信息
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-
-        //CRM信息
-        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
-
-        // 手机号码归属地信息
-        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
-
-        //对轨迹数据预处理
-        for (String traceFile : params.getTraceFiles("*")) {
-            oneProcess(traceFile, cellVar, userVar, null, regionVar);
-        }
-    }
-
     /**
      * 从区县的角度进行处理，处理对象为 一天内出现在目标区县，同时也在其他区县出现的人的手机信令
      */

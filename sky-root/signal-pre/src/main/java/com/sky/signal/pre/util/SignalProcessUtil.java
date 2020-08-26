@@ -133,19 +133,12 @@ public class SignalProcessUtil {
 
     private static byte getPointType(String base, int moveTime, double speed) {
         byte pointType = MOVE_POINT;
-        ParamProperties paramProperties = ProjectApplicationContext.getBean
-                (ParamProperties.class);
-        if (base.equals(paramProperties.getVisualStationBase())) {
-            if (moveTime >= STAY_TIME_MAX) {
-                pointType = STAY_POINT;
-            }
-        } else {
-            if (moveTime >= STAY_TIME_MIN && moveTime < STAY_TIME_MAX &&
-                    speed < MOVE_SPEED) {
-                pointType = UNCERTAIN_POINT;
-            } else if (moveTime >= STAY_TIME_MAX) {
-                pointType = STAY_POINT;
-            }
+        ParamProperties paramProperties = ProjectApplicationContext.getBean(ParamProperties.class);
+        if (moveTime >= STAY_TIME_MIN && moveTime < STAY_TIME_MAX &&
+                speed < MOVE_SPEED) {
+            pointType = UNCERTAIN_POINT;
+        } else if (moveTime >= STAY_TIME_MAX) {
+            pointType = STAY_POINT;
         }
 
         return pointType;
