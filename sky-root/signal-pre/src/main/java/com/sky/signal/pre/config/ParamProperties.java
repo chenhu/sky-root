@@ -259,8 +259,7 @@ public class ParamProperties {
                 .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
                 .concat(districtCode)
                 .concat(java.io.File.separator)
-                .concat(date)
-                .concat(java.io.File.separator);
+                .concat(date);
     }
 
     /**
