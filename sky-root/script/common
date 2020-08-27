@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+export param='--master yarn-client --queue root.bdoc.renter_1.renter_17.dev_51 --num-executors 10  --executor-cores 20 --driver-memory 8G --executor-memory 80G --conf "spark.executor.extraJavaOptions=-XX:+UseConcMarkSweepGC" --conf spark.default.parallelism=300 --conf spark.driver.maxResultSize=2048m --conf spark.kryoserializer.buffer.max=256m --conf spark.kryoserializer.buffer=64m  --conf spark.executor.heartbeatInterval=10000000 --conf spark.network.timeout=10000001 --class com.sky.signal.pre.Application /home/xxzx_user/jiangsu/app/signal-pre-1.0-SNAPSHOT.jar'
+
