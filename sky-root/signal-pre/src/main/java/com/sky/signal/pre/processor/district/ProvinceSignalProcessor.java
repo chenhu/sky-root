@@ -44,24 +44,6 @@ public class ProvinceSignalProcessor implements Serializable {
 
         }
     }
-    private void OneDaySignalProcess(String cityCode, String date, final Broadcast<Map<String, Boolean>> msisdnVar) {
-        String tracePath = params.getTraceFiles(cityCode,date);
-        DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());
-        JavaRDD<Row> resultOdRdd = sourceDf.javaRDD().filter(new Function<Row, Boolean>() {
-            Map<String, Boolean> msisdnMap = msisdnVar.value();
-            @Override
-            public Boolean call(Row row) throws Exception {
-                Boolean value = msisdnMap.get(row.getAs("msisdn").toString().intern());
-                if (value != null) {
-                    return value;
-                } else {
-                    return false;
-                }
-            }
-        });
-        DataFrame resultDf = sqlContext.createDataFrame(resultOdRdd, SignalSchemaProvider.SIGNAL_SCHEMA_ORIGN).repartition(params.getPartitions());
-        FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getTraceSavePath(cityCode,date));
-    }
     private void OneDaySignalProcess(String cityCode, String date, DataFrame msisdnDf) {
         String tracePath = params.getTraceFiles(cityCode,date);
         DataFrame sourceDf = sqlContext.read().format("parquet").load(tracePath).repartition(params.getPartitions());

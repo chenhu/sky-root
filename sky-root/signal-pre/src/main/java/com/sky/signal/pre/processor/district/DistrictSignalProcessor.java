@@ -43,7 +43,6 @@ public class DistrictSignalProcessor implements Serializable {
             }
         }
     }
-
     private void OneDaySignalProcess(String date, String cityCode, final Broadcast<Map<String, Boolean>> msisdnVar) {
         String tracePath = params.getTraceFiles(cityCode, date);
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);

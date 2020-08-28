@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.count;
 
 /**
  * @Description 抽取指定区县指定日期出现的手机号码，并保存到特定位置
@@ -38,14 +39,22 @@ public class DistrictMsisdnProcessor implements Serializable {
     public void process() {
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
         for (String date : params.getStrDay().split(",")) {
-            //加载要处理的地市的信令
+            //抽取当前日期要处理的地市下的区县信令中的手机号码
             String tracePath = params.getTraceFiles(params.getCityCode().toString(), date);
             SQLContext sqlContext = new SQLContext(sparkContext);
-            //合并基站信息到信令数据中
             DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
             sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
-            DataFrame msisdnDf = sourceDf.filter(col("district_code").equalTo(params.getDistrictCode())).select("msisdn").dropDuplicates();
-            FileUtil.saveFile(msisdnDf, FileUtil.FileType.PARQUET, params.getDistrictMsisdnSavePath(params.getDistrictCode(), params.getCityCode().toString(), date));
+            DataFrame msisdnDf = sourceDf.filter(col("district_code").equalTo(params.getDistrictCode())).select("msisdn").dropDuplicates().cache();
+            //加载当前处理日期所有地市的信令
+            String traceOfDay = params.getTraceFiles(Integer.valueOf(date));
+            DataFrame traceOfDayDf = sqlContext.read().parquet(traceOfDay).repartition(params.getPartitions());;
+            DataFrame mergedDf = signalLoader.cell(cellVar).mergeCell(traceOfDayDf);
+            DataFrame resultDf = msisdnDf.join(mergedDf,msisdnDf.col("msisdn").equalTo(mergedDf.col("msisdn")),"left_outer")
+                    .drop(msisdnDf.col("msisdn")).filter(col("msisdn").isNotNull());
+            resultDf = resultDf.groupBy("msisdn","district_code")
+                    .agg(count("msisdn").as("num")).filter(col("num").geq(2))
+                    .select("msisdn").dropDuplicates();
+            FileUtil.saveFile(resultDf, FileUtil.FileType.PARQUET, params.getDistrictMsisdnSavePath(params.getDistrictCode(), params.getCityCode().toString(), date));
         }
     }
 
@@ -58,6 +67,4 @@ public class DistrictMsisdnProcessor implements Serializable {
         }
         return sparkContext.broadcast(msisdnMap);
     }
-
-
 }
