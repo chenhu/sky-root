@@ -3,6 +3,7 @@ package com.sky.signal.pre.processor.signalProcess;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
+import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
@@ -455,6 +456,7 @@ public class SignalProcessor implements Serializable {
 
         return result;
     }
+
     /**
      * 从区县的角度进行处理，处理对象为 一天内出现在目标区县，同时也在其他区县出现的人的手机信令
      */
@@ -463,7 +465,7 @@ public class SignalProcessor implements Serializable {
         for (String traceFile : params.getDistrictTraceSavePath(params.getDistrictCode())) {
             //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
             String date = traceFile.substring(traceFile.length() - 8);
-            oneDayDistrict(traceFile,params.getValidSignalSavePath(params.getDistrictCode().toString(), date),cellVar);
+            oneDayDistrict(traceFile, params.getValidSignalSavePath(params.getDistrictCode().toString(), date), cellVar);
         }
     }
 
@@ -473,17 +475,53 @@ public class SignalProcessor implements Serializable {
     public void processProvince() {
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-        for(String cityCode: params.JS_CITY_CODES) {
+        for (String cityCode : params.JS_CITY_CODES) {
             for (String traceFile : params.getProvinceSavePathTraceByCityCode(cityCode)) {
                 //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
                 String date = traceFile.substring(traceFile.length() - 8);
-                oneDayDistrict(traceFile, params.getValidSignalSavePath1(cityCode,date),cellVar);
+                oneDayDistrict(traceFile, params.getValidSignalSavePath1(cityCode, date), cellVar);
             }
         }
-
     }
 
-    private void oneDayDistrict(String inputPath, String outPutPath,final Broadcast<Map<String, Row>> cellVar) {
+    public void tmpProcessProvince() {
+        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
+        for (String validSignalFile : params.getProvinceValidSignalListByDays()) {
+            DataFrame sourceDf = sqlContext.read().parquet(validSignalFile).repartition(params.getPartitions()).drop("distance").drop("move_time").drop("speed");
+            JavaRDD<Row> rdd = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
+                @Override
+                public Iterable<Row> call(List<Row> rows) throws Exception {
+                    Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
+                        @Override
+                        public Timestamp apply(Row row) {
+                            return row.getAs("begin_time");
+                        }
+                    });
+                    //按startTime排序
+                    rows = ordering.sortedCopy(rows);
+                    //合并同一手机连续相同基站信令数据
+                    rows = mergeSameBase(rows);
+
+                    //合并同一手机连续不同基站信令数据
+                    rows = mergeDifferentBase(rows);
+                    //合并移动时间小于5秒的信令数据
+                    rows = mergeByTransferSecs(rows);
+                    //合并同一手机连续不同基站信令数据
+                    rows = mergeDifferentBase(rows);
+                    return rows;
+                }
+            });
+            DataFrame signalBaseDf = sqlContext.createDataFrame(rdd, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+            String date = validSignalFile.substring(validSignalFile.length() - 8);
+            FileUtil.saveFile(signalBaseDf.repartition(params.getPartitions()), FileUtil.FileType.PARQUET, params.getBasePath()
+                    .concat(PathConfig.APP_SAVE_PATH)
+                    .concat("tmp/")
+                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                    .concat(date));
+        }
+    }
+
+    private void oneDayDistrict(String inputPath, String outPutPath, final Broadcast<Map<String, Row>> cellVar) {
 
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {

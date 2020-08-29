@@ -219,6 +219,17 @@ public class ParamProperties {
         }
         return fileList;
     }
+    public List<String> getValidSignalListByDays1() {
+        String[] days = strDay.split(",",-1);
+        List<String> fileList = new ArrayList<>();
+        for (String day : days) {
+            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                    .concat("tmp/")
+                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                    .concat(day));
+        }
+        return fileList;
+    }
 
     /**
      * 获取预处理后的全省基站文件保存路径
