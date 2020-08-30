@@ -526,15 +526,54 @@ public class SignalProcessor implements Serializable {
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
 
         //CRM信息
-        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
+//        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
 
         // 手机号码归属地信息
-        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
+//        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
 
         //对轨迹数据预处理
         for (String traceFile : params.getTraceFiles("*")) {
-            oneProcess(traceFile, cellVar, userVar, null, regionVar);
+//            oneProcess(traceFile, cellVar, userVar, null, regionVar);
+            tmp(traceFile, cellVar);
         }
+    }
+
+    private  void tmp(String inputPath, final Broadcast<Map<String, Row>> cellVar) {
+        int partitions = 1;
+        if (!ProfileUtil.getActiveProfile().equals("local")) {
+            partitions = params.getPartitions();
+        }
+        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
+        //补全基站信息并删除重复信令
+        DataFrame sourceDf = sqlContext.read().parquet(inputPath).repartition(params.getPartitions());
+        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
+        //按手机号码对信令数据预处理
+        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
+            @Override
+            public Iterable<Row> call(List<Row> rows) throws Exception {
+                Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
+                    @Override
+                    public Timestamp apply(Row row) {
+                        return row.getAs("begin_time");
+                    }
+                });
+                //按startTime排序
+                rows = ordering.sortedCopy(rows);
+                //合并同一手机连续相同基站信令数据
+                rows = mergeSameBase(rows);
+
+                //合并同一手机连续不同基站信令数据
+                rows = mergeDifferentBase(rows);
+                //合并移动时间小于5秒的信令数据
+                rows = mergeByTransferSecs(rows);
+                //合并同一手机连续不同基站信令数据
+                rows = mergeDifferentBase(rows);
+                return rows;
+            }
+        });
+        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+        String date = signalBaseDf.first().getAs("date").toString();
+        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
     }
 
     /**
