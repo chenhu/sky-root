@@ -1,6 +1,3 @@
 param:
   masterUrl: local[2]
-  cityCode: 1000512
-  cellFile: file:///Users/chenhu/data/jiangsu/cell/cell.csv
-  basePath: /Users/chenhu/data/jiangsu/
-  odMode: 0
+  basePath: /Users/chenhu/data/test/

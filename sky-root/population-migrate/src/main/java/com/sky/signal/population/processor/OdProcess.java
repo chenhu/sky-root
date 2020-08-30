@@ -146,11 +146,28 @@ public class OdProcess implements Serializable {
                             pre.getAs("leave_time"),
                             current.getAs("arrive_time"),
                             durationO}, ODSchemaProvider.OD_DISTRICT_SCHEMA);
-                    result.add(mergedRow);
-                    pre = null;
+//                    result.add(mergedRow);
+                    pre = mergedRow;
                     continue;
 
                 } else if(currentLeaveDistrict ==currentArriveDistrict && preLeaveDistrict!=currentLeaveDistrict) {//current为异常数据,忽略current,进入下个循环,pre不变
+                    if(loops == rows.size()) {//current为最后一条数据
+                        result.add(current);
+                    }
+                    continue;
+                } else if(preArriveDistrict != currentLeaveDistrict && currentLeaveDistrict !=currentArriveDistrict) {//a-a,b-c
+                    result.add(pre);
+                    pre = current;
+                    if(loops == rows.size()) {//current为最后一条数据
+                        result.add(current);
+                    }
+                    continue;
+                } else if(preArriveDistrict == currentLeaveDistrict && currentLeaveDistrict !=currentArriveDistrict) {//a-a,a-b
+                    result.add(pre);
+                    pre = current;
+                    if(loops == rows.size()) {//current为最后一条数据
+                        result.add(current);
+                    }
                     continue;
                 } else {//pre指向current，进入下次循环
                     pre = current;
@@ -246,9 +263,16 @@ public class OdProcess implements Serializable {
                     }
                     continue;
                 } else if(currentLeaveDistrict !=currentArriveDistrict && preLeaveDistrict==currentLeaveDistrict) {//a-a,a-b，合并
-                    Integer durationO = Math.abs(Seconds.secondsBetween(new DateTime(current
-                            .getAs("leave_time")), new DateTime(pre.getAs
-                            ("leave_time"))).getSeconds());
+                    Integer durationO ;
+                    if(preAdd != null && preAdd.getAs("arrive_district").equals(currentLeaveDistrict)) {
+                        durationO = Math.abs(Seconds.secondsBetween(new DateTime(preAdd
+                                .getAs("arrive_time")), new DateTime(current.getAs
+                                ("leave_time"))).getSeconds());
+                    } else {
+                        durationO = Math.abs(Seconds.secondsBetween(new DateTime(current
+                                .getAs("leave_time")), new DateTime(pre.getAs
+                                ("leave_time"))).getSeconds());
+                    }
                     Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
                             .getAs("arrive_time")), new DateTime(current.getAs
                             ("leave_time"))).getSeconds());
@@ -329,6 +353,23 @@ public class OdProcess implements Serializable {
                     }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
                     result.add(mergedRow);
                     pre = current;
+                    if(loops == rows.size()) {//current为最后一条数据
+                        Integer durationD = Math.abs(Seconds.secondsBetween(new DateTime(current
+                                .getAs("leave_time")), lastDt).getSeconds());
+                        Row lastRow = new GenericRowWithSchema(new Object[]{current.getAs("date"),
+                                current.getAs("msisdn"),
+                                current.getAs("leave_city"),
+                                current.getAs("leave_district"),
+                                current.getAs("arrive_city"),
+                                current.getAs("arrive_district"),
+                                current.getAs("leave_time"),
+                                current.getAs("arrive_time"),
+                                current.getAs("duration_o"),
+                                durationD,
+                                current.getAs("move_time")
+                        }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
+                        result.add(lastRow);
+                    }
                     continue;
                 } else {//正常情况下,不应该出现这种情况,丢弃pre,进入下次循环
                     pre = current;
