@@ -259,6 +259,22 @@ public class OdProcess implements Serializable {
                                     lastMoveTime
                             }, ODSchemaProvider.OD_DISTRICT_SCHEMA_O);
                             result.add(lastRow);
+                        } else { //a-b,b-b
+                            Integer lastMoveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
+                                    .getAs("arrive_time")), new DateTime(current.getAs
+                                    ("leave_time"))).getSeconds());
+                            Row lastRow = new GenericRowWithSchema(new Object[]{current.getAs("date"),
+                                    current.getAs("msisdn"),
+                                    current.getAs("leave_city"),
+                                    current.getAs("leave_district"),
+                                    current.getAs("arrive_city"),
+                                    current.getAs("arrive_district"),
+                                    current.getAs("leave_time"),
+                                    current.getAs("arrive_time"),
+                                    current.getAs("duration_o"),
+                                    lastMoveTime
+                            }, ODSchemaProvider.OD_DISTRICT_SCHEMA_O);
+                            result.add(lastRow);
                         }
                     }
                     continue;
@@ -337,8 +353,34 @@ public class OdProcess implements Serializable {
             } else {
                 int preLeaveDistrict = (Integer) pre.getAs("leave_district");
                 int preArriveDistrict = (Integer) pre.getAs("arrive_district");
+                int currentLeaveDistrict = (Integer) current.getAs("leave_district");
+                int currentArriveDistrict = (Integer) current.getAs("arrive_district");
                 //判断两条od出发点和到达点是否在一个区县
                 if(preLeaveDistrict != preArriveDistrict) {//不同区县，加入结果列表，进入下次循环，pre指向current
+                    Integer durationD;
+                    if(loops == rows.size()) {//current为最后一条数据
+                        if(currentLeaveDistrict == currentArriveDistrict && currentLeaveDistrict == preArriveDistrict) { //a-b,b-b (上个步骤中的问题在这个步骤处理)
+                            durationD = Math.abs(Seconds.secondsBetween(new DateTime(pre.getAs("arrive_time")), lastDt).getSeconds());
+                        } else {
+                            durationD = Math.abs(Seconds.secondsBetween(new DateTime(current
+                                    .getAs("leave_time")), lastDt).getSeconds());
+                            Row lastRow = new GenericRowWithSchema(new Object[]{current.getAs("date"),
+                                    current.getAs("msisdn"),
+                                    current.getAs("leave_city"),
+                                    current.getAs("leave_district"),
+                                    current.getAs("arrive_city"),
+                                    current.getAs("arrive_district"),
+                                    current.getAs("leave_time"),
+                                    current.getAs("arrive_time"),
+                                    current.getAs("duration_o"),
+                                    durationD,
+                                    current.getAs("move_time")
+                            }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
+                            result.add(lastRow);
+                        }
+                    } else {
+                        durationD = (Integer) current.getAs("duration_o");
+                    }
                     Row mergedRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
                             pre.getAs("msisdn"),
                             pre.getAs("leave_city"),
@@ -348,28 +390,11 @@ public class OdProcess implements Serializable {
                             pre.getAs("leave_time"),
                             pre.getAs("arrive_time"),
                             pre.getAs("duration_o"),
-                            current.getAs("duration_o"),
+                            durationD,
                             pre.getAs("move_time")
                     }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
                     result.add(mergedRow);
                     pre = current;
-                    if(loops == rows.size()) {//current为最后一条数据
-                        Integer durationD = Math.abs(Seconds.secondsBetween(new DateTime(current
-                                .getAs("leave_time")), lastDt).getSeconds());
-                        Row lastRow = new GenericRowWithSchema(new Object[]{current.getAs("date"),
-                                current.getAs("msisdn"),
-                                current.getAs("leave_city"),
-                                current.getAs("leave_district"),
-                                current.getAs("arrive_city"),
-                                current.getAs("arrive_district"),
-                                current.getAs("leave_time"),
-                                current.getAs("arrive_time"),
-                                current.getAs("duration_o"),
-                                durationD,
-                                current.getAs("move_time")
-                        }, ODSchemaProvider.OD_DISTRICT_SCHEMA_DET);
-                        result.add(lastRow);
-                    }
                     continue;
                 } else {//正常情况下,不应该出现这种情况,丢弃pre,进入下次循环
                     pre = current;

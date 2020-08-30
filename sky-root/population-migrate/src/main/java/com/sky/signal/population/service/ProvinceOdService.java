@@ -38,10 +38,10 @@ public class ProvinceOdService implements ComputeService {
             //合并同区县的OD并找出符合条件的OD记录
             odDf = odProcess.provinceResultOd(odDf).cache();
             String date = path.substring(path.length() - 8);
-            FileUtil.saveFile(odDf.repartition(1), FileUtil.FileType.CSV, params.getDestProvinceOdFilePath(date));
+            FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getDestProvinceOdFilePath(date));
             //生成区县停留时间有要求的区县出行OD
             odDf = odProcess.provinceDurationLimitedOd(odDf);
-            FileUtil.saveFile(odDf.repartition(1), FileUtil.FileType.CSV, params.getLimitedProvinceOdFilePath(date));
+            FileUtil.saveFile(odDf, FileUtil.FileType.CSV, params.getLimitedProvinceOdFilePath(date));
         }
     }
 }
