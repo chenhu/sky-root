@@ -187,23 +187,6 @@ public class ParamProperties {
         }
         return fileList;
     }
-
-    /**
-     * 获取按照省级别获取的有效信令路径
-     * @return
-     */
-    public List<String> getProvinceValidSignalListByDays() {
-        String[] days = strDay.split(",",-1);
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                    .concat("*")
-                    .concat(java.io.File.separator)
-                    .concat(day));
-        }
-        return fileList;
-    }
     /**
      * 获取需要处理的有效信令路径列表
      * @param districtCode 区县编码

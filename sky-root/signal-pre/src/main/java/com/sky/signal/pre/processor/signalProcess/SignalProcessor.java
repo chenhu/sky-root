@@ -483,44 +483,6 @@ public class SignalProcessor implements Serializable {
             }
         }
     }
-
-    public void tmpProcessProvince() {
-        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
-        for (String validSignalFile : params.getProvinceValidSignalListByDays()) {
-            DataFrame sourceDf = sqlContext.read().parquet(validSignalFile).repartition(params.getPartitions()).drop("distance").drop("move_time").drop("speed");
-            JavaRDD<Row> rdd = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
-                @Override
-                public Iterable<Row> call(List<Row> rows) throws Exception {
-                    Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
-                        @Override
-                        public Timestamp apply(Row row) {
-                            return row.getAs("begin_time");
-                        }
-                    });
-                    //按startTime排序
-                    rows = ordering.sortedCopy(rows);
-                    //合并同一手机连续相同基站信令数据
-                    rows = mergeSameBase(rows);
-
-                    //合并同一手机连续不同基站信令数据
-                    rows = mergeDifferentBase(rows);
-                    //合并移动时间小于5秒的信令数据
-                    rows = mergeByTransferSecs(rows);
-                    //合并同一手机连续不同基站信令数据
-                    rows = mergeDifferentBase(rows);
-                    return rows;
-                }
-            });
-            DataFrame signalBaseDf = sqlContext.createDataFrame(rdd, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-            String date = validSignalFile.substring(validSignalFile.length() - 8);
-            FileUtil.saveFile(signalBaseDf.repartition(params.getPartitions()), FileUtil.FileType.PARQUET, params.getBasePath()
-                    .concat(PathConfig.APP_SAVE_PATH)
-                    .concat("tmp/")
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                    .concat(date));
-        }
-    }
-
     private void oneDayDistrict(String inputPath, String outPutPath, final Broadcast<Map<String, Row>> cellVar) {
 
         int partitions = 1;
