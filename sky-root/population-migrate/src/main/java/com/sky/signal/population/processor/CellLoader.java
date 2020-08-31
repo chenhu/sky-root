@@ -32,8 +32,8 @@ public class CellLoader implements Serializable {
      * @return 广播基站
      */
     public Broadcast<Map<String, Row>> loadCell() {
-        DataFrame cellDf = FileUtil.readFile(FileUtil.FileType.CSV,
-                CellSchemaProvider.CELL_SCHEMA, params.getValidProvinceCellPath());
+        DataFrame cellDf = FileUtil.readFile(FileUtil.FileType.CSV, CellSchemaProvider.CELL_SCHEMA, params.getValidProvinceCellPath())
+                .dropDuplicates(new String[]{"city_code","district_code","base","tac","cell"});
         Row[] cellRows = cellDf.collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {

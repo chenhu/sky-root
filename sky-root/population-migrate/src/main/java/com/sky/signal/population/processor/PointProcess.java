@@ -217,7 +217,10 @@ public class PointProcess implements Serializable {
         Row current;
         for (Row row : rows) {
             current = row;
-            if (pre != null) {
+            if(pre == null) {
+                pre = current;
+                continue;
+            } else {
                 Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(pre.getAs("last_time")),
                         new DateTime(current.getAs("begin_time"))).getSeconds());
                 Row odRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
@@ -233,8 +236,6 @@ public class PointProcess implements Serializable {
                         moveTime}, ODSchemaProvider.DISTRICT_OD_SCHEMA);
                 noneLimitedOd.add(odRow);
             }
-            pre = current;
-            continue;
         }
         return noneLimitedOd;
     }
@@ -259,11 +260,13 @@ public class PointProcess implements Serializable {
         rows = ordering.sortedCopy(rows);
         Row pre = null;
         Row current;
-        /***end***/
         /**生成有逗留时间限制的区县出行OD**/
         for (Row row : rows) {
             current = row;
-            if (pre != null) {
+            if(pre == null) {
+                pre = current;
+                continue;
+            } else {
                 Integer preDurationO = (Integer) pre.getAs("duration_o");
                 Integer currentDurationO = (Integer) current.getAs("duration_o");
                 if (preDurationO >= DISTRICT_STAY_MINUTE && currentDurationO >= DISTRICT_STAY_MINUTE) {
