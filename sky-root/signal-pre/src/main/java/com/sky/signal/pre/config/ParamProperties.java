@@ -312,6 +312,25 @@ public class ParamProperties {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_STAT_TRIP_SAVE_PATH).concat(day);
     }
 
+    public String getPointPath(String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_POINT_SAVE_PATH).concat(day);
+    }
+
+    /**
+     * 区县为单位分析基础od的时候，点位保存路径
+     * @param districtCode
+     * @param day
+     * @return
+     */
+    public String getPointPath(String districtCode, String day) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.OD_POINT_SAVE_PATH)
+                .concat(districtCode)
+                .concat(java.io.File.separator)
+                .concat(day);
+    }
+
+
     /**
      * 获取区县原始信令保存路径
      * @param districtCode 区县编码

@@ -77,6 +77,7 @@ public class ODSchemaProvider {
                     DataTypes.createStructField("cov_speed", DataTypes.DoubleType, false),
                     DataTypes.createStructField("distance", DataTypes.IntegerType, false),
                     DataTypes.createStructField("duration_o", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("duration_d", DataTypes.IntegerType, false),
                     DataTypes.createStructField("move_time", DataTypes.IntegerType, false)));
     public static final StructType OD_TRIP_STAT_SCHEMA = DataTypes.createStructType(
             Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),

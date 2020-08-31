@@ -24,6 +24,8 @@ public class PathConfig {
     public static final String OD_SAVE_PATH = "od/";
     //OD统计中间结果
     public static final String OD_STAT_TRIP_SAVE_PATH = "stat_trip/";
+    //用于做区县od的停留点保存路径
+    public static final String OD_POINT_SAVE_PATH = "point/";
     //从全省原始信令中抽取在指定区县出现的手机号码的原始信令，保存原始信令的位置
     public static final String DISTRICT_SIGNAL_ALL_SAVE_PATH = "trace/district=";
     //从全省原始信令中抽取一天内在至少两个区县出现的手机号码的原始信令，保存原始信令的位置

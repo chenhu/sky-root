@@ -85,7 +85,8 @@ public class OdProcess implements Serializable {
                         arriveDistrictCode,
                         row.getAs("leave_time"),
                         row.getAs("arrive_time"),
-                        row.getAs("duration_o")
+                        row.getAs("duration_o"),
+                        row.getAs("duration_d")
                 }, ODSchemaProvider.OD_DISTRICT_SCHEMA);
             }
         });
@@ -136,7 +137,7 @@ public class OdProcess implements Serializable {
                     }
                     continue;
                 } else if(currentLeaveDistrict ==currentArriveDistrict && preLeaveDistrict==currentLeaveDistrict) {//pre和current都在相同区县，合并
-                    int durationO = (Integer) pre.getAs("duration_o") + (Integer) current.getAs("duration_o");
+                    int durationO = (Integer) pre.getAs("duration_o") + (Integer) pre.getAs("duration_d") + (Integer) current.getAs("duration_o");
                     Row mergedRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
                             pre.getAs("msisdn"),
                             pre.getAs("leave_city"),
@@ -145,8 +146,7 @@ public class OdProcess implements Serializable {
                             pre.getAs("arrive_district"),
                             pre.getAs("leave_time"),
                             current.getAs("arrive_time"),
-                            durationO}, ODSchemaProvider.OD_DISTRICT_SCHEMA);
-//                    result.add(mergedRow);
+                            durationO,current.getAs("duration_d")}, ODSchemaProvider.OD_DISTRICT_SCHEMA);
                     pre = mergedRow;
                     continue;
 
