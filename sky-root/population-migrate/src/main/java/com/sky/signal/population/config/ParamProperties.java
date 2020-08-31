@@ -249,6 +249,21 @@ public class ParamProperties {
         return pathList;
     }
 
+    public String getProvincePointFilePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.OD_POINT_SAVE_PATH)
+                .concat(date);
+    }
+
+    public List<String> getProvincePointFilePath() {
+        List<String> pathList = new ArrayList<>();
+        String[] days = strDay.split(",");
+        for (String day : days) {
+            pathList.add(getProvincePointFilePath(day));
+        }
+        return pathList;
+    }
+
     /**
      * 获取人口分析报表存储目录
      * @param districtCode

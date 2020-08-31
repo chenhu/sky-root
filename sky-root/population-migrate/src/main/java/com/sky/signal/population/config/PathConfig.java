@@ -25,6 +25,8 @@ public class PathConfig {
     public static final String TRACE_PATH = "trace/dt=";
     //基础OD结果
     public static final String PROVINCE_MSISDN_OD_PATH = "od/";
+    //用于做区县od的停留点保存路径
+    public static final String OD_POINT_SAVE_PATH = "point/";
     //人口迁徙分析目录
     public static final String POPULATION_DIR = "population/";
     //区县出行OD统计报表目录

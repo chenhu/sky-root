@@ -24,7 +24,6 @@ import scala.Tuple2;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +47,9 @@ public class OdProcess implements Serializable {
      **/
     public DataFrame loadOd(String path) {
         return FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_SCHEMA, path);
+    }
+    public DataFrame loadPoint(String path) {
+        return FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.TRACE_SCHEMA, path);
     }
 
     /**

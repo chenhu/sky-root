@@ -10,6 +10,53 @@ import org.apache.spark.sql.types.StructType;
  * description: OD分析相关的Schema定义
  */
 public class ODSchemaProvider {
+    //带停留点类型的轨迹
+    public static final StructType TRACE_SCHEMA = DataTypes.createStructType
+            (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("base", DataTypes.StringType, false),
+                    DataTypes.createStructField("lng", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("lat", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("begin_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("last_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("distance", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("move_time", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("speed", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("point_type", DataTypes.ByteType, false)));
+    public static final StructType POINT_SCHEMA = DataTypes.createStructType
+            (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("base", DataTypes.StringType, false),
+                    DataTypes.createStructField("lng", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("lat", DataTypes.DoubleType, false),
+                    DataTypes.createStructField("begin_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("last_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("city_code", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("district_code", DataTypes.IntegerType, false)));
+    public static final StructType POINT_SCHEMA1 = DataTypes.createStructType
+            (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("begin_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("last_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("city_code", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("district_code", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("duration_o", DataTypes.IntegerType, false)
+                    ));
+    public static final StructType DISTRICT_OD_SCHEMA = DataTypes.createStructType
+            (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("leave_city", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("leave_district", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("arrive_city", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("arrive_district", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("duration_o", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("duration_d", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("move_time", DataTypes.IntegerType, false)));
+
+
+
     public static final StructType OD_SCHEMA = DataTypes.createStructType
             (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
                     DataTypes.createStructField("msisdn", DataTypes.StringType, false),
@@ -37,8 +84,7 @@ public class ODSchemaProvider {
                     DataTypes.createStructField("arrive_district", DataTypes.IntegerType, false),
                     DataTypes.createStructField("leave_time", DataTypes.TimestampType, false),
                     DataTypes.createStructField("arrive_time", DataTypes.TimestampType, false),
-                    DataTypes.createStructField("duration_o", DataTypes.IntegerType, false),
-                    DataTypes.createStructField("duration_d", DataTypes.IntegerType, false)));
+                    DataTypes.createStructField("duration_o", DataTypes.IntegerType, false)));
     public static final StructType OD_DISTRICT_SCHEMA_O = DataTypes.createStructType
             (Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
                     DataTypes.createStructField("msisdn", DataTypes.StringType, false),

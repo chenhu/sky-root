@@ -602,7 +602,7 @@ public class StayPointProcessor implements Serializable {
                 }
             });
             DataFrame pointDF = sqlContext.createDataFrame(pointRdd, ODSchemaProvider.TRACE_SCHEMA);
-            FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.CSV, params.getPointPath(date));
+            FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(date));
             rdd3.unpersist();
         } else if (params.getRunMode().equals("district")) {
             JavaRDD<Row> pointRdd = rdd3.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
