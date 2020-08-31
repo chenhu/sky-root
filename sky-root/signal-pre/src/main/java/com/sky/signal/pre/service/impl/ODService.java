@@ -34,14 +34,9 @@ public class ODService implements ComputeService {
                 stayPointProcessor.process(validSignalFile);
             }
         } else if(params.getRunMode().equals("province")) {
-//            for (String validSignalFile : params.getProvinceValidSignalListByDays()) {
-//                stayPointProcessor.process(validSignalFile);
-//            }
-            //临时
-            for (String validSignalFile : params.getValidSignalListByDays1()) {
+            for (String validSignalFile : params.getValidSignalListByDays()) {
                 stayPointProcessor.process(validSignalFile);
             }
-
         }
         logger.info("ODService duration: " + stopwatch.toString());
 

@@ -235,6 +235,8 @@ public class PointProcess implements Serializable {
                         current.getAs("duration_o"),
                         moveTime}, ODSchemaProvider.DISTRICT_OD_SCHEMA);
                 noneLimitedOd.add(odRow);
+                pre = current;
+                continue;
             }
         }
         return noneLimitedOd;

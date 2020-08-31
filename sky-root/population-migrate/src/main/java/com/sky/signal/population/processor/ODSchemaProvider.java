@@ -19,6 +19,8 @@ public class ODSchemaProvider {
                     DataTypes.createStructField("lat", DataTypes.DoubleType, false),
                     DataTypes.createStructField("begin_time", DataTypes.TimestampType, false),
                     DataTypes.createStructField("last_time", DataTypes.TimestampType, false),
+                    DataTypes.createStructField("city_code", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("district_code", DataTypes.IntegerType, false),
                     DataTypes.createStructField("distance", DataTypes.IntegerType, false),
                     DataTypes.createStructField("move_time", DataTypes.IntegerType, false),
                     DataTypes.createStructField("speed", DataTypes.DoubleType, false),

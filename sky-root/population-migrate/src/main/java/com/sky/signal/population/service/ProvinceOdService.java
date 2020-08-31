@@ -28,12 +28,12 @@ public class ProvinceOdService implements ComputeService {
     @Override
     public void compute() {
 //基站信息合并到全省信令数据
-        final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
+//        final Broadcast<Map<String, Row>> provinceCell = cellLoader.loadCell();
         //按天处理
         for(String path: params.getProvincePointFilePath()) {
-            DataFrame odDf = pointProcess.loadPoint(path);
+            DataFrame odDf = pointProcess.loadPoint(path).drop("distance").drop("move_time").drop("speed").drop("point_type");
             //合并区县信息到OD数据
-            odDf = pointProcess.mergePointWithCell(provinceCell, odDf).cache();
+//            odDf = pointProcess.mergePointWithCell(provinceCell, odDf).cache();
             //合并同区县的OD并找出符合条件的OD记录
             DataFrame noneLimitedDf = pointProcess.provinceNoneLimitedOd(odDf).cache();
             String date = path.substring(path.length() - 8);

@@ -45,7 +45,7 @@ public class StayPointUtil implements Serializable {
             result.add(new GenericRowWithSchema(new Object[]{row.getAs
                     ("date"), row.getAs("msisdn"), row.getAs("base"), row
                     .getAs("lng"), row.getAs("lat"), row.getAs("begin_time"),
-                    row.getAs("last_time"), row.getAs("distance"), row.getAs
+                    row.getAs("last_time"),row.getAs("city_code"), row.getAs("district_code"), row.getAs("distance"), row.getAs
                     ("move_time"), row.getAs("speed"), getPointType((int) row
                     .getAs("move_time"), (double) row.getAs("speed"))},
                     ODSchemaProvider.TRACE_SCHEMA));
@@ -97,7 +97,7 @@ public class StayPointUtil implements Serializable {
                 getPointType(moveTime, speed) : pointType;
         return new GenericRowWithSchema(new Object[]{prior.getAs("date"),
                 prior.getAs("msisdn"), prior.getAs("base"), prior.getAs
-                ("lng"), prior.getAs("lat"), startTime, lastTime, distance,
+                ("lng"), prior.getAs("lat"), startTime, lastTime, prior.getAs("city_code"), prior.getAs("district_code"), distance,
                 moveTime, speed, pointType}, ODSchemaProvider.TRACE_SCHEMA);
     }
 
@@ -277,7 +277,7 @@ public class StayPointUtil implements Serializable {
                                 ("msisdn"), current.getAs("base"), current
                                 .getAs("lng"), current.getAs("lat"), current
                                 .getAs("begin_time"), current.getAs
-                                ("last_time"), current.getAs("distance"),
+                                ("last_time"), current.getAs("city_code"), current.getAs("district_code"), current.getAs("distance"),
                                 current.getAs("move_time"), current.getAs
                                 ("speed"), newType}, ODSchemaProvider
                                 .TRACE_SCHEMA);
@@ -287,7 +287,7 @@ public class StayPointUtil implements Serializable {
                         .getAs("date"), current.getAs("msisdn"), current
                         .getAs("base"), current.getAs("lng"), current.getAs
                         ("lat"), current.getAs("begin_time"), current.getAs
-                        ("last_time"), current.getAs("distance"), current
+                        ("last_time"),current.getAs("city_code"), current.getAs("district_code"), current.getAs("distance"), current
                         .getAs("move_time"), current.getAs("speed"),
                         newType}, ODSchemaProvider.TRACE_SCHEMA));
 
@@ -301,7 +301,7 @@ public class StayPointUtil implements Serializable {
                             .getAs("date"), current.getAs("msisdn"), current
                             .getAs("base"), current.getAs("lng"), current
                             .getAs("lat"), current.getAs("begin_time"),
-                            current.getAs("last_time"), current.getAs
+                            current.getAs("last_time"), current.getAs("city_code"), current.getAs("district_code"),current.getAs
                             ("distance"), current.getAs("move_time"), current
                             .getAs("speed"), SignalProcessUtil.STAY_POINT},
                             ODSchemaProvider.TRACE_SCHEMA);
@@ -312,7 +312,7 @@ public class StayPointUtil implements Serializable {
                             .getAs("date"), current.getAs("msisdn"), current
                             .getAs("base"), current.getAs("lng"), current
                             .getAs("lat"), current.getAs("begin_time"),
-                            current.getAs("last_time"), current.getAs
+                            current.getAs("last_time"), current.getAs("city_code"), current.getAs("district_code"),current.getAs
                             ("distance"), current.getAs("move_time"), current
                             .getAs("speed"), SignalProcessUtil.MOVE_POINT},
                             ODSchemaProvider.TRACE_SCHEMA));
