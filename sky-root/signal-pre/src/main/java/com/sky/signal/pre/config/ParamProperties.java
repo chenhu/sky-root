@@ -7,12 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import scala.Tuple2;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Component
@@ -43,8 +40,8 @@ public class ParamProperties {
      */
     private String savePath;
 
-    public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512",
-            "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
+//    public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512", "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
+    public static final String[] JS_CITY_CODES = new String[]{"1000250"};
 
     /**
      * 移动信令数据基础路径
@@ -183,6 +180,8 @@ public class ParamProperties {
         for (String day : days) {
             fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
                     .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                    .concat(PathConfig.VALID_SIGNAL_PRO_PRE_SAVE_PATH)
+                    .concat("*/")
                     .concat(day));
         }
         return fileList;
@@ -197,23 +196,13 @@ public class ParamProperties {
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
             fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH).concat(districtCode).concat(java.io.File.separator)
-                    .concat(day));
-        }
-        return fileList;
-    }
-    public List<String> getValidSignalListByDays1() {
-        String[] days = strDay.split(",",-1);
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat("tmp/")
                     .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                    .concat(PathConfig.VALID_SIGNAL_DISTRICT_PRE_SAVE_PATH)
+                    .concat(districtCode).concat(java.io.File.separator)
                     .concat(day));
         }
         return fileList;
     }
-
     /**
      * 获取预处理后的全省基站文件保存路径
      */
@@ -251,6 +240,7 @@ public class ParamProperties {
         return this.getBasePath()
                 .concat(PathConfig.APP_SAVE_PATH)
                 .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(PathConfig.VALID_SIGNAL_DISTRICT_PRE_SAVE_PATH)
                 .concat(districtCode)
                 .concat(java.io.File.separator)
                 .concat(date);
@@ -265,6 +255,7 @@ public class ParamProperties {
         return this.getBasePath()
                 .concat(PathConfig.APP_SAVE_PATH)
                 .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(PathConfig.VALID_SIGNAL_PRO_PRE_SAVE_PATH)
                 .concat(cityCde)
                 .concat(java.io.File.separator)
                 .concat(date);

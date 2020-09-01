@@ -25,11 +25,7 @@ public class ODService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        if (params.getRunMode().equals("common")) {
-            for (String validSignalFile : params.getValidSignalListByDays()) {
-                stayPointProcessor.process(validSignalFile);
-            }
-        } else if (params.getRunMode().equals("district")) {
+        if (params.getRunMode().equals("district")) {
             for (String validSignalFile : params.getValidSignalListByDays(params.getDistrictCode().toString())) {
                 stayPointProcessor.process(validSignalFile);
             }

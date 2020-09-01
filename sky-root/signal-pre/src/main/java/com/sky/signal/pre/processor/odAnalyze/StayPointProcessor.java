@@ -338,7 +338,6 @@ public class StayPointProcessor implements Serializable {
             FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(params.getDistrictCode().toString(), date));
         } else if(params.getRunMode().equals("province")) {
             DataFrame pointDF = sqlContext.createDataFrame(pointRdd, ODSchemaProvider.TRACE_SCHEMA);
-            pointDF.show();
             FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(date));
         }
     }

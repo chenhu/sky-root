@@ -18,6 +18,10 @@ public class PathConfig {
     public static final String CITY_PRE_PATH = "city=";
     //有效信令的保存路径
     public static final String VALID_SIGNAL_SAVE_PATH = "validSignal/";
+    //分地市存储有效信令
+    public static final String VALID_SIGNAL_PRO_PRE_SAVE_PATH = "province/";
+    //分区县存储有效信令
+    public static final String VALID_SIGNAL_DISTRICT_PRE_SAVE_PATH = "district/";
     //OD 轨迹
     public static final String OD_TRACE_SAVE_PATH = "od_trace/";
     //基础OD结果
