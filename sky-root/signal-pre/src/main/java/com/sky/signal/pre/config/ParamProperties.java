@@ -40,8 +40,7 @@ public class ParamProperties {
      */
     private String savePath;
 
-//    public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512", "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
-    public static final String[] JS_CITY_CODES = new String[]{"1000250"};
+    public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512", "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
 
     /**
      * 移动信令数据基础路径
