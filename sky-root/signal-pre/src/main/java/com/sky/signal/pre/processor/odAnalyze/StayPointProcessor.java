@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.signalProcess.SignalLoader;
+import com.sky.signal.pre.processor.signalProcess.SignalSchemaProvider;
 import com.sky.signal.pre.util.*;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -174,23 +175,13 @@ public class StayPointProcessor implements Serializable {
     }
 
     /**
-     * 把停留点加入到列表，因为是按照全省范围处理od分析，会出现地市切换的情况，如果出现切换地市，则把pre的逗留时间设置为0
+     * 因为是按照全省范围处理od分析，会出现地市切换的情况，如果出现切换地市，则把pre的moveTime设置为0
+     * 这个步骤要在停留点判定之前做，就可以把地市交界的停留点给去掉
      * @param rows
      * @return
      */
-    private List<Row> createPointList(List<Row> rows) {
-        //List保存所有O点和D点，用于区县OD分析
-        List<Row> pointList = new ArrayList<>();
-        List<Row> tmpList = new ArrayList<>();
-        if (rows.size() < 2) {
-            return pointList;
-        }
-        for(Row row: rows) {
-            if ((Byte) row.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
-                tmpList.add(row);
-            }
-        }
-        //出现地市切换的情况，则把上个点的到达时间和离开时间设置为相同
+    private List<Row> changeMoveTime(List<Row> rows) {
+        List<Row> result = new ArrayList<>();
         //排序
         Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common.base.Function<Row, Timestamp>() {
             @Override
@@ -199,11 +190,10 @@ public class StayPointProcessor implements Serializable {
             }
         });
         //按出发时间排序
-        rows = ordering.sortedCopy(tmpList);
+        rows = ordering.sortedCopy(rows);
         Row pre = null;
         Row current;
         int loops = 0;
-        /**生成有逗留时间限制的区县出行OD**/
         for (Row row : rows) {
             current = row;
             loops++;
@@ -215,26 +205,47 @@ public class StayPointProcessor implements Serializable {
                     //设置pre的到达时间和离开时间一样
                     Row mergedRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
                             pre.getAs("msisdn"),
+                            pre.getAs("region"),
+                            pre.getAs("city_code"),
+                            pre.getAs("district_code"),
+                            pre.getAs("tac"),
+                            pre.getAs("cell"),
                             pre.getAs("base"),
                             pre.getAs("lng"),
                             pre.getAs("lat"),
                             pre.getAs("begin_time"),
-                            pre.getAs("begin_time"),
-                            pre.getAs("city_code"),
-                            pre.getAs("district_code"),
+                            pre.getAs("begin_time"),//设置跟begintime一致，为了让这个点肯定会被忽略掉
                             pre.getAs("distance"),
-                            pre.getAs("move_time"),
-                            pre.getAs("speed"),
-                            pre.getAs("point_type")
-                    }, ODSchemaProvider.TRACE_SCHEMA);
-                    pointList.add(mergedRow);
+                            0,
+                            pre.getAs("speed")
+                    }, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
+                    result.add(mergedRow);
                 } else {
-                    pointList.add(pre);
+                    result.add(pre);
                 }
                 pre = current;
                 if(loops == rows.size()) {
-                    pointList.add(current);
+                    result.add(current);
                 }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 把停留点加入到列表
+     * @param rows
+     * @return
+     */
+    private List<Row> createPointList(List<Row> rows) {
+        //List保存所有O点和D点，用于区县OD分析
+        List<Row> pointList = new ArrayList<>();
+        if (rows.size() < 2) {
+            return pointList;
+        }
+        for(Row row: rows) {
+            if ((Byte) row.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
+                pointList.add(row);
             }
         }
 
@@ -286,7 +297,8 @@ public class StayPointProcessor implements Serializable {
                         return row.getAs("begin_time");
                     }
                 });
-
+                //处理按照全省级别进行od分析的时候，出现在地市边界的问题
+                rows = changeMoveTime(rows);
                 rows = stayPointUtil.determinePointType(rows);
 
                 //按startTime排序
