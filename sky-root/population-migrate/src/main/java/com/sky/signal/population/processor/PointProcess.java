@@ -271,7 +271,8 @@ public class PointProcess implements Serializable {
             } else {
                 Integer preDurationO = (Integer) pre.getAs("duration_o");
                 Integer currentDurationO = (Integer) current.getAs("duration_o");
-                if (preDurationO >= DISTRICT_STAY_MINUTE && currentDurationO >= DISTRICT_STAY_MINUTE) {
+                if (preDurationO >= DISTRICT_STAY_MINUTE && currentDurationO >= DISTRICT_STAY_MINUTE && !pre.getAs("district_code").equals(current.getAs(
+                        "district_code"))) {
                     Integer moveTime = Math.abs(Seconds.secondsBetween(new DateTime(pre.getAs("last_time")),
                             new DateTime(current.getAs("begin_time"))).getSeconds());
                     Row odRow = new GenericRowWithSchema(new Object[]{pre.getAs("date"),
