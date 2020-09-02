@@ -64,14 +64,25 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
         });
 
         DataFrame odClassicDf = sqlContext.createDataFrame(odRDD,ODSchemaProvider.OD_DISTRICT_SCHEMA_CLASSIC).cache();
-
+        /**
+         * 20200902 增加moveTime为0的统计
+         */
+        DataFrame odClassicDfMoveTimeNot0 = odClassicDf.filter(col("move_time").notEqual(0)).cache();
         //统计对外出行OD表1
         DataFrame table1 = odClassicDf.groupBy("date",
                 "leave_city","leave_district","arrive_city","arrive_district","move_time_classic")
                 .agg(sum("move_time").divide(60).cast(new DecimalType(10,1)).as("move_time_min"), count("msisdn").as("trip_num"))
                 .select("date","leave_city","leave_district","arrive_city","arrive_district","move_time_classic","move_time_min","trip_num")
                 .orderBy("date","leave_city","leave_district","arrive_city","arrive_district","move_time_classic");
-         FileUtil.saveFile(table1.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table1"));
+
+        FileUtil.saveFile(table1.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table1"));
+        table1 = odClassicDfMoveTimeNot0.groupBy("date",
+                "leave_city","leave_district","arrive_city","arrive_district","move_time_classic")
+                .agg(sum("move_time").divide(60).cast(new DecimalType(10,1)).as("move_time_min"), count("msisdn").as("trip_num"))
+                .select("date","leave_city","leave_district","arrive_city","arrive_district","move_time_classic","move_time_min","trip_num")
+                .orderBy("date","leave_city","leave_district","arrive_city","arrive_district","move_time_classic");
+
+        FileUtil.saveFile(table1.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table1-1"));
         //统计对外出行OD2(含出行人数)
         DataFrame table2 = odClassicDf.groupBy("date",
                 "leave_city","leave_district","arrive_city","arrive_district")
@@ -79,6 +90,12 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
                 .select("date","leave_city","leave_district","arrive_city","arrive_district","trip_num","peo_num")
                 .orderBy("date","leave_city","leave_district","arrive_city","arrive_district");
         FileUtil.saveFile(table2.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table2"));
+        table2 = odClassicDfMoveTimeNot0.groupBy("date",
+                "leave_city","leave_district","arrive_city","arrive_district")
+                .agg(count("msisdn").as("trip_num"), countDistinct("msisdn").as("peo_num"))
+                .select("date","leave_city","leave_district","arrive_city","arrive_district","trip_num","peo_num")
+                .orderBy("date","leave_city","leave_district","arrive_city","arrive_district");
+        FileUtil.saveFile(table2.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table2-1"));
         //统计 对外出行率统计表
         //1. 统计地市出发地
         DataFrame city = odClassicDf.groupBy("date",
@@ -98,7 +115,26 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
         //3. 合并地市和区县的统计结果
         DataFrame table3 = city.unionAll(district);
         FileUtil.saveFile(table3.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table3"));
-        odClassicDf.unpersist();
+
+        city = odClassicDfMoveTimeNot0.groupBy("date",
+                "leave_city")
+                .agg(count("msisdn").as("trip_num"), countDistinct("msisdn").as("peo_num"))
+                .withColumnRenamed("leave_city","leave_o")
+                .select("date","leave_o","trip_num","peo_num")
+                .orderBy("date","leave_o");
+        //2. 统计区县出发地
+        district = odClassicDfMoveTimeNot0.groupBy("date",
+                "leave_district")
+                .agg(count("msisdn").as("trip_num"), countDistinct("msisdn").as("peo_num"))
+                .withColumnRenamed("leave_district","leave_o")
+                .select("date","leave_o","trip_num","peo_num")
+                .orderBy("date","leave_o");
+
+        //3. 合并地市和区县的统计结果
+        table3 = city.unionAll(district);
+        FileUtil.saveFile(table3.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table3-1"));
+
+        odClassicDfMoveTimeNot0.unpersist();
 
 
         //最后一张表
@@ -123,7 +159,8 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
             }
         });
 
-        DataFrame classicDf = sqlContext.createDataFrame(durationLimitedRDD,ODSchemaProvider.OD_DISTRICT_SCHEMA_CLASSIC);
+        DataFrame classicDf = sqlContext.createDataFrame(durationLimitedRDD,ODSchemaProvider.OD_DISTRICT_SCHEMA_CLASSIC).cache();
+        DataFrame classicDfMoveTimeNot0 = classicDf.filter(col("move_time").notEqual(0));
 
         DataFrame table4 = classicDf.groupBy("date",
                 "leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic")
@@ -131,6 +168,12 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
                 .select("date","leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic","move_time_min","trip_num")
                 .orderBy("date","leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic");
         FileUtil.saveFile(table4.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table4"));
+        table4 = classicDfMoveTimeNot0.groupBy("date",
+                "leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic")
+                .agg(sum("move_time").divide(60).cast(new DecimalType(10,1)).as("move_time_min"), count("msisdn").as("trip_num"))
+                .select("date","leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic","move_time_min","trip_num")
+                .orderBy("date","leave_city","leave_district","arrive_city","arrive_district","duration_o_classic","duration_d_classic","move_time_classic");
+        FileUtil.saveFile(table4.repartition(1), FileUtil.FileType.CSV,params.getPopulationStatPath().concat("table4-1"));
     }
 
     private int transformMoveTimeClassic(Integer moveTime) {
