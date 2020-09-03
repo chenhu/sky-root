@@ -64,9 +64,7 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
         });
 
         DataFrame odClassicDf = sqlContext.createDataFrame(odRDD,ODSchemaProvider.OD_DISTRICT_SCHEMA_CLASSIC).cache();
-        /**
-         * 20200902 增加moveTime为0的统计
-         */
+        //20200902 增加moveTime为0的统计
         DataFrame odClassicDfMoveTimeNot0 = odClassicDf.filter(col("move_time").geq(60)).cache();
         //统计对外出行OD表1
         DataFrame table1 = odClassicDf.groupBy("date",
