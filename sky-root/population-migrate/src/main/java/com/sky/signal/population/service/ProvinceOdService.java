@@ -26,7 +26,6 @@ public class ProvinceOdService implements ComputeService {
         //按天处理
         for(String path: params.getProvincePointFilePath()) {
             DataFrame odDf = pointProcess.loadPoint(path).drop("distance").drop("move_time").drop("speed").drop("point_type");
-            odDf.show();
             //合并同区县的OD并找出符合条件的OD记录
             DataFrame noneLimitedDf = pointProcess.provinceNoneLimitedOd(odDf).cache();
             String date = path.substring(path.length() - 8);
