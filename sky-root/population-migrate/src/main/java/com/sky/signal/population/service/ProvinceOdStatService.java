@@ -178,32 +178,34 @@ public class ProvinceOdStatService implements ComputeService, Serializable {
 
     private int transformMoveTimeClassic(Integer moveTime) {
         int moveTimeClassic;
-        if (moveTime >= 0 && moveTime < 60 * 30) {
-            moveTimeClassic = 0;
-        } else if (moveTime >= 60 * 30 && moveTime < 60 * 45) {
+        if (moveTime >= 0 && moveTime < 60 * 10) {
             moveTimeClassic = 1;
-        } else if (moveTime >= 60 * 45 && moveTime < 60 * 60) {
+        } else if (moveTime >= 60 * 10 && moveTime < 60 * 30) {
             moveTimeClassic = 2;
-        } else if (moveTime >= 60 * 60 && moveTime < 60 * 75) {
+        } else if (moveTime >= 60 * 30 && moveTime < 60 * 45) {
             moveTimeClassic = 3;
-        } else if (moveTime >= 60 * 75 && moveTime < 60 * 90) {
+        } else if (moveTime >= 60 * 45 && moveTime < 60 * 60) {
             moveTimeClassic = 4;
-        } else if (moveTime >= 60 * 90 && moveTime < 60 * 105) {
+        } else if (moveTime >= 60 * 60 && moveTime < 60 * 75) {
             moveTimeClassic = 5;
-        } else if (moveTime >= 60 * 105 && moveTime < 60 * 120) {
+        } else if (moveTime >= 60 * 75 && moveTime < 60 * 90) {
             moveTimeClassic = 6;
-        } else if (moveTime >= 60 * 120 && moveTime < 60 * 135) {
+        } else if (moveTime >= 60 * 90 && moveTime < 60 * 105) {
             moveTimeClassic = 7;
-        } else if (moveTime >= 60 * 135 && moveTime < 60 * 150) {
+        } else if (moveTime >= 60 * 105 && moveTime < 60 * 120) {
             moveTimeClassic = 8;
-        } else if (moveTime >= 60 * 150 && moveTime < 60 * 165) {
+        } else if (moveTime >= 60 * 120 && moveTime < 60 * 135) {
             moveTimeClassic = 9;
-        } else if (moveTime >= 60 * 165 && moveTime < 60 * 180) {
+        } else if (moveTime >= 60 * 135 && moveTime < 60 * 150) {
             moveTimeClassic = 10;
-        } else if (moveTime >= 60 * 180 && moveTime < 60 * 360) {
+        } else if (moveTime >= 60 * 150 && moveTime < 60 * 165) {
             moveTimeClassic = 11;
-        } else {
+        } else if (moveTime >= 60 * 165 && moveTime < 60 * 180) {
             moveTimeClassic = 12;
+        } else if (moveTime >= 60 * 180 && moveTime < 60 * 360) {
+            moveTimeClassic = 13;
+        } else {
+            moveTimeClassic = 14;
         }
         return moveTimeClassic;
     }

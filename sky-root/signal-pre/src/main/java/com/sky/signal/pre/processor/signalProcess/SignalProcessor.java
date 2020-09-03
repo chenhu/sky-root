@@ -3,7 +3,6 @@ package com.sky.signal.pre.processor.signalProcess;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
