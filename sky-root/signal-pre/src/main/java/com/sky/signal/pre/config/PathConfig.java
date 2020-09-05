@@ -10,18 +10,13 @@ public class PathConfig {
     //普通基站处理后保存文件夹名称
     public static final String CELL_PATH = "cell";
     //枢纽基站处理后保存文件夹名称
-    public static final String STATION_CELL_PATH = "station_cell";
+    public static final String STATION_CELL_PATH = "station-cell";
     //基站经纬度和geohash对照表数据保存文件夹名称
     public static final String GEOHASH_PATH = "geohash";
     //枢纽站预处理后带停留点类型的文件保存文件夹名称
     public static final String STATION_DATA_PATH = "station-data/";
-
     //枢纽站预处理后带停人口分类的文件保存文件夹名称
     public static final String STATION_CLASSIC_PATH = "station-classic/";
-
-    //职住分析结果保存文件夹名称
-    public static final String WORKLIVE_PATH = "work_live_his";
-
     //处理过程中结果和中间数据保存路径
     public static final String APP_SAVE_PATH = "save/";
     //原始信令文件夹名称
@@ -32,19 +27,23 @@ public class PathConfig {
     //有效信令的保存路径
     public static final String VALID_SIGNAL_SAVE_PATH = "validSignal/";
     //OD 轨迹
-    public static final String OD_TRACE_SAVE_PATH = "od_trace/";
+    public static final String OD_TRACE_SAVE_PATH = "od-trace/";
     //基础OD结果
     public static final String OD_SAVE_PATH = "od/";
     //用于做区县od的停留点保存路径
     public static final String OD_POINT_SAVE_PATH = "point/";
     //OD统计中间结果
-    public static final String OD_STAT_TRIP_SAVE_PATH = "stat_trip/";
-    //从全省原始信令中抽取在指定区县出现的手机号码的原始信令，保存原始信令的位置
-    public static final String DISTRICT_SIGNAL_ALL_SAVE_PATH = "trace/district=";
-    //从全省原始信令中抽取一天内在至少两个区县出现的手机号码的原始信令，保存原始信令的位置
-    public static final String PROVINCE_MSISDN_SIGNAL_SAVE_PATH = "trace/province/";
-    public static final String DISTRICT_MSISDN_SAVE_PATH = "msisdn/";
-    public static final String PROVINCE_MSISDN_SAVE_PATH = "msisdn/province/";
+    public static final String OD_STAT_TRIP_SAVE_PATH = "stat-trip/";
+
+    //职住分析结果保存路径
+    public static final String EXISTS_DAYS_SAVE_PATH = "exists-days/";
+    public static final String LIVE_SAVE_PATH = "live/";
+    public static final String SUM_ALL = "sum-all/";
+    public static final String ULD = "uld/";
+    public static final String WORK_SAVE_PATH = "work/";
+    public static final String UWD = "uwd/";
+    public static final String WORK_LIVE_SAVE_PATH = "work-live/";
+
 
 
 

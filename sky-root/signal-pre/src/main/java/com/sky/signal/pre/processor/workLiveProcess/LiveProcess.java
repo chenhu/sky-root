@@ -14,6 +14,7 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.sources.In;
 import org.apache.spark.storage.StorageLevel;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -107,7 +108,7 @@ public class LiveProcess implements Serializable {
      * 居住地判断处理器
      *
      */
-    public void process(DataFrame validSignalDF, int batchId) {
+    public void process(DataFrame validSignalDF, Integer batchId) {
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
@@ -152,10 +153,10 @@ public class LiveProcess implements Serializable {
         liveDf = liveDf.persist(StorageLevel.DISK_ONLY());
         //按基站加总
         DataFrame liveDfSumAll = liveDf.groupBy("msisdn", "base" ,"lng", "lat").agg(sum("stay_time").as("stay_time"), countDistinct("date").as("days")).orderBy("msisdn", "base", "lng", "lat");
-        FileUtil.saveFile(liveDfSumAll.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"live/" + batchId + "/liveDfSumAll");
+        FileUtil.saveFile(liveDfSumAll.repartition(partitions),FileUtil.FileType.PARQUET,params.getLiveSumAllSavePath(batchId.toString()));
 
         DataFrame liveDfUld = liveDf.groupBy("msisdn").agg(countDistinct("date").as("uld"));
-        FileUtil.saveFile(liveDfUld.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"live/" + batchId + "/liveDfUld");
+        FileUtil.saveFile(liveDfUld.repartition(partitions),FileUtil.FileType.PARQUET,params.getLiveUldSavePath(batchId.toString()));
         validSignalDF.unpersist();
         liveDf.unpersist();
     }

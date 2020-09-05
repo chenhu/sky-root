@@ -43,7 +43,7 @@ public class WorkProcess implements Serializable {
     private static final Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common.base.Function<Row, Timestamp>() {
         @Override
         public Timestamp apply(Row row) {
-            return row.getAs("begin_time");
+            return (Timestamp) row.getAs("begin_time");
         }
     });
 
@@ -116,7 +116,7 @@ public class WorkProcess implements Serializable {
      * 工作地判断处理器
      *
      */
-    public void process(DataFrame validSignalDF, int batchId) {
+    public void process(DataFrame validSignalDF, Integer batchId) {
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
@@ -124,7 +124,7 @@ public class WorkProcess implements Serializable {
         //手机号码->信令数据
         JavaPairRDD<String, Row> signalRdd = validSignalDF.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {
             public Tuple2<String, Row> call(Row row) throws Exception {
-                String msisdn = row.getAs("msisdn");
+                String msisdn = (String) row.getAs("msisdn");
                 return new Tuple2<>(msisdn, row);
             }
         });
@@ -160,10 +160,9 @@ public class WorkProcess implements Serializable {
         workDf = workDf.persist(StorageLevel.DISK_ONLY());
         //按基站加总
         DataFrame workDfSumAll = workDf.groupBy("msisdn", "base", "lng", "lat").agg(sum("stay_time").as("stay_time"), countDistinct("date").as("days")).orderBy("msisdn", "base", "lng", "lat");
-        FileUtil.saveFile(workDfSumAll.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"work/" + batchId + "/workDfSumAll");
-
+        FileUtil.saveFile(workDfSumAll.repartition(partitions),FileUtil.FileType.PARQUET,params.getWorkSumAllSavePath(batchId.toString()));
         DataFrame workDfUwd = workDf.groupBy("msisdn").agg(countDistinct("date").as("uwd"));
-        FileUtil.saveFile(workDfUwd.repartition(partitions),FileUtil.FileType.CSV,params.getSavePath()+"work/" + batchId + "/workDfUwd");
+        FileUtil.saveFile(workDfUwd.repartition(partitions),FileUtil.FileType.PARQUET,params.getWorkUwdSavePath(batchId.toString()));
         validSignalDF.unpersist();
         workDf.unpersist();
     }

@@ -17,16 +17,13 @@ import static org.apache.spark.sql.functions.sum;
  */
 @Service
 public class ExistsDayProcess implements Serializable {
-
     @Autowired
     private transient ParamProperties params;
-
-
     /**
      * 居住地判断处理器
      *
      */
-    public void process(DataFrame validSignalDF, int batchId) {
+    public void process(DataFrame validSignalDF, Integer batchId) {
         int partitions = 1;
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
@@ -34,6 +31,6 @@ public class ExistsDayProcess implements Serializable {
         // 计算手机号码出现天数，以及每天逗留时间
         DataFrame existsDf = validSignalDF.groupBy("msisdn", "region", "cen_region", "sex", "age").
                 agg(countDistinct("date").as("exists_days"), sum("move_time").as("sum_time")).orderBy("msisdn", "region", "cen_region", "sex", "age");
-        FileUtil.saveFile(existsDf.repartition(partitions), FileUtil.FileType.CSV, params.getSavePath() + "exists-days/" + batchId + "/existsDf");
+        FileUtil.saveFile(existsDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getExistsDaysSavePath(batchId.toString()));
     }
 }

@@ -79,12 +79,6 @@ public class ParamProperties {
      * 用来做居住地处理的有效信令文件
      */
     private List<String> validSignalForLive;
-
-    /**
-     * 职住分析结果文件存储位置
-     */
-    private String workliveSavePath;
-
     /**
      * 停驻点
      */
@@ -367,6 +361,25 @@ public class ParamProperties {
     }
     public String getPointPath(String day) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_POINT_SAVE_PATH).concat(day);
+    }
+
+    public String getExistsDaysSavePath(String batch) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.EXISTS_DAYS_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat("tmp");
+    }
+    public String getLiveSumAllSavePath(String batch) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.LIVE_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.SUM_ALL);
+    }
+    public String getLiveUldSavePath(String batch) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.LIVE_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.ULD);
+    }
+    public String getWorkSumAllSavePath(String batch) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.WORK_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.SUM_ALL);
+    }
+    public String getWorkUwdSavePath(String batch) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.WORK_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.UWD);
+    }
+    public String getWorkLiveSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.WORK_LIVE_SAVE_PATH);
     }
 
 }

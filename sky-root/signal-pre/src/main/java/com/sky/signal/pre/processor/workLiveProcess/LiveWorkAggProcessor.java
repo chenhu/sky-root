@@ -150,8 +150,7 @@ public class LiveWorkAggProcessor implements Serializable {
                         workDfUwd.col("uwd"));
         //排除结果中，一个人多个职住地的情况
         result = result.dropDuplicates(new String[]{"msisdn"});
-        FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType
-                .CSV, params.getWorkliveSavePath() + PathConfig.WORKLIVE_PATH);
+        FileUtil.saveFile(result.repartition(partitions), FileUtil.FileType.PARQUET, params.getWorkLiveSavePath());
 
         existsDf.unpersist();
         fitUsers.unpersist();
@@ -167,7 +166,7 @@ public class LiveWorkAggProcessor implements Serializable {
     }
 
     private DataFrame readExistsDf() {
-        DataFrame existsDf = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getSavePath() + "exists-days/*/existsDf");
+        DataFrame existsDf = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.EXIST_SCHEMA,params.getExistsDaysSavePath("*"));
         existsDf = existsDf.groupBy("msisdn", "region", "cen_region", "sex", "age")
                 .agg(sum("exists_days").as("exists_days"), sum("sum_time").as("sum_time"))
                 .withColumn("stay_time", floor(col("sum_time").divide(col("exists_days"))).cast("Double"));
@@ -175,31 +174,25 @@ public class LiveWorkAggProcessor implements Serializable {
     }
 
     private DataFrame readLiveDfSumAll() {
-        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getSavePath()
-                + "live/*/liveDfSumAll");
+        DataFrame liveDfSumAll = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getLiveSumAllSavePath("*"));
         liveDfSumAll = liveDfSumAll.groupBy("msisdn", "base" ,"lng", "lat").agg(sum("stay_time").as("stay_time"), sum("days").as("days")).orderBy("msisdn", "base", "lng", "lat");
         return liveDfSumAll;
     }
 
     private DataFrame readWorkDfSumAll() {
-        DataFrame workDfSumAll = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getSavePath()
-                + "work/*/workDfSumAll");
+        DataFrame workDfSumAll = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.WORK_LIVE_CELL_SCHEMA, params.getWorkSumAllSavePath("*"));
         workDfSumAll = workDfSumAll.groupBy("msisdn", "base" ,"lng", "lat").agg(sum("stay_time").as("stay_time"), sum("days").as("days")).orderBy("msisdn", "base", "lng", "lat");
         return workDfSumAll;
     }
 
     private DataFrame readDfUld() {
-        DataFrame liveDfUld = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.ULD_SCHEMA, params.getSavePath()
-                + "live/*/liveDfUld");
+        DataFrame liveDfUld = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.ULD_SCHEMA, params.getLiveUldSavePath("*"));
         liveDfUld = liveDfUld.groupBy("msisdn").agg(sum("uld").as("uld"));
         return liveDfUld;
     }
     private DataFrame readDfUwd() {
-        DataFrame workDfUld = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.UWD_SCHEMA, params.getSavePath()
-                + "work/*/workDfUwd");
+        DataFrame workDfUld = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.UWD_SCHEMA, params.getWorkUwdSavePath("*"));
         workDfUld = workDfUld.groupBy("msisdn").agg(sum("uwd").as("uwd"));
         return workDfUld;
     }
-
-
 }

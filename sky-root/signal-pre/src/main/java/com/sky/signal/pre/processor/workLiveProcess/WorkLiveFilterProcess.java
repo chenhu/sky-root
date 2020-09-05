@@ -44,7 +44,7 @@ public class WorkLiveFilterProcess implements Serializable {
     private static final LocalTime time1630 = new LocalTime(16, 30);
     public void process() {
         for (String ValidSignalFile : params.getValidSignalFilesForWorkLive()) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
             // 获取当前有效数据的日期
             String[] path = ValidSignalFile.split("/");
             String date  = path[path.length -1];
@@ -119,7 +119,7 @@ public class WorkLiveFilterProcess implements Serializable {
                     Timestamp time2 = new Timestamp(last_time.dayOfWeek().roundFloorCopy().getMillis());
                     move_time1 = Math.abs(Seconds.secondsBetween(begin_time, new DateTime(time1)).getSeconds());
                     move_time2 = Math.abs(Seconds.secondsBetween(new DateTime(time2), last_time).getSeconds());
-                    Integer distance = row.getAs("distance");
+                    Integer distance = (Integer) row.getAs("distance");
                     speed1 = MapUtil.formatDecimal(move_time1 == 0 ? 0 : distance / move_time1 * 3.6, 2);
                     speed2 = MapUtil.formatDecimal(move_time2 == 0 ? 0 : distance / move_time2 * 3.6, 2);
                     Integer date = Integer.valueOf(row.getAs("date").toString());

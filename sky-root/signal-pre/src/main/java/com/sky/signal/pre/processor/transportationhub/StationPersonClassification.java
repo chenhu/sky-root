@@ -99,7 +99,7 @@ public class StationPersonClassification implements Serializable {
         List<Row> resultList;
         Long sumMoveTime = 0L;
         for (Row row : rows) {
-            Integer moveTime = row.getAs("move_time");
+            Integer moveTime = (Integer) row.getAs("move_time");
             sumMoveTime += moveTime;
         }
         if (sumMoveTime >= ONE_HOUR) {

@@ -18,10 +18,6 @@ public class WorkLiveLoader implements Serializable {
     private transient ParamProperties params;
 
     public DataFrame load() {
-        DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV,
-                LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, params
-                        .getWorkliveSavePath() + PathConfig.WORKLIVE_PATH)
-                .repartition(params.getPartitions());
-        return df;
+        return FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, params.getWorkLiveSavePath()).repartition(params.getPartitions());
     }
 }
