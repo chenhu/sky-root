@@ -138,7 +138,7 @@ public class CellProcess implements Serializable {
         }
         FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.PARQUET, dir);
         // 生成geohash和经纬度对应表
-        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates().repartition(1), FileUtil.FileType.PARQUET, params.getGeoHashSavePath());
+        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates().repartition(1), FileUtil.FileType.CSV, params.getGeoHashSavePath());
         return df;
     }
 }

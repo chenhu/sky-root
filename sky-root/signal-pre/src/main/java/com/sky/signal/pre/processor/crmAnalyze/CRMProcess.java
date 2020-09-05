@@ -24,7 +24,6 @@ import java.util.Map;
  * date: 2019/4/6 16:31
  * description: 手机用户的CRM信息加载和处理，并广播
  */
-@Service("crmProcess")
 public class CRMProcess implements Serializable {
 
     @Autowired
@@ -34,7 +33,7 @@ public class CRMProcess implements Serializable {
     @Autowired
     private transient ParamProperties params;
     public final Broadcast<Map<String, Row>> load() {
-        Row[] userRows= FileUtil.readFile(FileUtil.FileType.CSV, CrmSchemaProvider.CRM_SCHEMA,params.getCRMSavePath()).collect();
+        Row[] userRows= FileUtil.readFile(FileUtil.FileType.PARQUET, CrmSchemaProvider.CRM_SCHEMA,params.getCRMSavePath()).collect();
         Map<String, Row> UserMap = new HashMap<>(userRows.length);
         for (Row row:userRows) {
             UserMap.put(row.getString(0),row);
@@ -87,7 +86,7 @@ public class CRMProcess implements Serializable {
             }
         });
         DataFrame userDf = sqlContext.createDataFrame(userRdd, CrmSchemaProvider.CRM_SCHEMA).dropDuplicates();
-        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.CSV, params.getCRMSavePath());
+        FileUtil.saveFile(userDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getCRMSavePath());
     }
 
 }
