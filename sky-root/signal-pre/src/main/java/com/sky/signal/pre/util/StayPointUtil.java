@@ -79,7 +79,7 @@ public class StayPointUtil implements Serializable {
         int distance = 0;
         int moveTime = (int) (lastTime.getTime() - startTime.getTime()) / 1000;
         double speed = 0d;
-        byte pointType = prior.getAs("point_type");
+        byte pointType = (Byte) prior.getAs("point_type");
         if (prior != current && current != null) {
             //基站与下一基站距离
             distance = MapUtil.getDistance((double) current.getAs("lng"),
@@ -114,8 +114,8 @@ public class StayPointUtil implements Serializable {
             if (prior == null) {
                 prior = current;
             } else {
-                byte priorType = prior.getAs("point_type");
-                byte currentType = current.getAs("point_type");
+                byte priorType = (Byte)prior.getAs("point_type");
+                byte currentType = (Byte)current.getAs("point_type");
                 int distance = MapUtil.getDistance((double) current.getAs
                         ("lng"), (double) current.getAs("lat"), (double)
                         prior.getAs("lng"), (double) prior.getAs("lat"));
@@ -123,8 +123,8 @@ public class StayPointUtil implements Serializable {
                         || (((priorType == SignalProcessUtil.STAY_POINT && currentType == SignalProcessUtil.UNCERTAIN_POINT)
                         || (priorType == SignalProcessUtil.UNCERTAIN_POINT && currentType == SignalProcessUtil.STAY_POINT)) && distance <= RANGE_II)
                         || (priorType == SignalProcessUtil.UNCERTAIN_POINT && currentType == SignalProcessUtil.UNCERTAIN_POINT && distance <= RANGE_III)) {
-                    int moveTime1 = prior.getAs("move_time");
-                    int moveTime2 = current.getAs("move_time");
+                    int moveTime1 = (Integer)prior.getAs("move_time");
+                    int moveTime2 = (Integer)current.getAs("move_time");
                     //两点合并
                     if (moveTime1 >= moveTime2) {
                         if (i + 1 < rows.size()) {
@@ -187,8 +187,8 @@ public class StayPointUtil implements Serializable {
                 if ((Byte) prior.getAs("point_type") == SignalProcessUtil
                         .STAY_POINT && (Byte) current.getAs("point_type") ==
                         SignalProcessUtil.STAY_POINT && distance <= RANGE_I) {
-                    int moveTime1 = prior.getAs("move_time");
-                    int moveTime2 = current.getAs("move_time");
+                    int moveTime1 = (Integer) prior.getAs("move_time");
+                    int moveTime2 = (Integer)current.getAs("move_time");
                     //两点合并
                     if (moveTime1 >= moveTime2) {
                         if (i + 1 < rows.size()) {
@@ -233,14 +233,14 @@ public class StayPointUtil implements Serializable {
     private Row getNearestStayPoint(List<Row> rows, int pos) {
         for (int i = pos - 1; i >= 0; i--) {
             Row result = rows.get(i);
-            byte pointType = result.getAs("point_type");
+            byte pointType = (Byte)result.getAs("point_type");
             if (pointType == SignalProcessUtil.STAY_POINT) {
                 return result;
             }
         }
         for (int i = pos + 1; i < rows.size(); i++) {
             Row result = rows.get(i);
-            byte pointType = result.getAs("point_type");
+            byte pointType = (Byte)result.getAs("point_type");
             if (pointType == SignalProcessUtil.STAY_POINT) {
                 return result;
             }

@@ -15,8 +15,6 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +31,6 @@ import static org.apache.spark.sql.functions.col;
  */
 @Component
 public class SignalLoader implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(SignalLoader.class);
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
     private static final DateTimeFormatter FORMATTED = DateTimeFormat.forPattern("yyyyMMdd");
     private Broadcast<Map<String, Row>> cellVar;
@@ -126,11 +123,11 @@ public class SignalLoader implements Serializable {
                 if (cellRow == null) {
                     //Do nothing
                 } else {
-                    base = cellRow.getAs("base");
-                    lng = cellRow.getAs("lng");
-                    lat = cellRow.getAs("lat");
-                    cityCode = cellRow.getAs("city_code");
-                    districtCode = cellRow.getAs("district_code");
+                    base = (String) cellRow.getAs("base");
+                    lng = (double) cellRow.getAs("lng");
+                    lat = (double) cellRow.getAs("lat");
+                    cityCode = (Integer) cellRow.getAs("city_code");
+                    districtCode = (Integer) cellRow.getAs("district_code");
                 }
 
                 Row track = RowFactory.create(date, msisdn, region, cityCode, districtCode, tac, cell, base, lng, lat, begin_time, end_time);
@@ -325,51 +322,9 @@ public class SignalLoader implements Serializable {
         }
         return null;
     }
-
-    /**
-     * description: 如果分析的数据限定区域，则根据区域文件，把区域合并到信令
-     * param: [rdd]
-     * return: org.apache.spark.api.java.JavaRDD<org.apache.spark.sql.Row>
-     **/
-    public JavaRDD<Row> mergeArea(JavaRDD<Row> rdd) {
-        if (this.areaVar != null) {
-            JavaRDD<Row> resultRDD = rdd.map(new Function<Row, Row>() {
-                @Override
-                public Row call(Row row) throws Exception {
-                    Integer tac = Integer.valueOf(row.getAs("tac").toString());
-                    Long cell = Long.valueOf(row.getAs("cell").toString());
-                    Short area = -1;
-                    //根据tac/cell查找区域信息
-                    if (areaVar != null) {
-                        Row areaRow = areaVar.value().get(tac.toString() + '|' + cell.toString());
-                        if (areaRow == null) {
-                            //Do nothing
-                        } else {
-                            area = areaRow.getShort(2);
-                        }
-                    }
-                    return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("region"), row.getAs("city_code"),
-                            row.getAs("cen_region"), row.getAs("sex"), row.getAs("age"), row.getAs("tac"), row.getAs("cell"),
-                            row.getAs("base"), area, row.getAs("lng"), row.getAs("lat"), row.getAs("begin_time"), row.getAs("last_time"),
-                            row.getAs("distance"), row.getAs("move_time"), row.getAs("speed"));
-                }
-            });
-            return resultRDD;
-        }
-        return null;
-    }
-
     public DataFrame load(String validSignalFile) {
         DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, validSignalFile)
                 .repartition(params.getPartitions());
         return df;
     }
-
-
-    public DataFrame load1(String validSignalFile) {
-        DataFrame df = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1, validSignalFile)
-                .repartition(params.getPartitions());
-        return df;
-    }
-
 }

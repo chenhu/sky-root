@@ -19,8 +19,6 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.storage.StorageLevel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import scala.Tuple3;
@@ -33,24 +31,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.spark.sql.functions.col;
-
 /**
  * 原始手机信令数据生成有效手机信令数据
  */
 @Component
 public class SignalProcessor implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(SignalProcessor.class);
-
     @Autowired
     private transient SQLContext sqlContext;
-
     @Autowired
     private transient SignalLoader signalLoader;
-
     @Autowired
     private transient ParamProperties params;
-
     @Autowired
     private transient JavaSparkContext sparkContext;
     @Autowired
@@ -72,17 +63,17 @@ public class SignalProcessor implements Serializable {
         for (int i = 0; i < rows.size(); i++) {
             if (prev == null) {
                 prev = rows.get(i);
-                begin_time = prev.getAs("begin_time");
-                last_time = prev.getAs("last_time");
+                begin_time = (Timestamp) prev.getAs("begin_time");
+                last_time = (Timestamp) prev.getAs("last_time");
             } else {
                 current = rows.get(i);
                 if (prev.getAs("base").equals(current.getAs("base"))) {
-                    last_time = current.getAs("last_time");
+                    last_time = (Timestamp) current.getAs("last_time");
                 } else {
                     result.add(calcSignal(prev, current, begin_time, last_time));
                     prev = current;
-                    begin_time = prev.getAs("begin_time");
-                    last_time = prev.getAs("last_time");
+                    begin_time = (Timestamp) prev.getAs("begin_time");
+                    last_time = (Timestamp) prev.getAs("last_time");
                 }
             }
         }
@@ -149,11 +140,11 @@ public class SignalProcessor implements Serializable {
         for (int i = 0; i < rows.size(); i++) {
             if (prev == null) {
                 prev = rows.get(i);
-                begin_time = prev.getAs("begin_time");
+                begin_time = (Timestamp) prev.getAs("begin_time");
             } else {
                 current = rows.get(i);
                 if ((int) prev.getAs("distance") < 100 || prev.getAs("base").equals(current.getAs("base"))) {
-                    last_time = current.getAs("last_time");
+                    last_time = (Timestamp) current.getAs("last_time");
                     if ((int) prev.getAs("move_time") >= (int) current.getAs("move_time")) {
                         if (i + 1 < rows.size()) {
                             prev = calcSignal(prev, rows.get(i + 1), begin_time, last_time);
@@ -170,8 +161,7 @@ public class SignalProcessor implements Serializable {
                 } else {
                     result.add(prev);
                     prev = current;
-                    begin_time = prev.getAs("begin_time");
-                    last_time = prev.getAs("last_time");
+                    begin_time = (Timestamp) prev.getAs("begin_time");
                 }
             }
         }
@@ -486,7 +476,7 @@ public class SignalProcessor implements Serializable {
                 Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
                     @Override
                     public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
+                        return (Timestamp) row.getAs("begin_time");
                     }
                 });
                 //按startTime排序
@@ -521,125 +511,15 @@ public class SignalProcessor implements Serializable {
      * 手机信令数据预处理
      */
     public void process() {
-
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-
         //CRM信息
-//        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
-
+        final Broadcast<Map<String, Row>> userVar = crmProcess.load();
         // 手机号码归属地信息
-//        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
-
+        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
         //对轨迹数据预处理
         for (String traceFile : params.getTraceFiles("*")) {
-//            oneProcess(traceFile, cellVar, userVar, null, regionVar);
-            tmp(traceFile, cellVar);
+            oneProcess(traceFile, cellVar, userVar, null, regionVar);
         }
-    }
-
-    private  void tmp(String inputPath, final Broadcast<Map<String, Row>> cellVar) {
-        int partitions = 1;
-        if (!ProfileUtil.getActiveProfile().equals("local")) {
-            partitions = params.getPartitions();
-        }
-        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
-        //补全基站信息并删除重复信令
-        DataFrame sourceDf = sqlContext.read().parquet(inputPath).repartition(params.getPartitions());
-        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
-        //按手机号码对信令数据预处理
-        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
-            @Override
-            public Iterable<Row> call(List<Row> rows) throws Exception {
-                Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
-                    @Override
-                    public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
-                    }
-                });
-                //按startTime排序
-                rows = ordering.sortedCopy(rows);
-                //合并同一手机连续相同基站信令数据
-                rows = mergeSameBase(rows);
-
-                //合并同一手机连续不同基站信令数据
-                rows = mergeDifferentBase(rows);
-                //合并移动时间小于5秒的信令数据
-                rows = mergeByTransferSecs(rows);
-                //合并同一手机连续不同基站信令数据
-                rows = mergeDifferentBase(rows);
-                return rows;
-            }
-        });
-        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-        String date = signalBaseDf.first().getAs("date").toString();
-        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
-    }
-
-    /**
-     * 从区县的角度进行处理，处理对象为 一天内出现在目标区县，同时也在其他区县出现的人的手机信令
-     */
-    public void processDistrict() {
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-        for (String traceFile : params.getDistrictTraceSavePath(params.getDistrictCode())) {
-            //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
-            String date = traceFile.substring(traceFile.length() - 8);
-            oneDayDistrict(traceFile,params.getValidSignalSavePath(params.getDistrictCode().toString(), date),cellVar);
-        }
-    }
-
-    /**
-     * 从全省的角度进行处理，处理对象为 一天内出现在至少两个区县的人的手机信令
-     */
-    public void processProvince() {
-        //普通基站信息
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-        for(String cityCode: params.JS_CITY_CODES) {
-            for (String traceFile : params.getProvinceSavePathTraceByCityCode(cityCode)) {
-                //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
-                String date = traceFile.substring(traceFile.length() - 8);
-                oneDayDistrict(traceFile, params.getValidSignalSavePath1(cityCode,date),cellVar);
-            }
-        }
-
-    }
-
-    private void oneDayDistrict(String inputPath, String outPutPath,final Broadcast<Map<String, Row>> cellVar) {
-
-        int partitions = 1;
-        if (!ProfileUtil.getActiveProfile().equals("local")) {
-            partitions = params.getPartitions();
-        }
-        SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
-        //补全基站信息并删除重复信令
-        DataFrame sourceDf = sqlContext.read().parquet(inputPath).repartition(params.getPartitions());
-        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf);
-        //按手机号码对信令数据预处理
-        JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
-            @Override
-            public Iterable<Row> call(List<Row> rows) throws Exception {
-                Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new Function<Row, Timestamp>() {
-                    @Override
-                    public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
-                    }
-                });
-                //按startTime排序
-                rows = ordering.sortedCopy(rows);
-                //合并同一手机连续相同基站信令数据
-                rows = mergeSameBase(rows);
-
-                //合并同一手机连续不同基站信令数据
-                rows = mergeDifferentBase(rows);
-                //合并移动时间小于5秒的信令数据
-                rows = mergeByTransferSecs(rows);
-                //合并同一手机连续不同基站信令数据
-                rows = mergeDifferentBase(rows);
-                return rows;
-            }
-        });
-        DataFrame signalBaseDf = sqlContext.createDataFrame(rdd4, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_1);
-
-        FileUtil.saveFile(signalBaseDf.repartition(partitions), FileUtil.FileType.PARQUET, outPutPath);
     }
 }

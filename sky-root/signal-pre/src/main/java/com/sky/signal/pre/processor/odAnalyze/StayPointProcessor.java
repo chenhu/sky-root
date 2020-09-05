@@ -57,8 +57,8 @@ public class StayPointProcessor implements Serializable {
                     result.add(movePoints.get(j));
                     j++;
                 }
-                Timestamp prevEnd = prev.getAs("last_time");
-                Timestamp currentBegin = current.getAs("begin_time");
+                Timestamp prevEnd = (Timestamp) prev.getAs("last_time");
+                Timestamp currentBegin = (Timestamp) current.getAs("begin_time");
                 //处理已经合并的停留点：删除合并前中间的位移点
                 while (j < movePoints.size() && stayPointUtil.getTimeDiff((Timestamp) movePoints
                         .get(j).getAs("begin_time"), (Timestamp) prev.getAs("last_time")) > 0) {
@@ -92,10 +92,10 @@ public class StayPointProcessor implements Serializable {
                     j++;
                 }
                 if (d_min != null) {
-                    currentBegin = d_min.getAs("begin_time");
+                    currentBegin = (Timestamp) d_min.getAs("begin_time");
                 }
                 if (o_max != null) {
-                    prevEnd = o_max.getAs("last_time");
+                    prevEnd = (Timestamp) o_max.getAs("last_time");
                 }
 
                 // OD 之间无位移点的情况
@@ -119,7 +119,7 @@ public class StayPointProcessor implements Serializable {
                 } else {
                     // 重新计算时间
                     first = first == null ? movePoints.get(moveStart) : first;
-                    Timestamp moveBegin = first.getAs("begin_time");
+                    Timestamp moveBegin = (Timestamp) first.getAs("begin_time");
                     int distance = MapUtil.getDistance((double) prev.getAs("lng"), (double) prev
                             .getAs("lat"), (double) first.getAs("lng"), (double) first.getAs
                             ("lat"));
@@ -210,9 +210,9 @@ public class StayPointProcessor implements Serializable {
                     linked.add(prior);
                 } else if (linked.size() >= 1) { // 加入D点，并保存OD信息到Map中
                     linked.add(current);
-                    String startBase = prior.getAs("base");
-                    String endBase = current.getAs("base");
-                    Timestamp beginTime = prior.getAs("begin_time");
+                    String startBase = (String) prior.getAs("base");
+                    String endBase = (String) current.getAs("base");
+                    Timestamp beginTime = (Timestamp) prior.getAs("begin_time");
                     odTraceMap.put(new Tuple3<>(startBase, endBase, beginTime), linked);
 
                     // 重置，开始下一个OD
@@ -239,12 +239,12 @@ public class StayPointProcessor implements Serializable {
             }
             Row o = trace.peekFirst();
             Row d = trace.peekLast();
-            Timestamp originEnd = o.getAs("last_time");
-            Timestamp destBegin = d.getAs("begin_time");
-            Timestamp destEnd = d.getAs("last_time");
+            Timestamp originEnd = (Timestamp) o.getAs("last_time");
+            Timestamp destBegin = (Timestamp) d.getAs("begin_time");
+            Timestamp destEnd = (Timestamp) d.getAs("last_time");
             int moveTime = stayPointUtil.getTimeDiff(originEnd, destBegin);
             //增加O、D点逗留时间
-            Timestamp originBegin = o.getAs("begin_time");
+            Timestamp originBegin = (Timestamp) o.getAs("begin_time");
             int durationO = Math.abs(Seconds.secondsBetween(new DateTime(originEnd), new DateTime(originBegin)).getSeconds());
             int durationD = Math.abs(Seconds.secondsBetween(new DateTime(destEnd), new DateTime(destBegin)).getSeconds());
             if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400)) {
@@ -324,7 +324,7 @@ public class StayPointProcessor implements Serializable {
                 .base.Function<Row, Timestamp>() {
             @Override
             public Timestamp apply(Row row) {
-                return row.getAs("begin_time");
+                return (Timestamp)row.getAs("begin_time");
             }
         });
         // 重新按照时间排序
@@ -338,10 +338,6 @@ public class StayPointProcessor implements Serializable {
             if (prior == null) {
                 prior = current;
             } else {
-                //                Timestamp originEnd = prior.getAs
-                // ("last_time");
-                //                Timestamp destBegin = current.getAs
-                // ("begin_time");
                 Row odTrace = new GenericRowWithSchema(new Object[]{prior.getAs("date"), prior
                         .getAs("msisdn"), prior.getAs("base"), prior.getAs("lng"), prior.getAs
                         ("lat"), current.getAs("base"), current.getAs("lng"), current.getAs
@@ -365,7 +361,7 @@ public class StayPointProcessor implements Serializable {
                 .base.Function<Row, Timestamp>() {
             @Override
             public Timestamp apply(Row row) {
-                return row.getAs("begin_time");
+                return (Timestamp)row.getAs("begin_time");
             }
         });
         trace = ordering.sortedCopy(trace);
@@ -402,8 +398,8 @@ public class StayPointProcessor implements Serializable {
             if (prior == null) {
                 prior = current;
             } else {
-                Timestamp originEnd = prior.getAs("last_time");
-                Timestamp destBegin = current.getAs("begin_time");
+                Timestamp originEnd = (Timestamp)prior.getAs("last_time");
+                Timestamp destBegin = (Timestamp)current.getAs("begin_time");
 
                 // D点之间加入
                 if ((Byte) current.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
@@ -442,8 +438,8 @@ public class StayPointProcessor implements Serializable {
      **/
     private Row statForTrip(List<Row> rows) {
         int stayPointCount = 0;
-        String msisdn = rows.get(0).getAs("msisdn");
-        Integer date = rows.get(0).getAs("date");
+        String msisdn = (String) rows.get(0).getAs("msisdn");
+        Integer date = (Integer) rows.get(0).getAs("date");
         for (Row row : rows) {
             if ((Byte) row.getAs("point_type") == SignalProcessUtil.STAY_POINT) {
                 stayPointCount++;
@@ -470,26 +466,21 @@ public class StayPointProcessor implements Serializable {
             partitions = params.getPartitions();
         }
         DataFrame df;
-        //普通模式的有效信令包含crm信息，但是区域活动联系强度的有效信令不包含crm信息
-        if (params.getRunMode().equals("common")) {
-            df = signalLoader.load1(validSignalFile);
-        } else {
-            df = signalLoader.load1(validSignalFile);
-        }
+        df = signalLoader.load(validSignalFile);
         //手机号码->信令数据
-        JavaPairRDD<String, Row> rdd1 = df.javaRDD().mapToPair(new PairFunction<Row, String, Row>
+        JavaPairRDD<String, Row> signalPairRdd = df.javaRDD().mapToPair(new PairFunction<Row, String, Row>
                 () {
             @Override
             public Tuple2<String, Row> call(Row row) throws Exception {
-                String msisdn = row.getAs("msisdn");
-                Integer date = row.getAs("date");
+                String msisdn = (String)row.getAs("msisdn");
+                Integer date = (Integer) row.getAs("date");
                 return new Tuple2<>(msisdn + "|" + date, row);
             }
         });
 
         //将同一手机号码的信令数据聚合到一个List中, 重新分区
         List<Row> rows = Lists.newArrayList();
-        JavaPairRDD<String, List<Row>> rdd2 = rdd1.aggregateByKey(rows, params.getPartitions(),
+        JavaPairRDD<String, List<Row>> transSignalPairRdd = signalPairRdd.aggregateByKey(rows, params.getPartitions(),
                 new Function2<List<Row>, Row, List<Row>>() {
                     @Override
                     public List<Row> call(List<Row> rows, Row row) throws Exception {
@@ -505,14 +496,14 @@ public class StayPointProcessor implements Serializable {
                 });
 
         //按手机号码进行停驻点分析
-        JavaRDD<Tuple4<List<Row>,List<Row>,Row,List<Row>>> rdd3 = rdd2.values().map(new Function<List<Row>, Tuple4<List<Row>, List<Row>, Row, List<Row>>>() {
+        JavaRDD<Tuple4<List<Row>,List<Row>,Row,List<Row>>> analyzedRdd = transSignalPairRdd.values().map(new Function<List<Row>, Tuple4<List<Row>, List<Row>, Row, List<Row>>>() {
             @Override
             public Tuple4<List<Row>, List<Row>, Row, List<Row>> call(List<Row> rows) throws Exception {
                 Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com
                         .google.common.base.Function<Row, Timestamp>() {
                     @Override
                     public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
+                        return (Timestamp) row.getAs("begin_time");
                     }
                 });
 
@@ -564,69 +555,52 @@ public class StayPointProcessor implements Serializable {
         });
 
         String date = validSignalFile.substring(validSignalFile.length() - 8);
-        if (params.getRunMode().equals("common")) {
-//            rdd3 = rdd3.persist(StorageLevel.DISK_ONLY());
-//            JavaRDD<Row> odRDD = rdd3.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
-//                    Row>() {
-//                @Override
-//                public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
-//                    return result._2();
-//                }
-//            });
-//            JavaRDD<Row> rdd4 = rdd3.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
-//                    Row>() {
-//                @Override
-//                public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
-//                    return result._1();
-//                }
-//            });
-//            df = sqlContext.createDataFrame(rdd4, ODSchemaProvider.OD_TRACE_SCHEMA);
-//            df = df.orderBy("msisdn", "leave_time");
-//            FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getODTracePath(date));
-//            DataFrame odResultDF = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_SCHEMA);
-//            //统一处理所有区县的od，按天存储
-//            FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
-//            JavaRDD<Row> statTripRDD = rdd3.map(new Function<Tuple4<List<Row>, List<Row>, Row,List<Row>>, Row>() {
-//                @Override
-//                public Row call(Tuple4<List<Row>, List<Row>, Row,List<Row>> tuple3) throws Exception {
-//                    return tuple3._3();
-//                }
-//            });
-//            DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
-//            FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
-            JavaRDD<Row> pointRdd = rdd3.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
-                    Row>() {
-                @Override
-                public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
-                    return result._4();
-                }
-            });
-            DataFrame pointDF = sqlContext.createDataFrame(pointRdd, ODSchemaProvider.TRACE_SCHEMA);
-            FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(date));
-            rdd3.unpersist();
-        } else if (params.getRunMode().equals("district")) {
-            JavaRDD<Row> pointRdd = rdd3.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
-                    Row>() {
-                @Override
-                public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
-                    return result._4();
-                }
-            });
-            DataFrame pointDF = sqlContext.createDataFrame(pointRdd, ODSchemaProvider.TRACE_SCHEMA);
-            //区县为单位存储停留点
-            FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(params.getDistrictCode().toString(), date));
-        } else if(params.getRunMode().equals("province")) {
-            JavaRDD<Row> pointRdd = rdd3.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
-                    Row>() {
-                @Override
-                public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
-                    return result._4();
-                }
-            });
-            DataFrame pointDF = sqlContext.createDataFrame(pointRdd, ODSchemaProvider.TRACE_SCHEMA);
-            //区县为单位存储停留点
-            FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(date));
-        }
+        analyzedRdd = analyzedRdd.persist(StorageLevel.DISK_ONLY());
+
+        //保存od-trace
+        JavaRDD<Row> odTraceRdd = analyzedRdd.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
+                Row>() {
+            @Override
+            public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
+                return result._1();
+            }
+        });
+        df = sqlContext.createDataFrame(odTraceRdd, ODSchemaProvider.OD_TRACE_SCHEMA);
+        df = df.orderBy("msisdn", "leave_time");
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getODTracePath(date));
+
+        //保存od-result
+        JavaRDD<Row> odResultRdd = analyzedRdd.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
+                Row>() {
+            @Override
+            public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
+                return result._2();
+            }
+        });
+        DataFrame odResultDF = sqlContext.createDataFrame(odResultRdd, ODSchemaProvider.OD_SCHEMA);
+        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
+
+        //保存odTrip-stat
+        JavaRDD<Row> statTripRDD = analyzedRdd.map(new Function<Tuple4<List<Row>, List<Row>, Row,List<Row>>, Row>() {
+            @Override
+            public Row call(Tuple4<List<Row>, List<Row>, Row,List<Row>> tuple3) throws Exception {
+                return tuple3._3();
+            }
+        });
+        DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
+        FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
+
+        //保存停留点
+        JavaRDD<Row> pointRdd = analyzedRdd.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
+                Row>() {
+            @Override
+            public Iterable<Row> call(Tuple4<List<Row>, List<Row>, Row, List<Row>> result) throws Exception {
+                return result._4();
+            }
+        });
+        DataFrame pointDF = sqlContext.createDataFrame(pointRdd, ODSchemaProvider.TRACE_SCHEMA);
+        FileUtil.saveFile(pointDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getPointPath(date));
+        analyzedRdd.unpersist();
     }
 }
 

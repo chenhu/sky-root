@@ -3,7 +3,6 @@ package com.sky.signal.pre.processor.baseAnalyze;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.GeoUtil;
 import com.sky.signal.pre.util.ProfileUtil;
@@ -14,12 +13,9 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import scala.Tuple2;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,9 +34,6 @@ import static org.apache.spark.sql.functions.col;
  */
 @Component
 public class CellProcess implements Serializable {
-
-    private static final Logger logger = LoggerFactory.getLogger(CellProcess
-            .class);
     @Autowired
     private transient JavaSparkContext sparkContext;
 
@@ -54,16 +47,13 @@ public class CellProcess implements Serializable {
      * 处理两种基站信息，并生成对应基站信息的geohash和经纬度对照表
      */
     public void process() {
-        DataFrame commonBaseDf = null, specialBaseDf = null;
         // 如果配置了普通基站文件，则处理普通基站文件
         if (!StringUtils.isEmpty(params.getOriginCellPath())) {
-            commonBaseDf = this.processBaseFile(params.getOriginCellPath(),
-                    params.getCellSavePath());
+            this.processBaseFile(params.getOriginCellPath(), params.getCellSavePath());
         }
         // 如果配置了区域基站文件，则继续处理区域基站文件
         if (!StringUtils.isEmpty(params.getSpecifiedAreaBaseFile())) {
-            specialBaseDf = this.processBaseFile(params
-                    .getSpecifiedAreaBaseFile(), params.getTransCellSavePath());
+            this.processBaseFile(params.getSpecifiedAreaBaseFile(), params.getTransCellSavePath());
         }
     }
 
@@ -114,7 +104,7 @@ public class CellProcess implements Serializable {
                 (new com.google.common.base.Function<Row, Long>() {
                     @Override
                     public Long apply(Row row) {
-                        return row.getAs("cell");
+                        return (Long) row.getAs("cell");
                     }
                 });
         List<Row> rows = ordering.sortedCopy(df.collectAsList());
@@ -153,8 +143,7 @@ public class CellProcess implements Serializable {
         }
         FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, dir);
         // 生成geohash和经纬度对应表
-        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates()
-                .repartition(1), FileUtil.FileType.CSV, params.getGeoHashSavePath());
+        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates().repartition(1), FileUtil.FileType.CSV, params.getGeoHashSavePath());
         return df;
     }
 }

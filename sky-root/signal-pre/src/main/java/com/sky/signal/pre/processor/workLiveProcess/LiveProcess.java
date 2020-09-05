@@ -35,7 +35,7 @@ import static org.apache.spark.sql.functions.sum;
 /**
  * 居住地判断处理器
  */
-@Service("liveProcess")
+@Service
 public class LiveProcess implements Serializable {
     @Autowired
     private transient SQLContext sqlContext;
@@ -47,7 +47,7 @@ public class LiveProcess implements Serializable {
     private static final Ordering<Row> ordering = Ordering.natural().nullsFirst().onResultOf(new com.google.common.base.Function<Row, Timestamp>() {
         @Override
         public Timestamp apply(Row row) {
-            return row.getAs("begin_time");
+            return (Timestamp) row.getAs("begin_time");
         }
     });
 
@@ -115,7 +115,7 @@ public class LiveProcess implements Serializable {
         //手机号码->信令数据
         JavaPairRDD<String, Row> signalRdd = validSignalDF.javaRDD().mapToPair(new PairFunction<Row, String, Row>() {
             public Tuple2<String, Row> call(Row row) throws Exception {
-                String msisdn = row.getAs("msisdn");
+                String msisdn = (String) row.getAs("msisdn");
                 return new Tuple2<>(msisdn, row);
             }
         });

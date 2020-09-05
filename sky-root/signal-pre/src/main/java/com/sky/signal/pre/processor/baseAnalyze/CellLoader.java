@@ -1,7 +1,6 @@
 package com.sky.signal.pre.processor.baseAnalyze;
 
 import com.sky.signal.pre.config.ParamProperties;
-import com.sky.signal.pre.config.PathConfig;
 import com.sky.signal.pre.util.FileUtil;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
@@ -18,7 +17,7 @@ import java.util.Map;
  * date: 2019/4/6 16:21
  * description: 加载已经处理好的基站信息数据，并广播
  */
-@Service("cellLoader")
+@Service
 public class CellLoader implements Serializable {
     @Autowired
     private JavaSparkContext sparkContext;
@@ -38,12 +37,11 @@ public class CellLoader implements Serializable {
                 CellSchemaProvider.CELL_SCHEMA, cellPath).collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
-            Integer tac = row.getAs("tac");
-            Long cell = row.getAs("cell");
+            Integer tac = (Integer) row.getAs("tac");
+            Long cell = (Long) row.getAs("cell");
             cellMap.put(tac.toString() + '|' + cell.toString(), row);
         }
-        final Broadcast<Map<String, Row>> cellVar = sparkContext.broadcast
-                (cellMap);
+        final Broadcast<Map<String, Row>> cellVar = sparkContext.broadcast(cellMap);
         return cellVar;
     }
 }

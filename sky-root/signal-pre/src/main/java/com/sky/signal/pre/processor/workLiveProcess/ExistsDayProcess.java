@@ -15,7 +15,7 @@ import static org.apache.spark.sql.functions.sum;
 /**
  * 从所有有效信令中统计每个手机号码出现天数
  */
-@Service("existsDayProcess")
+@Service
 public class ExistsDayProcess implements Serializable {
 
     @Autowired
