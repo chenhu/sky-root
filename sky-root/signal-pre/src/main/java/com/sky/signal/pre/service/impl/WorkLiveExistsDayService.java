@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * 分批次预处理出现天数
  */
-@Service("workLiveExistsDayService")
+@Service
 public class WorkLiveExistsDayService implements ComputeService {
     private static final Logger logger = LoggerFactory.getLogger(WorkLiveExistsDayService.class);
     @Autowired
@@ -27,7 +27,6 @@ public class WorkLiveExistsDayService implements ComputeService {
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         Map<Integer, List<String>> liveValidSignalFileMap = SelectSignalFilesByBatch.getBatchFiles(params.getValidSignalFilesForWorkLive(), params.getWorkliveBatchSize());
-
         // 出现天数分批次预处理
         for( int batchId: liveValidSignalFileMap.keySet()) {
             List<String> validSignalFiles = liveValidSignalFileMap.get(batchId);

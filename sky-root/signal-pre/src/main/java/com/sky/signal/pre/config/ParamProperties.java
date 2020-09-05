@@ -62,12 +62,6 @@ public class ParamProperties {
      * 当前要分析区县的编码，用于取得当前区县的信令
      */
     private Integer districtCode;
-
-    /**
-     * 当前程序运行模式, province是以全省角度进行区县活动联系强度的预处理, district是以区县角度进行区县活动联系强度的预处理, common为普通程序
-     */
-    private String runMode;
-
     /**
      * 职住分析每个批次处理有效数据天数
      */
@@ -112,17 +106,14 @@ public class ParamProperties {
     private Double visualLng;
     private Double visualLat;
     private String visualStationBase;
-
     /**
      * 用户信息
      */
     private String userFile;
-
     /**
      * 分区数
      */
     public static final String PARTITIONS = "partitions";
-
     /**
      * 处理日期
      */
@@ -143,10 +134,6 @@ public class ParamProperties {
         // 注入当前要运行的服务名称
         if (args.containsOption(SERVICENAME)) {
             service = args.getOptionValues(SERVICENAME).get(0).trim();
-        }
-
-        if (args.containsOption("mode")) {
-            runMode = args.getOptionValues("mode").get(0).trim();
         }
         if (args.containsOption("districtCode")) {
             districtCode = Integer.valueOf(args.getOptionValues("districtCode").get(0)) ;
@@ -253,41 +240,6 @@ public class ParamProperties {
         return fileList;
     }
     /**
-     * 获取需要处理的有效信令路径列表
-     * @param districtCode 区县编码
-     * @return
-     */
-    public List<String> getValidSignalListByDays(String districtCode) {
-        String[] days = strDay.split(",",-1);
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH).concat(districtCode).concat(java.io.File.separator)
-                    .concat(day));
-        }
-        return fileList;
-    }
-
-    /**
-     * 获取需要处理的有效信令路径列表
-     *
-     * @return
-     */
-    public List<String> getValidSignalListByCityCodeAndDays(String cityCode) {
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                    .concat(cityCode)
-                    .concat(java.io.File.separator)
-                    .concat(day)
-                    .concat(java.io.File.separator));
-        }
-        return fileList;
-    }
-
-    /**
      * description: 获取枢纽有效信令文件路径,文件内容带有停留点类型
      * param: []
      * return: java.lang.String
@@ -384,35 +336,6 @@ public class ParamProperties {
     }
 
     /**
-     * 有效信令保存路径
-     *
-     * @return
-     */
-    public String getValidSignalSavePath(String districtCode, String date) {
-        return this.getBasePath()
-                .concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                .concat(districtCode)
-                .concat(java.io.File.separator)
-                .concat(date)
-                .concat(java.io.File.separator);
-    }
-
-    /**
-     * 有效信令保存路径
-     *
-     * @return
-     */
-    public String getValidSignalSavePath1(String cityCde, String date) {
-        return this.getBasePath()
-                .concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                .concat(cityCde)
-                .concat(java.io.File.separator)
-                .concat(date);
-    }
-
-    /**
      * 原始基站文件路径
      * @return
      */
@@ -425,17 +348,6 @@ public class ParamProperties {
      */
     public String getODTracePath(String day) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_TRACE_SAVE_PATH).concat(day);
-    }
-    /**
-     * 基础OD结果
-     * @return
-     */
-    public String getODResultPath(String districtCode, String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.OD_SAVE_PATH)
-                .concat(districtCode)
-                .concat(java.io.File.separator)
-                .concat(day);
     }
     /**
      * 基础OD结果
@@ -457,111 +369,4 @@ public class ParamProperties {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_POINT_SAVE_PATH).concat(day);
     }
 
-    /**
-     * 区县为单位分析基础od的时候，点位保存路径
-     * @param districtCode
-     * @param day
-     * @return
-     */
-    public String getPointPath(String districtCode, String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.OD_POINT_SAVE_PATH)
-                .concat(districtCode)
-                .concat(java.io.File.separator)
-                .concat(day);
-    }
-    /**
-     * 获取区县原始信令保存路径
-     * @param districtCode 区县编码
-     * @param cityCode 城市编码
-     * @param date 日期
-     * @return
-     */
-    public String getDistrictTraceSavePath(Integer districtCode, String cityCode, String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.DISTRICT_SIGNAL_ALL_SAVE_PATH)
-                .concat(districtCode.toString())
-                .concat(java.io.File.separator)
-                .concat(cityCode)
-                .concat(java.io.File.separator)
-                .concat(date);
-    }
-
-    /**
-     * 获取一天内在至少两个区县出现过的手机号码原始信令保存路径
-     * @param date 日期
-     * @return
-     */
-    public String getProvinceTracePath(String date, String cityCde) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.PROVINCE_MSISDN_SIGNAL_SAVE_PATH)
-                .concat(cityCde)
-                .concat(java.io.File.separator)
-                .concat(date);
-    }
-
-    public String getTraceSavePath(String cityCode, String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.PROVINCE_MSISDN_SIGNAL_SAVE_PATH)
-                .concat(cityCode)
-                .concat(java.io.File.separator)
-                .concat(date);
-    }
-
-    /**
-     * 获取一天内在至少两个区县出现过的手机号码原始信令保存路径
-     * @return
-     */
-    public List<String>  getProvinceSavePathTraceByCityCode(String cityCde) {
-        String[] days = strDay.split(",", -1);
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getProvinceTracePath(day,cityCde));
-        }
-        return fileList;
-    }
-
-
-    /**
-     * 获取区县原始信令路径列表
-     * @param districtCode 区县编码
-     * @return
-     */
-    public List<String> getDistrictTraceSavePath(Integer districtCode) {
-        String[] days = strDay.split(",", -1);
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getDistrictTraceSavePath(districtCode,"*",day));
-        }
-        return fileList;
-    }
-
-    /**
-     *  区县中出现的手机号码持久化地址
-     * @param districtCode
-     * @param cityCode
-     * @param date
-     * @return
-     */
-    public String getDistrictMsisdnSavePath(Integer districtCode, String cityCode, String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.DISTRICT_MSISDN_SAVE_PATH)
-                .concat(date)
-                .concat(java.io.File.separator)
-                .concat(cityCode)
-                .concat(java.io.File.separator)
-                .concat(districtCode.toString());
-    }
-
-    /**
-     *  区县中出现的手机号码持久化地址
-     * @param date 数据日期
-     * @return
-     */
-    public String getDistrictMsisdnSavePath(String date) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.PROVINCE_MSISDN_SAVE_PATH)
-                .concat(date)
-                .concat(java.io.File.separator);
-    }
 }

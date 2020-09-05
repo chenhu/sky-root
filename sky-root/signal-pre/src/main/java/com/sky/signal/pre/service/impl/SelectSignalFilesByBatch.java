@@ -34,7 +34,7 @@ public class SelectSignalFilesByBatch {
     public static DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
         for (String ValidSignalFile : validSignalFiles) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile);
             if (validSignalDF == null) {
                 validSignalDF = validDF;
             } else {
