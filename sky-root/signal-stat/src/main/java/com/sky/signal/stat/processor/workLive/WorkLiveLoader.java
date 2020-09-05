@@ -22,21 +22,20 @@ import static org.apache.spark.sql.functions.col;
  */
 @Service("workLiveLoader")
 public class WorkLiveLoader implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(WorkLiveLoader.class);
     @Autowired
     private transient ParamProperties params;
     @Autowired
     private transient SQLContext sqlContext;
 
     public DataFrame load(String workLiveFile) {
-        DataFrame df = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, workLiveFile);
+        DataFrame df = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, workLiveFile);
         JavaRDD<Row> rdd = df.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
-                String live_base = row.getAs("live_base");
-                String work_base = row.getAs("work_base");
+                String live_base = (String) row.getAs("live_base");
+                String work_base = (String) row.getAs("work_base");
                 // 归属地是否是江苏省，1: 是; 0: 否
-                Integer region = row.getAs("region");
+                Integer region = (Integer) row.getAs("region");
                 if (region == null) {
                     region = 0;
                 }
@@ -48,7 +47,7 @@ public class WorkLiveLoader implements Serializable {
 
                 String cenRegion = TransformFunction.transformCenRegion((Integer) row.getAs("cen_region"));
                 // 分析时间范围内每日平均逗留时间分类
-                Double stayTime = row.getAs("stay_time");
+                Double stayTime = (Double) row.getAs("stay_time");
                 if (stayTime == null) {
                     stayTime = 0d;
                 }
@@ -56,7 +55,7 @@ public class WorkLiveLoader implements Serializable {
 
                 Long existsDays = 0l;
                 if (row.getAs("exists_days") != null) {
-                    existsDays = row.getAs("exists_days");
+                    existsDays = (Long) row.getAs("exists_days");
                 }
                 Long uld = 0l;
                 Long uwd = 0l;
@@ -64,32 +63,32 @@ public class WorkLiveLoader implements Serializable {
                 Long on_wsd = 0l;
                 if (live_base != null) {
                     if (row.getAs("uld") != null) {
-                        uld = row.getAs("uld");
+                        uld = (Long) row.getAs("uld");
                     }
                     if (row.getAs("on_lsd") != null) {
-                        on_lsd = row.getAs("on_lsd");
+                        on_lsd = (Long) row.getAs("on_lsd");
                     }
                 }
                 if (work_base != null) {
                     if (row.getAs("uwd") != null) {
-                        uwd = row.getAs("uwd");
+                        uwd = (Long) row.getAs("uwd");
                     }
                     if (row.getAs("on_wsd") != null) {
-                        on_wsd = row.getAs("on_wsd");
+                        on_wsd = (Long) row.getAs("on_wsd");
                     }
                 }
 
-                Double sum_time = row.getAs("stay_time");
+                Double sum_time = (Double) row.getAs("stay_time");
                 if (sum_time == null) {
                     sum_time = 0d;
                 }
                 //生成geohash
-                Double work_lat = row.getAs("work_lat");
-                Double work_lng = row.getAs("work_lng");
+                Double work_lat = (Double) row.getAs("work_lat");
+                Double work_lng = (Double) row.getAs("work_lng");
                 String workGeo = GeoUtil.geo(work_lat, work_lng);
 
-                Double live_lat = row.getAs("live_lat");
-                Double live_lng = row.getAs("live_lng");
+                Double live_lat = (Double) row.getAs("live_lat");
+                Double live_lng = (Double) row.getAs("live_lng");
                 String liveGeo = GeoUtil.geo(live_lat, live_lng);
 
                 Integer person_class = ChangshuPersonClassification.classify(existsDays, sum_time);
@@ -125,15 +124,15 @@ public class WorkLiveLoader implements Serializable {
                 @Override
                 public Row call(Row row) throws Exception {
 
-                    String workBase = row.getAs("work_base");
-                    String liveBase = row.getAs("live_base");
+                    String workBase = (String) row.getAs("work_base");
+                    String liveBase = (String) row.getAs("live_base");
                     //生成geohash
-                    Double work_lat = row.getAs("work_lat");
-                    Double work_lng = row.getAs("work_lng");
+                    Double work_lat = (Double) row.getAs("work_lat");
+                    Double work_lng = (Double) row.getAs("work_lng");
                     String workGeo = GeoUtil.geo(work_lat, work_lng);
 
-                    Double live_lat = row.getAs("live_lat");
-                    Double live_lng = row.getAs("live_lng");
+                    Double live_lat = (Double) row.getAs("live_lat");
+                    Double live_lng = (Double) row.getAs("live_lng");
                     String liveGeo = GeoUtil.geo(live_lat, live_lng);
                     //默认为访客人口
                     Integer personClass = 2;
@@ -141,25 +140,25 @@ public class WorkLiveLoader implements Serializable {
                     //如果在第二份中有职住信息，就按照第二份中的职住地，并且人口分类也按照第二份
                     if (row.getAs("work_base1") != null && row.getAs("live_base1") != null) {
 
-                        workBase = row.getAs("work_base1");
-                        liveBase = row.getAs("live_base1");
+                        workBase = (String) row.getAs("work_base1");
+                        liveBase = (String) row.getAs("live_base1");
 
-                        Double sum_time = row.getAs("stay_time1");
+                        Double sum_time = (Double) row.getAs("stay_time1");
                         if (sum_time == null) {
                             sum_time = 0d;
                         }
                         Long existsDays = 0l;
                         if (row.getAs("exists_days1") != null) {
-                            existsDays = row.getAs("exists_days1");
+                            existsDays = (Long) row.getAs("exists_days1");
                         }
                         personClass = ChangshuPersonClassification.classify(existsDays, sum_time);
 
-                        work_lat = row.getAs("work_lat1");
-                        work_lng = row.getAs("work_lng1");
+                        work_lat = (Double) row.getAs("work_lat1");
+                        work_lng = (Double) row.getAs("work_lng1");
                         workGeo = GeoUtil.geo(work_lat, work_lng);
 
-                        live_lat = row.getAs("live_lat1");
-                        live_lng = row.getAs("live_lng1");
+                        live_lat = (Double) row.getAs("live_lat1");
+                        live_lng = (Double) row.getAs("live_lng1");
                         liveGeo = GeoUtil.geo(live_lat, live_lng);
 
                     }
@@ -176,7 +175,6 @@ public class WorkLiveLoader implements Serializable {
             });
             workLiveDf = sqlContext.createDataFrame(workLiveRdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);
         }
-
         return workLiveDf;
     }
 }

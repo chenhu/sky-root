@@ -28,7 +28,6 @@ public class CombineODWorkLive implements Serializable {
     // 尝试 800,1000,1200,1500出行率的差别
     private static final int CONST_LEAVE = 1000;
     private static final int CONST_LARGE = 10000;
-
     @Autowired
     private transient ParamProperties params;
     @Autowired
@@ -67,14 +66,14 @@ public class CombineODWorkLive implements Serializable {
         JavaRDD<Row> joinedRDD = replaced.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
-                Double leaveLng = row.getAs("leave_lng");
-                Double leaveLat = row.getAs("leave_lat");
-                Double arriveLng = row.getAs("arrive_lng");
-                Double arriveLat = row.getAs("arrive_lat");
-                Double liveLng = row.getAs("live_lng");
-                Double liveLat = row.getAs("live_lat");
-                Double workLng = row.getAs("work_lng");
-                Double workLat = row.getAs("work_lat");
+                Double leaveLng = (Double) row.getAs("leave_lng");
+                Double leaveLat = (Double) row.getAs("leave_lat");
+                Double arriveLng = (Double) row.getAs("arrive_lng");
+                Double arriveLat = (Double) row.getAs("arrive_lat");
+                Double liveLng = (Double) row.getAs("live_lng");
+                Double liveLat = (Double) row.getAs("live_lat");
+                Double workLng = (Double) row.getAs("work_lng");
+                Double workLat = (Double) row.getAs("work_lat");
                 //计算出发基站和到达基站的geohash
                 String leaveGeo = GeoUtil.geo(leaveLat, leaveLng);
 
@@ -102,20 +101,20 @@ public class CombineODWorkLive implements Serializable {
 
                 // 如果离开位置离家或工作地小于一个比较合理的常量，比如说800米，就认为是从家或者从工作地出发的。因为信令信号会在附近基站切换
 
-                String liveBase = row.getAs("live_base");
+                String liveBase = (String) row.getAs("live_base");
                 if (leaveHomeDis <= CONST_LEAVE) {
-                    liveBase = row.getAs("leave_base");
+                    liveBase = (String) row.getAs("leave_base");
                 } else if (arriveHomeDis <= CONST_LEAVE) {
-                    liveBase = row.getAs("arrive_base");
+                    liveBase = (String) row.getAs("arrive_base");
                 }
-                String workBase = row.getAs("work_base");
+                String workBase = (String) row.getAs("work_base");
                 if (leaveWorkDis <= CONST_LEAVE) {
-                    workBase = row.getAs("leave_base");
+                    workBase = (String) row.getAs("leave_base");
                 } else if (arriveWorkDis <= CONST_LEAVE) {
-                    workBase = row.getAs("arrive_base");
+                    workBase = (String) row.getAs("arrive_base");
                 }
-                String leave_base = row.getAs("leave_base");
-                String arrive_base = row.getAs("arrive_base");
+                String leave_base = (String) row.getAs("leave_base");
+                String arrive_base = (String) row.getAs("arrive_base");
                 Short trip_purpose;
 
                 if ((leave_base.equals(liveBase) && arrive_base.equals(workBase))) {

@@ -20,10 +20,10 @@ public class SignalLoader implements Serializable {
         DataFrame validSignalDf = null;
         for(String validSignalFile: validSignalFiles) {
             if(validSignalDf == null) {
-                validSignalDf = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, validSignalFile)
+                validSignalDf = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, validSignalFile)
                         .repartition(params.getPartitions());
             } else {
-                validSignalDf = validSignalDf.unionAll(FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, validSignalFile)
+                validSignalDf = validSignalDf.unionAll(FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, validSignalFile)
                         .repartition(params.getPartitions()));
             }
 

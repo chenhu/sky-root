@@ -20,9 +20,9 @@ public class ODLoader implements Serializable {
         DataFrame odDf = null ;
         for (String odFile: odFiles) {
             if(odDf == null) {
-                odDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_SCHEMA, odFile);
+                odDf = FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_SCHEMA, odFile);
             } else {
-                odDf = odDf.unionAll(FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_SCHEMA, odFile));
+                odDf = odDf.unionAll(FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_SCHEMA, odFile));
             }
         }
         return odDf.repartition(params.getPartitions());
@@ -32,9 +32,9 @@ public class ODLoader implements Serializable {
         DataFrame odTraceDf = null ;
         for (String odTraceFile: odTraceFiles) {
             if(odTraceDf == null) {
-                odTraceDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile);
+                odTraceDf = FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile);
             } else {
-                odTraceDf = odTraceDf.unionAll(FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile));
+                odTraceDf = odTraceDf.unionAll(FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile));
             }
         }
         return odTraceDf.repartition(params.getPartitions());
@@ -44,9 +44,9 @@ public class ODLoader implements Serializable {
         DataFrame odTripDf = null ;
         for (String odTripFile: odTripFiles) {
             if(odTripDf == null) {
-                odTripDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRIP_STAT_SCHEMA1, odTripFile);
+                odTripDf = FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRIP_STAT_SCHEMA1, odTripFile);
             } else {
-                odTripDf = odTripDf.unionAll(FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRIP_STAT_SCHEMA1, odTripFile));
+                odTripDf = odTripDf.unionAll(FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRIP_STAT_SCHEMA1, odTripFile));
             }
         }
         return odTripDf.repartition(params.getPartitions());
