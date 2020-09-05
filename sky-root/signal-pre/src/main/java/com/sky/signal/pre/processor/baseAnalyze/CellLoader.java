@@ -33,7 +33,7 @@ public class CellLoader implements Serializable {
      */
     public Broadcast<Map<String, Row>> load(String cellPath) {
         // 加载现有的基站数据,这个数据是由 cellProcess.process() 生成的
-        Row[] cellRows = FileUtil.readFile(FileUtil.FileType.CSV,
+        Row[] cellRows = FileUtil.readFile(FileUtil.FileType.PARQUET,
                 CellSchemaProvider.CELL_SCHEMA, cellPath).collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
