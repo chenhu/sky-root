@@ -1,5 +1,8 @@
 param:
-  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201706/work_live_his
+  #统计分析需要用到的资源根目录
+  resourceBasePath: /user/bdoc/17/services/hdfs/132/jiangsu/save
+  #统计分析结果内容隔离
+  statSaveBasePath: /user/bdoc/17/services/hdfs/132/jiangsu/201706
   validSignalFilesForStat:
     - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170612
     - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170621
