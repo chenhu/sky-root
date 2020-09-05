@@ -95,8 +95,7 @@ public class CellProcess implements Serializable {
             }
         });
 
-        DataFrame df = sqlContext.createDataFrame(rdd, CellSchemaProvider
-                .CELL_SCHEMA_OLD);
+        DataFrame df = sqlContext.createDataFrame(rdd, CellSchemaProvider.CELL_SCHEMA_OLD);
         df = df.filter(col("tac").notEqual(0).and(col("cell").notEqual(0)));
 
         //对数据按照cell字段作升序排序，这样能保证取到最小的cell值为基站编码一部分
@@ -108,14 +107,12 @@ public class CellProcess implements Serializable {
                     }
                 });
         List<Row> rows = ordering.sortedCopy(df.collectAsList());
-
         //位置相同的基站使用同一个基站编号base
         List<Row> newRows = new ArrayList<>();
         Map<String, String> cellMap = new HashMap<>();
         for (Row row : rows) {
             String base = null;
-            String position = String.format("%.6f|%.6f", row.getDouble(4),
-                    row.getDouble(5));
+            String position = String.format("%.6f|%.6f", row.getDouble(4), row.getDouble(5));
             if (cellMap.containsKey(position)) {
                 base = cellMap.get(position);
             } else {
@@ -134,16 +131,14 @@ public class CellProcess implements Serializable {
                     row.getAs("geohash")
             ));
         }
-
         df = sqlContext.createDataFrame(newRows, CellSchemaProvider.CELL_SCHEMA).cache();
-
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, dir);
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.PARQUET, dir);
         // 生成geohash和经纬度对应表
-        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates().repartition(1), FileUtil.FileType.CSV, params.getGeoHashSavePath());
+        FileUtil.saveFile(df.select("lng", "lat", "geohash").dropDuplicates().repartition(1), FileUtil.FileType.PARQUET, params.getGeoHashSavePath());
         return df;
     }
 }
