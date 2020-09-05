@@ -567,7 +567,7 @@ public class StayPointProcessor implements Serializable {
         });
         df = sqlContext.createDataFrame(odTraceRdd, ODSchemaProvider.OD_TRACE_SCHEMA);
         df = df.orderBy("msisdn", "leave_time");
-        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.CSV, params.getODTracePath(date));
+        FileUtil.saveFile(df.repartition(partitions), FileUtil.FileType.PARQUET, params.getODTracePath(date));
 
         //保存od-result
         JavaRDD<Row> odResultRdd = analyzedRdd.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,
@@ -578,7 +578,7 @@ public class StayPointProcessor implements Serializable {
             }
         });
         DataFrame odResultDF = sqlContext.createDataFrame(odResultRdd, ODSchemaProvider.OD_SCHEMA);
-        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.CSV, params.getODResultPath(date));
+        FileUtil.saveFile(odResultDF.repartition(partitions), FileUtil.FileType.PARQUET, params.getODResultPath(date));
 
         //保存odTrip-stat
         JavaRDD<Row> statTripRDD = analyzedRdd.map(new Function<Tuple4<List<Row>, List<Row>, Row,List<Row>>, Row>() {
@@ -588,7 +588,7 @@ public class StayPointProcessor implements Serializable {
             }
         });
         DataFrame statTripDf = sqlContext.createDataFrame(statTripRDD, ODSchemaProvider.OD_TRIP_STAT_SCHEMA);
-        FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.CSV, params.getODStatTripPath(date));
+        FileUtil.saveFile(statTripDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getODStatTripPath(date));
 
         //保存停留点
         JavaRDD<Row> pointRdd = analyzedRdd.flatMap(new FlatMapFunction<Tuple4<List<Row>, List<Row>, Row, List<Row>>,

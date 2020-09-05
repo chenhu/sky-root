@@ -503,7 +503,7 @@ public class SignalProcessor implements Serializable {
         DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date = path.substring(path.length() - 8);
-        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.CSV, params.getValidSignalSavePath(date));
+        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
         signalBaseDf.unpersist();
     }
 

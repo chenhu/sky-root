@@ -82,6 +82,5 @@ public class ODSchemaProvider {
             Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
             DataTypes.createStructField("has_trip", DataTypes.ByteType, false),
-            DataTypes.createStructField("staypoint_count",
-            DataTypes.IntegerType, false)));
+            DataTypes.createStructField("staypoint_count", DataTypes.IntegerType, false)));
 }
