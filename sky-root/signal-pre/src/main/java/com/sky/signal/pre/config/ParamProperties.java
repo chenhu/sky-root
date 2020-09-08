@@ -75,6 +75,9 @@ public class ParamProperties {
      * 用来做工作地处理的有效信令文件
      */
     private List<String> validSignalForWork;
+
+    // 给职住分析结果取名字，方便统计分析中根据名称使用不同的职住分析结果
+    private String workLiveName;
     /**
      * 用来做居住地处理的有效信令文件
      */
@@ -403,7 +406,8 @@ public class ParamProperties {
                 .concat(PathConfig.APP_SAVE_PATH)
                 .concat(this.getCityCode().toString())
                 .concat(java.io.File.separator)
-                .concat(PathConfig.WORK_LIVE_SAVE_PATH);
+                .concat(PathConfig.WORK_LIVE_SAVE_PATH)
+                .concat(this.getWorkLiveName());
     }
 
     public List<String> getValidSignalFilesForWorkLive() {
