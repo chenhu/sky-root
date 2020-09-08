@@ -13,6 +13,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -24,6 +25,7 @@ import java.util.Map;
  * date: 2019/4/6 16:31
  * description: 手机用户的CRM信息加载和处理，并广播
  */
+@Component
 public class CRMProcess implements Serializable {
 
     @Autowired
@@ -62,8 +64,8 @@ public class CRMProcess implements Serializable {
                         try{
                             msisdn = props[0];
                             age = Short.valueOf(props[2]);
-                            sex = Short.valueOf(props[3]);
-                            id = Integer.valueOf(props[4]);
+                            sex = Short.valueOf(props[1]);
+                            id = Integer.valueOf(props[3]);
                         }catch (Exception e){
                             msisdn=null;
                             sex=-2;

@@ -1,6 +1,5 @@
 package com.sky.signal.pre.service.impl;
 
-import com.google.common.base.Stopwatch;
 import com.sky.signal.pre.processor.baseAnalyze.CellProcess;
 import com.sky.signal.pre.service.ComputeService;
 import org.slf4j.Logger;
@@ -20,8 +19,6 @@ public class CellService implements ComputeService {
 
     @Override
     public void compute() {
-        Stopwatch stopwatch = Stopwatch.createStarted();
         cellProcess.process();
-        logger.info("CellService duration: " + stopwatch.toString());
     }
 }

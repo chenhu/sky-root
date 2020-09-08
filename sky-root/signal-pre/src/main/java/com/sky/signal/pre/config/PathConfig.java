@@ -34,7 +34,10 @@ public class PathConfig {
     public static final String OD_POINT_SAVE_PATH = "point/";
     //OD统计中间结果
     public static final String OD_STAT_TRIP_SAVE_PATH = "stat-trip/";
-
+    //数据质量统计按天结果保存路径
+    public static final String DATA_QUALITY_SAVE_PATH = "quality/";
+    //数据质量统计结果保存路径
+    public static final String DATA_QUALITY_ALL_SAVE_PATH = "quality-all/";
     //职住分析结果保存路径
     public static final String EXISTS_DAYS_SAVE_PATH = "exists-days/";
     public static final String LIVE_SAVE_PATH = "live/";
@@ -43,8 +46,4 @@ public class PathConfig {
     public static final String WORK_SAVE_PATH = "work/";
     public static final String UWD = "uwd/";
     public static final String WORK_LIVE_SAVE_PATH = "work-live/";
-
-
-
-
 }

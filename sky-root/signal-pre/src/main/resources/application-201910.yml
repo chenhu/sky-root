@@ -1,45 +1,6 @@
+#2019.9.30～2019.10.7
+#做有效信令、od分析
 param:
-  savePath: /user/bdoc/17/services/hdfs/132/changshu/save/
-  cellFile: /user/bdoc/17/services/hdfs/132/changshu/201910/cell.csv
-  basePath: /user/bdoc/17/services/hdfs/132/changshu/201910/track_201910/
-  trackPre: dt=
-  phoneCityFile: /user/bdoc/17/services/hdfs/132/changshu/GSDZ.csv
-  baseFile: /user/bdoc/17/services/hdfs/132/changshu/save/baseArea.csv
-  userFile: /user/bdoc/17/services/hdfs/132/changshu/201910/crm_201910.csv
-  workliveBatchSize: 7
-  workliveSavePath: /user/bdoc/17/services/hdfs/132/changshu/save/201910/
-  validSignalFilesForWorkLive:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191001
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191002
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191003
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191004
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191005
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191006
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191007
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191008
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191009
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191010
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191011
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191012
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191013
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191014
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191015
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191016
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191017
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191018
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191019
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191020
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191021
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191022
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191023
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191024
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191025
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191026
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191027
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191028
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191029
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191030
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20191031
 
 
 

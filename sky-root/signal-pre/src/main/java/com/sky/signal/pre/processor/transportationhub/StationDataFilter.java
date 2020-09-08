@@ -7,7 +7,6 @@ import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
 import com.sky.signal.pre.processor.odAnalyze.ODSchemaProvider;
 import com.sky.signal.pre.processor.signalProcess.SignalLoader;
 import com.sky.signal.pre.util.FileUtil;
-import com.sky.signal.pre.util.MapUtil;
 import com.sky.signal.pre.util.ProfileUtil;
 import com.sky.signal.pre.util.SignalProcessUtil;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -19,8 +18,6 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
-import org.joda.time.DateTime;
-import org.joda.time.Seconds;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -73,15 +70,14 @@ public class StationDataFilter implements Serializable {
         JavaPairRDD<String, List<Row>> validSignalPairRDD = SignalProcessUtil
                 .signalToJavaPairRDD(validSignalDf, params);
         // 加载枢纽基站
-        final Broadcast<Map<String, Row>> stationCell = cellLoader.load
-                (params.getBasePath() + PathConfig.STATION_CELL_PATH);
+        final Broadcast<Map<String, Row>> stationCell = cellLoader.load();
         // 过滤信令数据，如果用户信令中出现枢纽基站，则保留这个用户的数据
         validSignalPairRDD = validSignalPairRDD.filter(new Function<Tuple2<String, List<Row>>, Boolean>() {
             @Override
             public Boolean call(Tuple2<String, List<Row>> msisdnSignal)
                     throws Exception {
                 for (Row row : msisdnSignal._2) {
-                    String base = row.getAs("base");
+                    String base = (String) row.getAs("base");
                     if (!StringUtils.isEmpty(base)) {
                         if (stationCell.value().containsKey(base)) {
                             return true;
@@ -101,7 +97,7 @@ public class StationDataFilter implements Serializable {
                                 Timestamp>() {
                     @Override
                     public Timestamp apply(Row row) {
-                        return row.getAs("begin_time");
+                        return (Timestamp) row.getAs("begin_time");
                     }
                 });
 
@@ -154,8 +150,8 @@ public class StationDataFilter implements Serializable {
             if (prior == null) {
                 prior = current;
             } else {
-                Timestamp beginTime = prior.getAs("begin_time");
-                Timestamp endTime = current.getAs("last_time");
+                Timestamp beginTime = (Timestamp) prior.getAs("begin_time");
+                Timestamp endTime = (Timestamp) current.getAs("last_time");
                 stayPointRow = SignalProcessUtil.getNewRowWithStayPoint(prior, current, beginTime,
                         endTime);
             }
@@ -163,8 +159,8 @@ public class StationDataFilter implements Serializable {
             //1. 如果信令在枢纽基站，则修改后，加入结果列表，并跳出循环
             //2. 如果信令不在枢纽基站，加入结果列表，并跳出循环
             if (i == rows.size() - 1) {
-                Timestamp beginTime = prior.getAs("begin_time");
-                Timestamp endTime = prior.getAs("last_time");
+                Timestamp beginTime = (Timestamp) prior.getAs("begin_time");
+                Timestamp endTime = (Timestamp) prior.getAs("last_time");
                 stayPointRow = SignalProcessUtil.getNewRowWithStayPoint(prior, null, beginTime, endTime);
                 resultSignalList.add(stayPointRow);
                 break;
@@ -191,8 +187,7 @@ public class StationDataFilter implements Serializable {
         //合并连续枢纽基站后的单用户一天的轨迹，并且是按照时间升序排序
         List<Row> mergedBaseSignalList = new ArrayList<>(rows.size());
         // 加载枢纽基站
-        final Broadcast<Map<String, Row>> stationCell = cellLoader.load
-                (params.getBasePath() + PathConfig.STATION_CELL_PATH);
+        final Broadcast<Map<String, Row>> stationCell = cellLoader.load();
         // 前一条信令
         Row prior = null;
         for (int i = 0; i < rows.size(); i++) {
@@ -203,10 +198,10 @@ public class StationDataFilter implements Serializable {
             if (prior == null) {
                 prior = current;
             } else {
-                String priorBase = prior.getAs("base");
-                String currentBase = current.getAs("base");
-                Timestamp beginTime = prior.getAs("begin_time");
-                Timestamp lastTime = current.getAs("last_time");
+                String priorBase = (String) prior.getAs("base");
+                String currentBase = (String) current.getAs("base");
+                Timestamp beginTime = (Timestamp) prior.getAs("begin_time");
+                Timestamp lastTime = (Timestamp) current.getAs("last_time");
 
                 if (stationCell.value().containsKey(priorBase)) {
                     // 连续的枢纽基站，合并为虚拟基站,并重新计算与下个点的距离、移动时间、速度
@@ -256,7 +251,7 @@ public class StationDataFilter implements Serializable {
             //1. 如果信令在枢纽基站，则修改后，加入结果列表，并跳出循环
             //2. 如果信令不在枢纽基站，加入结果列表，并跳出循环
             if (i == rows.size() - 1) {
-                String base = current.getAs("base");
+                String base = (String) current.getAs("base");
                 if (stationCell.value().containsKey(base)) {
                     //默认为最后一条记录，距离和速度均为0
                     Row lastRow = new GenericRowWithSchema(new

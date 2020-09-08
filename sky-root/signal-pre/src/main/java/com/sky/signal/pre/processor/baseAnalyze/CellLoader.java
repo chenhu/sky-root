@@ -31,10 +31,9 @@ public class CellLoader implements Serializable {
      * key: tac|cell
      * value: CELL_SCHEMA
      */
-    public Broadcast<Map<String, Row>> load(String cellPath) {
+    public Broadcast<Map<String, Row>> load() {
         // 加载现有的基站数据,这个数据是由 cellProcess.process() 生成的
-        Row[] cellRows = FileUtil.readFile(FileUtil.FileType.PARQUET,
-                CellSchemaProvider.CELL_SCHEMA, cellPath).collect();
+        Row[] cellRows = FileUtil.readFile(FileUtil.FileType.PARQUET, CellSchemaProvider.CELL_SCHEMA, params.getCellSavePath()).collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
             Integer tac = (Integer) row.getAs("tac");

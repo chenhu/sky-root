@@ -69,7 +69,7 @@ public class ParamProperties {
     /**
      * 有效信令数据文件
      */
-    private List<String> validSignalFilesForWorkLive;
+    private List<String> signalsForWorkLive;
 
     /**
      * 用来做工作地处理的有效信令文件
@@ -114,14 +114,14 @@ public class ParamProperties {
     public static final String DAY = "day";
     private String strDay;
     // 服务名称注入
-    private String SERVICENAME = "service";
+    private static final String SERVICENAME = "service";
     private static final Logger logger = LoggerFactory.getLogger
             (ParamProperties.class);
 
     /**
      * 注入程序参数
      *
-     * @param args
+     * @param args 注入的参数
      */
     @Autowired
     public void setArgs(ApplicationArguments args) {
@@ -150,55 +150,28 @@ public class ParamProperties {
             strDay = args.getOptionValues(DAY).get(0).trim();
         }
     }
-
     /**
      * 获取当前要处理省轨迹数据路径列表
-     *
      * @return
      */
     public List<String> getTraceFiles() {
         List<String> tracePathList = new ArrayList<>();
-        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
         String[] days = strDay.split(",");
         for (String day : days) {
-            tracePathList.add(tracePath.concat(day));
+            tracePathList.add(this.getBasePath()
+                    .concat(this.getCityCode().toString())
+                    .concat(java.io.File.separator)
+                    .concat(PathConfig.TRACE_PATH)
+                    .concat(day));
         }
         return tracePathList;
     }
-
-    /**
-     * 获取当前要处理省轨迹数据路径列表
-     * @param cityCode 城市代码
-     * @return
-     */
-    public List<String> getTraceFiles(String cityCode) {
-        List<String> tracePathList = new ArrayList<>();
-        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
-        String[] days = strDay.split(",");
-        for (String day : days) {
-            tracePathList.add(tracePath.concat(day).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat(cityCode).concat(java.io.File.separator));
-        }
-        return tracePathList;
-    }
-
-    /**
-     * 获取指定日期所有地市下的轨迹数据
-     * @param date 日期
-     * @return
-     */
-    public String getTraceFiles(Integer date) {
-        return this.getBasePath().concat(PathConfig.TRACE_PATH).concat(date.toString()).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat("*").concat(java.io.File.separator);
-    }
-
-    /**
-     * 获取当前要处理省轨迹数据路径列表
-     * @param cityCode 城市代码
-     * @param date 日期
-     * @return
-     */
-    public String getTraceFiles(String cityCode, String date) {
-        String tracePath = this.getBasePath().concat(PathConfig.TRACE_PATH);
-        return tracePath.concat(date).concat(java.io.File.separator).concat(PathConfig.CITY_PRE_PATH).concat(cityCode).concat(java.io.File.separator);
+    public String getTraceFilesByDay(String day) {
+        return this.getBasePath()
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.TRACE_PATH)
+                .concat(day);
     }
 
     /**
@@ -211,24 +184,9 @@ public class ParamProperties {
         List<String> fileList = new ArrayList<>();
         for (String day : days) {
             fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                    .concat(day));
-        }
-        return fileList;
-    }
-
-    /**
-     * 获取按照省级别获取的有效信令路径
-     * @return
-     */
-    public List<String> getProvinceValidSignalListByDays() {
-        String[] days = strDay.split(",",-1);
-        List<String> fileList = new ArrayList<>();
-        for (String day : days) {
-            fileList.add(getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                    .concat("*")
+                    .concat(this.getCityCode().toString())
                     .concat(java.io.File.separator)
+                    .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
                     .concat(day));
         }
         return fileList;
@@ -260,30 +218,43 @@ public class ParamProperties {
      * return: java.util.Map<java.lang.String,scala.Tuple2<java.lang.String,
      * java.lang.String>>
      **/
-    public Map<String, Tuple2<String, List<String>>> getSignalFilePathTuple2() {
+    public Map<String, Tuple2<String, String>> getSignalFilePathTuple2() {
         String sep = java.io.File.separator;
         String[] days = strDay.split(",");
-        Map<String, Tuple2<String, List<String>>> resultMap = new HashMap<>();
+        Map<String, Tuple2<String, String>> resultMap = new HashMap<>();
         for (String day : days) {
-            resultMap.put(day, new Tuple2<>(getValidSignalSavePath(day), getTraceFiles("*")));
+            resultMap.put(day, new Tuple2<>(getValidSignalSavePath(day), getTraceFilesByDay(day)));
         }
         return resultMap;
     }
-
-
+    public String getDataQualitySavePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.DATA_QUALITY_SAVE_PATH)
+                .concat(date);
+    }
+    public String getDataQualityAllSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.DATA_QUALITY_ALL_SAVE_PATH);
+    }
     /**
      * 获取预处理后的全省基站文件保存路径
      */
     public String getCellSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
-                (PathConfig.CELL_PATH);
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.CELL_PATH);
     }
 
     /**
      * 获取预处理后的枢纽基站文件保存路径
      */
     public String getTransCellSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat
                 (PathConfig.STATION_CELL_PATH);
     }
 
@@ -293,8 +264,10 @@ public class ParamProperties {
      * @return
      */
     public String getGeoHashSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
-                (PathConfig.GEOHASH_PATH);
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.GEOHASH_PATH);
     }
 
     /**
@@ -303,20 +276,11 @@ public class ParamProperties {
      * @return
      */
     public String getCRMSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat
-                (PathConfig.CRM_SAVE_PATH);
-    }
-
-    /**
-     * 有效信令保存路径
-     *
-     * @return
-     */
-    public String getValidSignalSavePath() {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
-                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH);
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.CRM_SAVE_PATH);
     }
-
     /**
      * 有效信令保存路径
      *
@@ -324,9 +288,10 @@ public class ParamProperties {
      */
     public String getValidSignalSavePath(String date) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
                 .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
-                .concat(date)
-                .concat(java.io.File.separator);
+                .concat(date);
     }
 
     /**
@@ -334,21 +299,32 @@ public class ParamProperties {
      * @return
      */
     public String getOriginCellPath() {
-        return this.getBasePath().concat(PathConfig.ORN_CELL_PATH);
+        return this.getBasePath()
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.ORN_CELL_PATH);
     }
     /**
      * OD trace
      * @return
      */
     public String getODTracePath(String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_TRACE_SAVE_PATH).concat(day);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.OD_TRACE_SAVE_PATH)
+                .concat(day);
     }
     /**
      * 基础OD结果
      * @return
      */
     public String getODResultPath(String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
                 .concat(PathConfig.OD_SAVE_PATH)
                 .concat(day);
     }
@@ -357,29 +333,85 @@ public class ParamProperties {
      * @return
      */
     public String getODStatTripPath(String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_STAT_TRIP_SAVE_PATH).concat(day);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.OD_STAT_TRIP_SAVE_PATH)
+                .concat(day);
     }
     public String getPointPath(String day) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.OD_POINT_SAVE_PATH).concat(day);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.OD_POINT_SAVE_PATH)
+                .concat(day);
     }
 
     public String getExistsDaysSavePath(String batch) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.EXISTS_DAYS_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat("tmp");
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.EXISTS_DAYS_SAVE_PATH)
+                .concat(batch).concat(java.io.File.separator)
+                .concat("tmp");
     }
     public String getLiveSumAllSavePath(String batch) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.LIVE_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.SUM_ALL);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.LIVE_SAVE_PATH)
+                .concat(batch)
+                .concat(java.io.File.separator)
+                .concat(PathConfig.SUM_ALL);
     }
     public String getLiveUldSavePath(String batch) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.LIVE_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.ULD);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.LIVE_SAVE_PATH)
+                .concat(batch)
+                .concat(java.io.File.separator)
+                .concat(PathConfig.ULD);
     }
     public String getWorkSumAllSavePath(String batch) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.WORK_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.SUM_ALL);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.WORK_SAVE_PATH)
+                .concat(batch)
+                .concat(java.io.File.separator)
+                .concat(PathConfig.SUM_ALL);
     }
     public String getWorkUwdSavePath(String batch) {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.WORK_SAVE_PATH).concat(batch).concat(java.io.File.separator).concat(PathConfig.UWD);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.WORK_SAVE_PATH)
+                .concat(batch)
+                .concat(java.io.File.separator)
+                .concat(PathConfig.UWD);
     }
     public String getWorkLiveSavePath() {
-        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH).concat(PathConfig.WORK_LIVE_SAVE_PATH);
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.WORK_LIVE_SAVE_PATH);
+    }
+
+    public List<String> getValidSignalFilesForWorkLive() {
+        List<String> result = new ArrayList<>();
+        for(String day: this.getSignalsForWorkLive()) {
+            result.add(this.getValidSignalSavePath(day));
+        }
+        return result;
     }
 
 }

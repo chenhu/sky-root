@@ -9,3 +9,5 @@ logging:
 
 param:
   appName: wildsky-pre-process
+  #目前分析的地市编码，为了让地市分析中间数据以及结果数据可以分开存储，互不干扰，保存路径上面会加入当前地市标识
+  cityCode: 1000512

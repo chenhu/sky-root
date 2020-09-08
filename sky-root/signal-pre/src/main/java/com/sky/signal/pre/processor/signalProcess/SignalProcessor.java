@@ -458,7 +458,7 @@ public class SignalProcessor implements Serializable {
     /**
      * 对一天的信令数据进行预处理
      */
-    public void oneProcess(String path, final Broadcast<Map<String, Row>> cellVar, final Broadcast<Map<String, Row>> userVar, final Broadcast<Map<String, Row>> areaVar, final Broadcast<Map<Integer, Row>> regionVar) {
+    public void oneProcess(String path, final Broadcast<Map<String, Row>> cellVar, final Broadcast<Map<String, Row>> userVar, final Broadcast<Map<Integer, Row>> regionVar) {
 
         int partitions = 1;
         if (!ProfileUtil.getActiveProfile().equals("local")) {
@@ -512,14 +512,14 @@ public class SignalProcessor implements Serializable {
      */
     public void process() {
         //普通基站信息
-        final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
+        final Broadcast<Map<String, Row>> cellVar = cellLoader.load();
         //CRM信息
         final Broadcast<Map<String, Row>> userVar = crmProcess.load();
         // 手机号码归属地信息
         final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
         //对轨迹数据预处理
-        for (String traceFile : params.getTraceFiles("*")) {
-            oneProcess(traceFile, cellVar, userVar, null, regionVar);
+        for (String traceFile : params.getTraceFiles()) {
+            oneProcess(traceFile, cellVar, userVar, regionVar);
         }
     }
 }
