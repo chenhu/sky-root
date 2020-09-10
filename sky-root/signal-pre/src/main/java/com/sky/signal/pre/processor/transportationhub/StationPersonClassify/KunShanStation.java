@@ -58,7 +58,7 @@ public class KunShanStation implements Serializable {
                 (new com.google.common.base.Function<Row, Timestamp>() {
             @Override
             public Timestamp apply(Row row) {
-                return row.getAs("begin_time");
+                return (Timestamp) row.getAs("begin_time");
             }
         });
         //按startTime排序
@@ -76,9 +76,9 @@ public class KunShanStation implements Serializable {
 
         for (int i = 0; i < rows.size(); i++) {
             Row row = rows.get(i);
-            Timestamp beginTime = row.getAs("begin_time");
-            Integer date = row.getAs("date");
-            Integer moveTime = row.getAs("move_time");
+            Timestamp beginTime = (Timestamp) row.getAs("begin_time");
+            Integer date = (Integer) row.getAs("date");
+            Integer moveTime = (Integer) row.getAs("move_time");
 
             //今天的日期
             LocalDate today = LocalDate.parse(date.toString(), formatterDate);
@@ -89,7 +89,7 @@ public class KunShanStation implements Serializable {
             Integer tomorrow = Integer.valueOf(today.plusDays(1).toString
                     ("yyyyMMdd"));
             //手机号码
-            String msisdn = row.getAs("msisdn");
+            String msisdn = (String) row.getAs("msisdn");
 
 
             LocalDateTime localDateTime1 = LocalDateTime.parse(date.toString
@@ -101,7 +101,7 @@ public class KunShanStation implements Serializable {
             LocalDateTime localDateTime4 = LocalDateTime.parse(date.toString
                     () + "2359", formatterDateTimeMi);
 
-            String base = row.getAs("base");
+            String base = (String) row.getAs("base");
             // 如果是枢纽基站
             if (base.equals(params.getVisualStationBase())) {
                 LocalDateTime beginTimeLocalDateTime = LocalDateTime.parse
@@ -113,7 +113,7 @@ public class KunShanStation implements Serializable {
                     //判断在当前记录之前是否有停留点
                     Boolean hasStayPoint = false;
                     for (int j = 0; j < i; j++) {
-                        byte tmpPointType = rows.get(j).getAs("point_type");
+                        byte tmpPointType = (Byte) rows.get(j).getAs("point_type");
                         if (tmpPointType == SignalProcessUtil.STAY_POINT) {
                             hasStayPoint = true;
                             break;
@@ -143,7 +143,7 @@ public class KunShanStation implements Serializable {
                     //判断在当前记录之后是否有停留点
                     Boolean hasStayPoint = false;
                     for (int j = i + 1; j < rows.size(); j++) {
-                        byte tmpPointType = rows.get(j).getAs("point_type");
+                        byte tmpPointType = (Byte)rows.get(j).getAs("point_type");
                         if (tmpPointType == SignalProcessUtil.STAY_POINT) {
                             hasStayPoint = true;
                             break;
@@ -224,7 +224,7 @@ public class KunShanStation implements Serializable {
                 (new com.google.common.base.Function<Row, Timestamp>() {
             @Override
             public Timestamp apply(Row row) {
-                return row.getAs("begin_time");
+                return (Timestamp) row.getAs("begin_time");
             }
         });
         //按begin_time排序
@@ -259,7 +259,7 @@ public class KunShanStation implements Serializable {
 
         //枢纽站前是否有停留点
         for (Row row : preStationBaseList) {
-            Byte stayPoint = row.getAs("stay_point");
+            Byte stayPoint = (Byte) row.getAs("stay_point");
             if (stayPoint == SignalProcessUtil.STAY_POINT) {
                 hasPreStayPoint = true;
                 break;
@@ -267,7 +267,7 @@ public class KunShanStation implements Serializable {
         }
         //枢纽站后是否有停留点
         for (Row row : behindStationBaseList) {
-            Byte stayPoint = row.getAs("stay_point");
+            Byte stayPoint = (Byte) row.getAs("stay_point");
             if (stayPoint == SignalProcessUtil.STAY_POINT) {
                 hasBehindStayPoint = true;
                 behindStayPointRow = row;
@@ -276,7 +276,7 @@ public class KunShanStation implements Serializable {
         }
 
         //当天日期
-        Integer date = stationBaseRow.getAs("date");
+        Integer date = (Integer) stationBaseRow.getAs("date");
 
         //今天的日期
         LocalDate today = LocalDate.parse(date.toString(), formatterDate);
@@ -287,7 +287,7 @@ public class KunShanStation implements Serializable {
         Integer tomorrow = Integer.valueOf(today.plusDays(1).toString
                 ("yyyyMMdd"));
         //手机号码
-        String msisdn = stationBaseRow.getAs("msisdn");
+        String msisdn = (String) stationBaseRow.getAs("msisdn");
 
         Boolean yesterdayHasStayPoint = this.yesterdayHasStayPoint
                 (stationTrace, yesterday, msisdn);
@@ -305,11 +305,11 @@ public class KunShanStation implements Serializable {
         LocalDateTime localDateTime4 = LocalDateTime.parse(date.toString() +
                 "2359", formatterDateTimeMi);
         //枢纽站开始时间
-        Timestamp stationBaseBeginTime = stationBaseRow.getAs("begin_time");
+        Timestamp stationBaseBeginTime = (Timestamp) stationBaseRow.getAs("begin_time");
         LocalDateTime beginTimeLocalDateTime = LocalDateTime.parse
                 (stationBaseBeginTime.toString(), formatterDateTime);
         //枢纽站停留时间
-        Integer stationBaseMoveTime = stationBaseRow.getAs("move_time");
+        Integer stationBaseMoveTime = (Integer) stationBaseRow.getAs("move_time");
         // 在00:00-00:35之间并且停留时间大于等于3分钟，并且枢纽站前有停留点 或者昨天有停留点
         if (beginTimeLocalDateTime.isBefore(localDateTime2) &&
                 beginTimeLocalDateTime.isAfter(localDateTime1) &&
@@ -319,7 +319,7 @@ public class KunShanStation implements Serializable {
                 personClassic = PersonClassic.Leave.getIndex();
             } else {//枢纽站后有停留点
                 //枢纽站后第一个停留点的逗留时间
-                int moveTime = behindStayPointRow.getAs("move_time");
+                int moveTime = (Integer) behindStayPointRow.getAs("move_time");
                 DateTime beginTime = new DateTime(behindStayPointRow.getAs
                         ("begin_time"));
                 DateTime endTime = new DateTime(behindStayPointRow.getAs
@@ -361,7 +361,7 @@ public class KunShanStation implements Serializable {
             } else if (hasPreStayPoint && hasBehindStayPoint) {
                 //枢纽站前有停留点且枢纽站后也有停留点
                 //枢纽站后第一个停留点的逗留时间
-                int moveTime = behindStayPointRow.getAs("move_time");
+                int moveTime = (Integer)behindStayPointRow.getAs("move_time");
                 DateTime beginTime = new DateTime(behindStayPointRow.getAs
                         ("begin_time"));
                 DateTime endTime = new DateTime(behindStayPointRow.getAs
@@ -444,8 +444,8 @@ public class KunShanStation implements Serializable {
                 (msisdn));
         Row userWorkLiveRow = userWorkLiveDf.collectAsList().get(0);
         //找到工作基站和居住基站
-        String workBase = userWorkLiveRow.getAs("work_base");
-        String liveBase = userWorkLiveRow.getAs("live_base");
+        String workBase = (String) userWorkLiveRow.getAs("work_base");
+        String liveBase = (String) userWorkLiveRow.getAs("live_base");
         int distance = 0;
         //判定用户是否有工作基站和居住基站，如果有任何一个，计算停留点和其距离
         if (StringUtils.isEmpty(workBase) && StringUtils.isEmpty(liveBase)) {
@@ -479,7 +479,7 @@ public class KunShanStation implements Serializable {
         Row secondStationBase = rows.get(secondStationIndex);
 
         //当天日期
-        Integer date = secondStationBase.getAs("date");
+        Integer date = (Integer) secondStationBase.getAs("date");
 
         //今天的日期
         LocalDate today = LocalDate.parse(date.toString(), formatterDate);
@@ -487,7 +487,7 @@ public class KunShanStation implements Serializable {
         Integer tomorrow = Integer.valueOf(today.plusDays(1).toString
                 ("yyyyMMdd"));
         //手机号码
-        String msisdn = secondStationBase.getAs("msisdn");
+        String msisdn = (String) secondStationBase.getAs("msisdn");
         Boolean tomorrowHasStayPoint = this.tomorrowHasStayPoint
                 (stationTrace, tomorrow, msisdn);
 
@@ -504,16 +504,16 @@ public class KunShanStation implements Serializable {
         LocalDateTime localDateTime4 = LocalDateTime.parse(date.toString() +
                 "2359", formatterDateTimeMi);
         //枢纽站开始时间
-        Timestamp stationBaseBeginTime = secondStationBase.getAs("begin_time");
+        Timestamp stationBaseBeginTime = (Timestamp) secondStationBase.getAs("begin_time");
         LocalDateTime beginTimeLocalDateTime = LocalDateTime.parse
                 (stationBaseBeginTime.toString(), formatterDateTime);
         //枢纽站停留时间
-        Integer stationBaseMoveTime = secondStationBase.getAs("move_time");
+        Integer stationBaseMoveTime = (Integer) secondStationBase.getAs("move_time");
 
         //第二个枢纽基站后是否有停留点
         Boolean afterSecondStationHasStayPoint = false;
         for (int i = secondStationIndex + 1; i < rows.size(); i++) {
-            Byte pointType = rows.get(i).getAs("point_type");
+            Byte pointType = (Byte) rows.get(i).getAs("point_type");
             if (pointType == SignalProcessUtil.STAY_POINT) {
                 afterSecondStationHasStayPoint = true;
                 break;
