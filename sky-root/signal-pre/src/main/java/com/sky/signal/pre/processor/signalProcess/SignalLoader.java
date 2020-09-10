@@ -235,7 +235,7 @@ public class SignalLoader implements Serializable {
                         age = userRow.getShort(2);
                         sex = userRow.getShort(1);
                     }
-                    return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("region"), row.getAs("city_code"),
+                    return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), row.getAs("region"), row.getAs("city_code"),row.getAs("district_code"),
                             cen_region, sex, age, row.getAs("tac"), row.getAs("cell"), row.getAs("base"), row.getAs("lng"), row.getAs
                                     ("lat"),
                             row.getAs("begin_time"), row.getAs("last_time"), row.getAs("distance"), row.getAs("move_time"), row.getAs
@@ -312,7 +312,7 @@ public class SignalLoader implements Serializable {
                     } else {
                         region = regionRow.getInt(1);
                     }
-                    return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), region, row.getAs("city_code"),
+                    return RowFactory.create(row.getAs("date"), row.getAs("msisdn"), region, row.getAs("city_code"),row.getAs("district_code"),
                             row.getAs("cen_region"), row.getAs("sex"), row.getAs("age"), row.getAs("tac"), row.getAs("cell"),
                             row.getAs("base"), row.getAs("lng"), row.getAs("lat"), row.getAs("begin_time"), row.getAs("last_time"),
                             row.getAs("distance"), row.getAs("move_time"), row.getAs("speed"));
