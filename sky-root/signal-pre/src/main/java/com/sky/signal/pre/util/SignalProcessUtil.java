@@ -51,7 +51,7 @@ public class SignalProcessUtil {
         JavaPairRDD<String, Row> validSignalRDD = validSignalDf.javaRDD()
                 .mapToPair(new PairFunction<Row, String, Row>() {
             public Tuple2<String, Row> call(Row row) throws Exception {
-                String msisdn = row.getAs("msisdn");
+                String msisdn = (String) row.getAs("msisdn");
                 return new Tuple2<>(msisdn, row);
             }
         });
@@ -93,9 +93,9 @@ public class SignalProcessUtil {
         double speed = 0d;
         if (current != null && next != null) {
             //基站与下一基站距离
-            distance = MapUtil.getDistance((double) next.getAs("lng"),
-                    (double) next.getAs("lat"), (double) current.getAs("lng")
-                    , (double) current.getAs("lat"));
+            distance = MapUtil.getDistance((Double) next.getAs("lng"),
+                    (Double) next.getAs("lat"), (Double) current.getAs("lng")
+                    , (Double) current.getAs("lat"));
             //基站移动到下一基站速度
             speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance /
                     moveTime * 3.6, 2);
@@ -111,18 +111,17 @@ public class SignalProcessUtil {
         double speed = 0d;
         if (prior != current && current != null) {
             //基站与下一基站距离
-            distance = MapUtil.getDistance((double) current.getAs("lng"),
-                    (double) current.getAs("lat"), (double) prior.getAs
-                            ("lng"), (double) prior.getAs("lat"));
+            distance = MapUtil.getDistance((Double) current.getAs("lng"),
+                    (Double) current.getAs("lat"), (Double) prior.getAs
+                            ("lng"), (Double) prior.getAs("lat"));
             //移动到下一基站时间 = 下一基站startTime - 基站startTime
             moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
                     .getAs("begin_time")), new DateTime(prior.getAs
                     ("begin_time"))).getSeconds());
             //基站移动到下一基站速度
-            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : (double)
-                    distance / moveTime * 3.6, 2);
+            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance / moveTime * 3.6, 2);
         }
-        String base = prior.getAs("base");
+        String base = (String) prior.getAs("base");
         byte pointType = getPointType(base, moveTime, speed);
         return new GenericRowWithSchema(new Object[]{prior.getAs("date"),
                 prior.getAs("msisdn"), prior.getAs("base"), prior.getAs

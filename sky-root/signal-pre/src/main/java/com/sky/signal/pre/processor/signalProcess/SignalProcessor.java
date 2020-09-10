@@ -99,7 +99,7 @@ public class SignalProcessor implements Serializable {
         double speed = 0d;
         if (prior != null && current != null) {
             //基站与下一基站距离
-            distance = MapUtil.getDistance((double) current.getAs("lng"), (double) current.getAs("lat"), (double) prior.getAs("lng"), (double) prior.getAs("lat"));
+            distance = MapUtil.getDistance((Double) current.getAs("lng"), (Double) current.getAs("lat"), (Double) prior.getAs("lng"), (Double) prior.getAs("lat"));
             //基站移动到下一基站速度
             speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance / moveTime * 3.6, 2);
         }
@@ -143,9 +143,9 @@ public class SignalProcessor implements Serializable {
                 begin_time = (Timestamp) prev.getAs("begin_time");
             } else {
                 current = rows.get(i);
-                if ((int) prev.getAs("distance") < 100 || prev.getAs("base").equals(current.getAs("base"))) {
+                if ((Integer) prev.getAs("distance") < 100 || prev.getAs("base").equals(current.getAs("base"))) {
                     last_time = (Timestamp) current.getAs("last_time");
-                    if ((int) prev.getAs("move_time") >= (int) current.getAs("move_time")) {
+                    if ((Integer) prev.getAs("move_time") >= (Integer) current.getAs("move_time")) {
                         if (i + 1 < rows.size()) {
                             prev = calcSignal(prev, rows.get(i + 1), begin_time, last_time);
                         } else {
@@ -189,21 +189,21 @@ public class SignalProcessor implements Serializable {
      */
     private static Tuple3<Row, Row, Row> calcForRow3(List<Row> rows, Row row1, Row row2, Row row3, Row current) {
         if (row1 != null && row2 != null && row3 != null) {
-            if (MapUtil.getDistance((double) row3.getAs("lng"), (double) row3.getAs("lat"), (double) row1.getAs("lng"), (double) row1.getAs("lat")) <= 100) {
-                if ((int) row2.getAs("move_time") < 120 && (int) row1.getAs("move_time") + (int) row3.getAs("move_time") >= (int) row2.getAs("move_time")) {
+            if (MapUtil.getDistance((Double) row3.getAs("lng"), (Double) row3.getAs("lat"), (Double) row1.getAs("lng"), (Double) row1.getAs("lat")) <= 100) {
+                if ((Integer) row2.getAs("move_time") < 120 && (Integer) row1.getAs("move_time") + (Integer) row3.getAs("move_time") >= (Integer) row2.getAs("move_time")) {
                     row1 = calcSignal(row1, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
                     row2 = current;
                     row3 = null;
-                } else if ((int) row1.getAs("move_time") < 120 && (int) row3.getAs("move_time") < 120 && (int) row1.getAs("move_time") + (int) row3.getAs("move_time") < (int) row2.getAs("move_time")) {
+                } else if ((Integer) row1.getAs("move_time") < 120 && (Integer) row3.getAs("move_time") < 120 && (Integer) row1.getAs("move_time") + (Integer) row3.getAs("move_time") < (Integer) row2.getAs("move_time")) {
                     row1 = calcSignal(row2, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
                     row2 = current;
                     row3 = null;
-                } else if ((int) row2.getAs("move_time") > 120) {
-                    if ((int) row1.getAs("move_time") <= 120 && (int) row3.getAs("move_time") > 120) {
+                } else if ((Integer) row2.getAs("move_time") > 120) {
+                    if ((Integer) row1.getAs("move_time") <= 120 && (Integer) row3.getAs("move_time") > 120) {
                         row1 = calcSignal(row2, row3, (Timestamp) row1.getAs("begin_time"), (Timestamp) row2.getAs("last_time"));
                         row2 = row3;
                         row3 = current;
-                    } else if ((int) row1.getAs("move_time") > 120 && (int) row3.getAs("move_time") <= 120) {
+                    } else if ((Integer) row1.getAs("move_time") > 120 && (Integer) row3.getAs("move_time") <= 120) {
                         row2 = calcSignal(row2, current, (Timestamp) row2.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
                         row3 = current;
                     } else {
@@ -218,7 +218,7 @@ public class SignalProcessor implements Serializable {
                     row2 = row3;
                     row3 = current;
                 }
-            } else if (((int) row1.getAs("distance") <= 5000 || (int) row1.getAs("move_time") >= 120) && (int) row2.getAs("distance") > 5000 && (int) row2.getAs("move_time") < 120) {
+            } else if (((Integer) row1.getAs("distance") <= 5000 || (Integer) row1.getAs("move_time") >= 120) && (Integer) row2.getAs("distance") > 5000 && (Integer) row2.getAs("move_time") < 120) {
                 //第1/2笔距离<=5000 或 移动时间>120, 表示第1/2笔正常
                 //第2/3笔距离>5000 并 第2/3笔移动时间<=120, 表示第3笔不正常, 将3合并到2
                 row2 = calcSignal(row2, current, (Timestamp) row2.getAs("begin_time"), (Timestamp) row3.getAs("last_time"));
@@ -280,7 +280,7 @@ public class SignalProcessor implements Serializable {
         if (row1 != null && row2 != null && row3 != null && row4 != null) {
             //第2+3笔移动时间<=120, 第1+4笔移动时间>=第2+3笔移动时间,
             // 第1/4笔基站相同或第1/4笔基站距离<=100米, 合并第2/3/4笔到第1笔
-            if ((int) row2.getAs("move_time") + (int) row3.getAs("move_time") <= 120 && (int) row1.getAs("move_time") + (int) row4.getAs("move_time") >= (int) row2.getAs("move_time") + (int) row3.getAs("move_time") && MapUtil.getDistance((double) row1.getAs("lng"), (double) row1.getAs("lat"), (double) row4.getAs("lng"), (double) row4.getAs("lat")) <= 100) {
+            if ((Integer) row2.getAs("move_time") + (Integer) row3.getAs("move_time") <= 120 && (Integer) row1.getAs("move_time") + (Integer) row4.getAs("move_time") >= (Integer) row2.getAs("move_time") + (Integer) row3.getAs("move_time") && MapUtil.getDistance((Double) row1.getAs("lng"), (Double) row1.getAs("lat"), (Double) row4.getAs("lng"), (Double) row4.getAs("lat")) <= 100) {
                 row1 = calcSignal(row1, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row4.getAs("last_time"));
                 row2 = current;
                 row3 = null;
@@ -340,7 +340,7 @@ public class SignalProcessor implements Serializable {
         if (row1 != null && row2 != null && row3 != null && row4 != null && row5 != null) {
             //2+3+4笔移动时间<=120, 第1+5笔移动时间>=第2+3+4笔移动时间,
             // 第1/5笔基站相同或第1/5笔基站距离<=100, 合并第2/3/4/5笔到第1笔
-            if ((int) row2.getAs("move_time") + (int) row3.getAs("move_time") + (int) row4.getAs("move_time") <= 120 && (int) row1.getAs("move_time") + (int) row5.getAs("move_time") >= (int) row2.getAs("move_time") + (int) row3.getAs("move_time") + (int) row4.getAs("move_time") && MapUtil.getDistance((double) row1.getAs("lng"), (double) row1.getAs("lat"), (double) row5.getAs("lng"), (double) row5.getAs("lat")) <= 100) {
+            if ((Integer) row2.getAs("move_time") + (Integer) row3.getAs("move_time") + (Integer) row4.getAs("move_time") <= 120 && (Integer) row1.getAs("move_time") + (Integer) row5.getAs("move_time") >= (Integer) row2.getAs("move_time") + (Integer) row3.getAs("move_time") + (Integer) row4.getAs("move_time") && MapUtil.getDistance((Double) row1.getAs("lng"), (Double) row1.getAs("lat"), (Double) row5.getAs("lng"), (Double) row5.getAs("lat")) <= 100) {
                 row1 = calcSignal(row1, current, (Timestamp) row1.getAs("begin_time"), (Timestamp) row5.getAs("last_time"));
                 row2 = current;
                 row3 = null;
@@ -401,9 +401,9 @@ public class SignalProcessor implements Serializable {
      */
     private static Tuple3<Row, Row, Row> calcForTransferSecs(List<Row> rows, Row row1, Row row2, Row row3, Row current) {
         if (row1 != null && row2 != null && row3 != null) {
-            if ((int) row2.getAs("move_time") <= 5) {
+            if ((Integer) row2.getAs("move_time") <= 5) {
                 //将第2笔合并到第1/3笔中时间较长的那笔
-                if ((int) row1.getAs("move_time") > (int) row3.getAs("move_time")) {
+                if ((Integer) row1.getAs("move_time") > (Integer) row3.getAs("move_time")) {
                     row1 = calcSignal(row1, row3, (Timestamp) row1.getAs("begin_time"), (Timestamp) row2.getAs("last_time"));
                     row2 = row3;
                     row3 = current;

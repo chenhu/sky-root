@@ -452,14 +452,14 @@ public class KunShanStation implements Serializable {
             //如果无工作基站和居住基站，返回false
             return false;
         } else if (!StringUtils.isEmpty(workBase)) {
-            distance = MapUtil.getDistance((double) staypointRow.getAs("lng")
-                    , (double) staypointRow.getAs("lat"), (double)
-                            userWorkLiveRow.getAs("work_lng"), (double)
+            distance = MapUtil.getDistance((Double) staypointRow.getAs("lng")
+                    , (Double) staypointRow.getAs("lat"), (Double)
+                            userWorkLiveRow.getAs("work_lng"), (Double)
                             userWorkLiveRow.getAs("work_lat"));
         } else if (!StringUtils.isEmpty(liveBase)) {
-            distance = MapUtil.getDistance((double) staypointRow.getAs("lng")
-                    , (double) staypointRow.getAs("lat"), (double)
-                            userWorkLiveRow.getAs("live_lng"), (double)
+            distance = MapUtil.getDistance((Double) staypointRow.getAs("lng")
+                    , (Double) staypointRow.getAs("lat"), (Double)
+                            userWorkLiveRow.getAs("live_lng"), (Double)
                             userWorkLiveRow.getAs("live_lat"));
         }
         //距离是否大于800米

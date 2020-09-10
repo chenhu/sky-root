@@ -90,7 +90,7 @@ public class LiveProcess implements Serializable {
                     }
                 } else if (date1.plusDays(1).equals(date2)) { //隔1天
                     //后1天1:00前没数据, 并且两个基站距离<=500
-                    if (time2.compareTo(time0100) >= 0 && MapUtil.getDistance((double) prior.getAs("lng"), (double) prior.getAs("lat"), (double) current.getAs("lng"), (double) current.getAs("lat")) <= 500) {
+                    if (time2.compareTo(time0100) >= 0 && MapUtil.getDistance((Double) prior.getAs("lng"), (Double) prior.getAs("lat"), (Double) current.getAs("lng"), (Double) current.getAs("lat")) <= 500) {
                         begin_time1 = begin_time1.withDate(date2).withTime(time0100);
                         if (time2.compareTo(time0700) >= 0) {
                             begin_time2 = begin_time2.withTime(time0700);

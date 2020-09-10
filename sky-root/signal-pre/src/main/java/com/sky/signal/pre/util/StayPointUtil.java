@@ -46,8 +46,8 @@ public class StayPointUtil implements Serializable {
                     ("date"), row.getAs("msisdn"), row.getAs("base"), row
                     .getAs("lng"), row.getAs("lat"), row.getAs("begin_time"),
                     row.getAs("last_time"), row.getAs("distance"), row.getAs
-                    ("move_time"), row.getAs("speed"), getPointType((int) row
-                    .getAs("move_time"), (double) row.getAs("speed"))},
+                    ("move_time"), row.getAs("speed"), getPointType((Integer) row
+                    .getAs("move_time"), (Double) row.getAs("speed"))},
                     ODSchemaProvider.TRACE_SCHEMA));
         }
         return result;
@@ -82,16 +82,15 @@ public class StayPointUtil implements Serializable {
         byte pointType = (Byte) prior.getAs("point_type");
         if (prior != current && current != null) {
             //基站与下一基站距离
-            distance = MapUtil.getDistance((double) current.getAs("lng"),
-                    (double) current.getAs("lat"), (double) prior.getAs
-                            ("lng"), (double) prior.getAs("lat"));
+            distance = MapUtil.getDistance((Double) current.getAs("lng"),
+                    (Double) current.getAs("lat"), (Double) prior.getAs
+                            ("lng"), (Double) prior.getAs("lat"));
             //基站移动到下一基站时间 = 下一基站startTime - 基站startTime
             moveTime = Math.abs(Seconds.secondsBetween(new DateTime(current
                     .getAs("begin_time")), new DateTime(prior.getAs
                     ("begin_time"))).getSeconds());
             //基站移动到下一基站速度
-            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : (double)
-                    distance / moveTime * 3.6, 2);
+            speed = MapUtil.formatDecimal(moveTime == 0 ? 0 : distance / moveTime * 3.6, 2);
         }
         pointType = pointType == SignalProcessUtil.UNCERTAIN_POINT ?
                 getPointType(moveTime, speed) : pointType;
@@ -116,9 +115,9 @@ public class StayPointUtil implements Serializable {
             } else {
                 byte priorType = (Byte)prior.getAs("point_type");
                 byte currentType = (Byte)current.getAs("point_type");
-                int distance = MapUtil.getDistance((double) current.getAs
-                        ("lng"), (double) current.getAs("lat"), (double)
-                        prior.getAs("lng"), (double) prior.getAs("lat"));
+                int distance = MapUtil.getDistance((Double) current.getAs
+                        ("lng"), (Double) current.getAs("lat"), (Double)
+                        prior.getAs("lng"), (Double) prior.getAs("lat"));
                 if ((priorType == SignalProcessUtil.STAY_POINT && currentType == SignalProcessUtil.STAY_POINT && distance <= RANGE_I)
                         || (((priorType == SignalProcessUtil.STAY_POINT && currentType == SignalProcessUtil.UNCERTAIN_POINT)
                         || (priorType == SignalProcessUtil.UNCERTAIN_POINT && currentType == SignalProcessUtil.STAY_POINT)) && distance <= RANGE_II)
@@ -181,9 +180,9 @@ public class StayPointUtil implements Serializable {
             if (prior == null) {
                 prior = current;
             } else {
-                int distance = MapUtil.getDistance((double) current.getAs
-                        ("lng"), (double) current.getAs("lat"), (double)
-                        prior.getAs("lng"), (double) prior.getAs("lat"));
+                int distance = MapUtil.getDistance((Double) current.getAs
+                        ("lng"), (Double) current.getAs("lat"), (Double)
+                        prior.getAs("lng"), (Double) prior.getAs("lat"));
                 if ((Byte) prior.getAs("point_type") == SignalProcessUtil
                         .STAY_POINT && (Byte) current.getAs("point_type") ==
                         SignalProcessUtil.STAY_POINT && distance <= RANGE_I) {
@@ -266,9 +265,9 @@ public class StayPointUtil implements Serializable {
                 Row stayPointRow = getNearestStayPoint(rows, i);
                 byte newType = SignalProcessUtil.MOVE_POINT;
                 if (stayPointRow != null) {
-                    int distance = MapUtil.getDistance((double) current.getAs
-                            ("lng"), (double) current.getAs("lat"), (double)
-                            stayPointRow.getAs("lng"), (double) stayPointRow
+                    int distance = MapUtil.getDistance((Double) current.getAs
+                            ("lng"), (Double) current.getAs("lat"), (Double)
+                            stayPointRow.getAs("lng"), (Double) stayPointRow
                             .getAs("lat"));
                     if (distance > RANGE_II) {
                         newType = SignalProcessUtil.STAY_POINT;
@@ -292,9 +291,9 @@ public class StayPointUtil implements Serializable {
                         newType}, ODSchemaProvider.TRACE_SCHEMA));
 
             } else {
-                int distance = MapUtil.getDistance((double) current.getAs
-                        ("lng"), (double) current.getAs("lat"), (double)
-                        nearest_stayPoint.getAs("lng"), (double)
+                int distance = MapUtil.getDistance((Double) current.getAs
+                        ("lng"), (Double) current.getAs("lat"), (Double)
+                        nearest_stayPoint.getAs("lng"), (Double)
                         nearest_stayPoint.getAs("lat"));
                 if (distance > RANGE_II) {
                     Row temp = new GenericRowWithSchema(new Object[]{current

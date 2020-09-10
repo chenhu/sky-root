@@ -56,7 +56,7 @@ public class MapUtil {
         // 两点经度差
         double lngSub = getRadian(lng1) - getRadian(lng2);
         double s = Math.asin(Math.sqrt(Math.pow(Math.sin(latSub / 2), 2) + Math.cos(latRad1) * Math.cos(latRad2) * Math.pow(Math.sin(lngSub / 2), 2))) * 2;
-        return (int) Math.round(s * EARTH_RADIUS);
+        return (int)Math.round(s * EARTH_RADIUS);
     }
 
     public static Column getDistance(Column lng1, Column lat1, Column lng2, Column lat2) {

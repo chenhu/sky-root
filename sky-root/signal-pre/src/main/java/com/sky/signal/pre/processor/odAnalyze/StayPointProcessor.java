@@ -104,15 +104,15 @@ public class StayPointProcessor implements Serializable {
                 if (j - moveStart == 0 || newCur == moveStart ||
                         (d_min == null && newPrev == j - 1) ||
                         stayPointUtil.getTimeDiff(prevEnd, currentBegin) <= 0) {
-                    int distance = MapUtil.getDistance((double) current.getAs("lng"), (double)
-                            current.getAs("lat"), (double) prev.getAs("lng"), (double) prev.getAs
+                    int distance = MapUtil.getDistance((Double) current.getAs("lng"), (Double)
+                            current.getAs("lat"), (Double) prev.getAs("lng"), (Double) prev.getAs
                             ("lat"));
                     int move_time = stayPointUtil.getTimeDiff((Timestamp) prev.getAs
                             ("begin_time"), currentBegin);
                     result.add(new GenericRowWithSchema(new Object[]{prev.getAs("date"), prev
                             .getAs("msisdn"), prev.getAs("base"), prev.getAs("lng"), prev.getAs
                             ("lat"), prev.getAs("begin_time"), prevEnd, distance, move_time,
-                            MapUtil.formatDecimal(move_time == 0 ? 0 : (double) distance /
+                            MapUtil.formatDecimal(move_time == 0 ? 0 : distance /
                                     move_time * 3.6, 2), prev.getAs("point_type")},
                             ODSchemaProvider.TRACE_SCHEMA));
 
@@ -120,8 +120,8 @@ public class StayPointProcessor implements Serializable {
                     // 重新计算时间
                     first = first == null ? movePoints.get(moveStart) : first;
                     Timestamp moveBegin = (Timestamp) first.getAs("begin_time");
-                    int distance = MapUtil.getDistance((double) prev.getAs("lng"), (double) prev
-                            .getAs("lat"), (double) first.getAs("lng"), (double) first.getAs
+                    int distance = MapUtil.getDistance((Double) prev.getAs("lng"), (Double) prev
+                            .getAs("lat"), (Double) first.getAs("lng"), (Double) first.getAs
                             ("lat"));
                     if (stayPointUtil.getTimeDiff(prevEnd, moveBegin) >= 600) {
                         int delta = Math.round(distance * 3.6f / 8);
@@ -134,7 +134,7 @@ public class StayPointProcessor implements Serializable {
                     result.add(new GenericRowWithSchema(new Object[]{prev.getAs("date"), prev
                             .getAs("msisdn"), prev.getAs("base"), prev.getAs("lng"), prev.getAs
                             ("lat"), prev.getAs("begin_time"), prevEnd, distance, move_time,
-                            MapUtil.formatDecimal(move_time == 0 ? 0 : (double) distance /
+                            MapUtil.formatDecimal(move_time == 0 ? 0 : distance /
                                     move_time * 3.6, 2), prev.getAs("point_type")},
                             ODSchemaProvider.TRACE_SCHEMA));
 
@@ -263,15 +263,15 @@ public class StayPointProcessor implements Serializable {
                 // 获取曲线距离
                 int linkedDistance = 0;
                 for (Row row : trace) {
-                    linkedDistance += (int) row.getAs("distance");
+                    linkedDistance += (Integer) row.getAs("distance");
                 }
                 // 计算速度变异系数
                 List<Double> speedList = new ArrayList<>();
                 double sumSpeed = 0;
 
                 for (Row row : trace) {
-                    speedList.add((double) row.getAs("speed"));
-                    sumSpeed += (double) row.getAs("speed");
+                    speedList.add((Double) row.getAs("speed"));
+                    sumSpeed += (Double) row.getAs("speed");
 
                 }
                 // 最大速度
@@ -290,8 +290,8 @@ public class StayPointProcessor implements Serializable {
                 } catch (Exception ex) {
 
                 }
-                int distance = MapUtil.getDistance((double) o.getAs("lng"), (double) o.getAs
-                        ("lat"), (double) d.getAs("lng"), (double) d.getAs("lat"));
+                int distance = MapUtil.getDistance((Double) o.getAs("lng"), (Double) o.getAs
+                        ("lat"), (Double) d.getAs("lng"), (Double) d.getAs("lat"));
 
                 Row od = new GenericRowWithSchema(new Object[]{o.getAs("date"),
                         o.getAs("msisdn"),
@@ -369,12 +369,12 @@ public class StayPointProcessor implements Serializable {
         int sumDistance = 0;
         List<Double> distanceList = new ArrayList<>();
         for (Row row : trace) {
-            Double tmpdis = Double.valueOf((int) row.getAs("distance"));
+            Double tmpdis = Double.valueOf((Integer) row.getAs("distance"));
             distanceList.add(tmpdis);
-            sumDistance += (int) row.getAs("distance");
+            sumDistance += (Integer) row.getAs("distance");
 
         }
-        double avgDistance = MapUtil.formatDecimal((double) sumDistance / trace.size(), 2);
+        double avgDistance = MapUtil.formatDecimal(sumDistance / trace.size(), 2);
         double stdDistance = MathUtil.stdVariance(distanceList.toArray(new Double[distanceList
                 .size()]));
 
@@ -382,8 +382,8 @@ public class StayPointProcessor implements Serializable {
         List<Double> speedList = new ArrayList<>();
         double sumSpeed = 0;
         for (Row row : trace) {
-            speedList.add((double) row.getAs("speed"));
-            sumSpeed += (double) row.getAs("speed");
+            speedList.add((Double) row.getAs("speed"));
+            sumSpeed += (Double) row.getAs("speed");
 
         }
         double avgSpeed = MapUtil.formatDecimal(sumSpeed / trace.size(), 2);
@@ -409,13 +409,13 @@ public class StayPointProcessor implements Serializable {
                     continue;
                 }
 
-                int distance = MapUtil.getDistance((double) current.getAs("lng"), (double)
-                        current.getAs("lat"), (double) prior.getAs("lng"), (double) prior.getAs
+                int distance = MapUtil.getDistance((Double) current.getAs("lng"), (Double)
+                        current.getAs("lat"), (Double) prior.getAs("lng"), (Double) prior.getAs
                         ("lat"));
                 double subDistance = Math.abs(distance - avgDistance);
 
                 int timeDiff = stayPointUtil.getTimeDiff(originEnd, destBegin);
-                double speed = MapUtil.formatDecimal(timeDiff == 0 ? 0 : (double) distance /
+                double speed = MapUtil.formatDecimal(timeDiff == 0 ? 0 :  distance /
                         timeDiff * 3.6, 2);
                 double subSpeed = Math.abs(speed - avgSpeed);
                 if (subDistance <= 2 * stdDistance && subSpeed <= 2 * stdSpeed) {

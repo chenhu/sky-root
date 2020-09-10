@@ -124,8 +124,8 @@ public class SignalLoader implements Serializable {
                     //Do nothing
                 } else {
                     base = (String) cellRow.getAs("base");
-                    lng = (double) cellRow.getAs("lng");
-                    lat = (double) cellRow.getAs("lat");
+                    lng = (Double) cellRow.getAs("lng");
+                    lat = (Double) cellRow.getAs("lat");
                     cityCode = (Integer) cellRow.getAs("city_code");
                     districtCode = (Integer) cellRow.getAs("district_code");
                 }
