@@ -50,7 +50,7 @@ public class CRMProcess implements Serializable {
         if(!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-        JavaRDD<String> orignalRDD=sparkContext.textFile(params.getUserFile());
+        JavaRDD<String> orignalRDD=sparkContext.textFile(params.getCRMFilePath());
         JavaRDD<Row> userRdd= orignalRDD.map(new Function<String,Row>() {
             @Override
             public Row call(String line) {

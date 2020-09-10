@@ -2,8 +2,6 @@ package com.sky.signal.pre.service.impl;
 
 import com.sky.signal.pre.processor.baseAnalyze.CellProcess;
 import com.sky.signal.pre.service.ComputeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +10,6 @@ import org.springframework.stereotype.Component;
  */
 @Component("CellService")
 public class CellService implements ComputeService {
-    private static final Logger logger = LoggerFactory.getLogger(CellService.class);
-
     @Autowired
     private CellProcess cellProcess;
 

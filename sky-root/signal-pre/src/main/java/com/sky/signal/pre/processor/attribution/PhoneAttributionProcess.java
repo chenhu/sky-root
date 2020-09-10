@@ -27,7 +27,7 @@ public class PhoneAttributionProcess implements Serializable {
     @Autowired
     private transient ParamProperties params;
     public Broadcast< Map<Integer,Row>> process() {
-        JavaRDD<String> regionsRdd=sparkContext.textFile(params.getPhoneCityFile());
+        JavaRDD<String> regionsRdd=sparkContext.textFile(params.getGSDZFilePath());
         JavaRDD<Row> regionRdd= regionsRdd.map(new org.apache.spark.api.java.function.Function<String,Row>() {
             @Override
             public Row call(String line) {

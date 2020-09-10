@@ -43,8 +43,6 @@ public class ParamProperties {
      */
     private String savePath;
 
-    private String phoneCityFile;
-
     public static final String[] JS_CITY_CODES = new String[]{"1000250","1000510","1000511","1000512",
             "1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523","1000527"};
 
@@ -103,10 +101,6 @@ public class ParamProperties {
     private Double visualLng;
     private Double visualLat;
     private String visualStationBase;
-    /**
-     * 用户信息
-     */
-    private String userFile;
     /**
      * 分区数
      */
@@ -416,6 +410,17 @@ public class ParamProperties {
             result.add(this.getValidSignalSavePath(day));
         }
         return result;
+    }
+
+    public String getCRMFilePath() {
+        return this.getBasePath()
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.CRM_PATH);
+    }
+
+    public String getGSDZFilePath() {
+        return this.getBasePath().concat(PathConfig.GSDZ_FILE_PATH);
     }
 
 }

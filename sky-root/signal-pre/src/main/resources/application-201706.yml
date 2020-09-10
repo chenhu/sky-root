@@ -2,7 +2,6 @@
 param:
   workLiveName: 201706
   signalsForWorkLive:
-    - 20170601
     - 20170602
     - 20170603
     - 20170604

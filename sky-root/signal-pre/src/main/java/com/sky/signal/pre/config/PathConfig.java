@@ -7,6 +7,8 @@ package com.sky.signal.pre.config;
 public class PathConfig {
     //原始基站文件路径
     public static final String ORN_CELL_PATH = "cell/cell.csv";
+    //手机号码归属地文件
+    public static final String GSDZ_FILE_PATH = "GSDZ.csv";
     //普通基站处理后保存文件夹名称
     public static final String CELL_PATH = "cell";
     //枢纽基站处理后保存文件夹名称
@@ -22,6 +24,8 @@ public class PathConfig {
     //原始信令文件夹名称
     public static final String TRACE_PATH = "trace/dt=";
     public static final String CITY_PRE_PATH = "city=";
+    //CRM预处理后的保存路径
+    public static final String CRM_PATH = "crm/crm.csv";
     //CRM预处理后的保存路径
     public static final String CRM_SAVE_PATH = "crm/";
     //有效信令的保存路径

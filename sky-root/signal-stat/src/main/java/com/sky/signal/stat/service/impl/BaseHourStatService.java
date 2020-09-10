@@ -1,6 +1,5 @@
 package com.sky.signal.stat.service.impl;
 
-import com.google.common.base.Stopwatch;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.BaseHourStat;
 import com.sky.signal.stat.processor.signal.SignalSchemaProvider;
@@ -29,7 +28,6 @@ public class BaseHourStatService implements ComputeService {
 
     @Override
     public void compute() {
-        Stopwatch stopwatch = Stopwatch.createStarted();
         DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class","sex","age_class").repartition(params.getPartitions());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
         Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
@@ -39,7 +37,6 @@ public class BaseHourStatService implements ComputeService {
         }
         baseHourStat.agg();
         workLiveDf.unpersist();
-        logger.info("BaseHourStatService duration: " + stopwatch.toString());
     }
     private DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
