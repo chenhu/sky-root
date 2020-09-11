@@ -63,7 +63,8 @@ public class ParamProperties {
     /**
      * 职住分析每个批次处理有效数据天数
      */
-    private Integer workliveBatchSize;
+    private Integer batch;
+    private static final String BATCH_SIZE = "batches";
     /**
      * 有效信令数据文件
      */
@@ -145,6 +146,10 @@ public class ParamProperties {
         //通过程序参数指定数据日期的天部分: --day=24,25,26 ,通过逗号分割的天
         if (args.containsOption(DAY)) {
             strDay = args.getOptionValues(DAY).get(0).trim();
+        }
+        //通过程序参数指定每个批次处理的数据天数: --batches=2
+        if (args.containsOption(BATCH_SIZE)) {
+            batch = Integer.valueOf(args.getOptionValues(BATCH_SIZE).get(0).trim());
         }
     }
     /**

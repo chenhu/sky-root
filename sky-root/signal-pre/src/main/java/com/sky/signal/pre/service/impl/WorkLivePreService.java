@@ -24,7 +24,7 @@ public class WorkLivePreService implements ComputeService {
 
     @Override
     public void compute() {
-        Map<Integer, List<String>> workLiveValidSignalFileMap = SelectSignalFilesByBatch.getBatchFiles(params.getValidSignalFilesForWorkLive(), params.getWorkliveBatchSize());
+        Map<Integer, List<String>> workLiveValidSignalFileMap = SelectSignalFilesByBatch.getBatchFiles(params.getValidSignalFilesForWorkLive(), params.getBatch());
         // 居住地分批次预处理
         for( int batchId: workLiveValidSignalFileMap.keySet()) {
             List<String> validSignalFiles = workLiveValidSignalFileMap.get(batchId);

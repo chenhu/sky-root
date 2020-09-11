@@ -21,7 +21,7 @@ public class WorkLiveExistsDayService implements ComputeService {
 
     @Override
     public void compute() {
-        Map<Integer, List<String>> liveValidSignalFileMap = SelectSignalFilesByBatch.getBatchFiles(params.getValidSignalFilesForWorkLive(), params.getWorkliveBatchSize());
+        Map<Integer, List<String>> liveValidSignalFileMap = SelectSignalFilesByBatch.getBatchFiles(params.getValidSignalFilesForWorkLive(), params.getBatch());
         // 出现天数分批次预处理
         for( int batchId: liveValidSignalFileMap.keySet()) {
             List<String> validSignalFiles = liveValidSignalFileMap.get(batchId);
