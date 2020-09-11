@@ -8,8 +8,6 @@ import com.sky.signal.stat.service.ComputeService;
 import com.sky.signal.stat.util.FileUtil;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.storage.StorageLevel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +16,6 @@ import java.util.Map;
 
 @Service("baseHourStatService")
 public class BaseHourStatService implements ComputeService {
-    private static final Logger logger = LoggerFactory.getLogger(BaseHourStatService.class);
     @Autowired
     private transient ParamProperties params;
     @Autowired

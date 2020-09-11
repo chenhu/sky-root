@@ -137,12 +137,12 @@ public class CombineODWorkLive implements Serializable {
         });
         DataFrame joinedDf = sqlContext.createDataFrame(joinedRDD, ODSchemaProvider.OD_STAT_SCHEMA);
 
-        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getStatPathWithProfile() + "combine-batch/"+batchId+"/combine-od");
+        FileUtil.saveFile(joinedDf, FileUtil.FileType.PARQUET, params.getCombineOdSavePath(batchId.toString()));
 
         return joinedDf;
     }
 
     public DataFrame read() {
-        return FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_STAT_SCHEMA,params.getStatPathWithProfile() + "combine-batch/*/combine-od").repartition(params.getPartitions());
+        return FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_STAT_SCHEMA,params.getCombineOdSavePath("*")).repartition(params.getPartitions());
     }
 }

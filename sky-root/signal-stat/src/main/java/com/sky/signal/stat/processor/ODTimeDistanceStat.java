@@ -33,10 +33,7 @@ public class ODTimeDistanceStat implements Serializable{
 
     public DataFrame process(DataFrame ODDf, SQLContext sqlContext) {
         JavaRDD<Row> odRDD = TransformFunction.transformTimeDistanceSpeed(ODDf);
-
         ODDf = sqlContext.createDataFrame(odRDD, ODSchemaProvider.OD_STAT_TEMP_SCHEMA);
-
-
         ODDf = ODDf.groupBy("date", "age_class", "trip_purpose", "move_time_class", "distance_class")
                 .agg(sum("move_time").divide(60).cast(new DecimalType(10,2)).as("sum_time"),
                         sum("linked_distance").divide(1000).cast(new DecimalType(10,2)).as("sum_dis"),
@@ -44,7 +41,7 @@ public class ODTimeDistanceStat implements Serializable{
                         countDistinct("msisdn").as("num_inter"))
                 .orderBy("date", "age_class", "trip_purpose", "move_time_class", "distance_class");
 
-        FileUtil.saveFile(ODDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "od-time-distance-stat");
+        FileUtil.saveFile(ODDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getODTimeDistanceSavePath());
         return ODDf;
 
     }

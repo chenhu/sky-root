@@ -1,25 +1,25 @@
 param:
-  workLiveFile: /user/bdoc/17/services/hdfs/132/changshu/save/201906/work_live_his
-  validSignalFilesForStat:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20190610
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20190612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20190614
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20190616
-  odFiles:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20190610
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20190612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20190614
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20190616
-  odTripStatFiles:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20190610
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20190612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20190614
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20190616
-  odTraceFiles:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20190610
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20190612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20190614
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20190616
+  workLiveName: 201706
+  validSignalDate:
+    - 20190610
+    - 20190612
+    - 20190614
+    - 20190616
+  odDate:
+    - 20190610
+    - 20190612
+    - 20190614
+    - 20190616
+  odTripStatDate:
+    - 20190610
+    - 20190612
+    - 20190614
+    - 20190616
+  odTraceDate:
+    - 20190610
+    - 20190612
+    - 20190614
+    - 20190616
 
 
 

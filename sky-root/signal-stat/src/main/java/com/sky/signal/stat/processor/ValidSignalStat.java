@@ -3,6 +3,7 @@ package com.sky.signal.stat.processor;
 import com.google.common.collect.Lists;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
+import com.sun.tools.corba.se.idl.InterfaceGen;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
@@ -27,20 +28,20 @@ public class ValidSignalStat implements Serializable {
     @Autowired
     private transient ParamProperties params;
 
-    public DataFrame process(DataFrame validDF, DataFrame workLiveDF, int batchId) {
+    public DataFrame process(DataFrame validDF, DataFrame workLiveDF, Integer batchId) {
         validDF = validDF.groupBy("date","msisdn").agg(count("msisdn").as("signal_count")).filter(col("signal_count").equalTo(1));
         DataFrame joinedDf = validDF.join(workLiveDF,validDF.col("msisdn").equalTo(workLiveDF.col("msisdn")),"left_outer");
         joinedDf = joinedDf.select(validDF.col("date"),validDF.col("msisdn"),workLiveDF.col("person_class"))
                 .groupBy("date","person_class")
                 .agg(countDistinct("msisdn").as("peo_num"));
-        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "validSignal-stat/" + batchId + "/stat");
+        FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.PARQUET, params.getValidSignalStatSavePath(batchId.toString()));
         return joinedDf;
     }
     public DataFrame agg() {
-        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getStatPathWithProfile() + "validSignal-stat/*/stat");
+        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.PARQUET, SCHEMA, params.getValidSignalStatSavePath("*"));
         aggDf = aggDf.groupBy("date", "person_class").agg(sum("peo_num")
                 .as("peo_num")).orderBy(col("date"),col("person_class"));
-        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "valid-stat");
+        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getValidSignalStatSavePath());
         return aggDf;
     }
 }

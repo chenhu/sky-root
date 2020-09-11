@@ -57,16 +57,16 @@ public class PersonClassStat implements Serializable {
     ));
 
     public DataFrame process() {
-        DataFrame workLiveStatDf  = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getStatPathWithProfile() + "work-live-stat");
+        DataFrame workLiveStatDf  = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getWorkLiveStatSavePath());
         JavaRDD<Row> rdd = workLiveStatDf.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
                 Long uld = 0l;
                 if(row.getAs("uld") != null) {
-                    uld = row.getAs("uld");
+                    uld = (Long) row.getAs("uld");
                 }
                 Integer uld_class = TransformFunction.transformULDClass(uld);
-                Integer stay_time_class = row.getAs("stay_time_class");
+                Integer stay_time_class = (Integer) row.getAs("stay_time_class");
                 Integer person_class = ChangshuPersonClassification.classify(uld, stay_time_class);
                 return RowFactory.create(uld, uld_class, stay_time_class,person_class, row.getAs("peo_num"));
             }
@@ -77,8 +77,8 @@ public class PersonClassStat implements Serializable {
 
         DataFrame statDf1 = workLiveStatDf.groupBy("person_class").agg(sum("peo_num").as("peo_num")).orderBy("person_class");
         DataFrame statDf2 = workLiveStatDf.groupBy("uld_class","stay_time_class").agg(sum("peo_num").as("peo_num")).orderBy("uld_class","stay_time_class");
-        FileUtil.saveFile(statDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "person-class-stat1");
-        FileUtil.saveFile(statDf2.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "person-class-stat2");
+        FileUtil.saveFile(statDf1.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getPersonClassStat1SavePath());
+        FileUtil.saveFile(statDf2.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getPersonClassStat2SavePath());
         workLiveStatDf.unpersist();
         return null;
     }

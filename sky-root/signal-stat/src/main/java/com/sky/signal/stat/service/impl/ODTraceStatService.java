@@ -34,27 +34,28 @@ public class ODTraceStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        Map<Integer, List<String>> odTraceMap = FilesBatchUtils.getBatchFiles(params.getOdTraceFiles(), params.getStatBatchSize());
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class","sex","age_class").repartition(params.getPartitions());
+        Map<Integer, List<String>> odTraceMap = FilesBatchUtils.getBatchFiles(params.getODTracePath(), params.getStatBatchSize());
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn", "person_class", "sex", "age_class").repartition(params.getPartitions());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
         // 分批次预处理
-        for( int batchId: odTraceMap.keySet()) {
+        for (int batchId : odTraceMap.keySet()) {
             List<String> odTraceFiles = odTraceMap.get(batchId);
             DataFrame odTraceDf = loadODTrace(odTraceFiles);
-            odTraceStat.process(odTraceDf, workLiveDf,batchId, sqlContext);
+            odTraceStat.process(odTraceDf, workLiveDf, batchId, sqlContext);
         }
         workLiveDf.unpersist();
         odTraceStat.combineData();
 
         logger.info("ODTraceStatService duration: " + stopwatch.toString());
     }
+
     public DataFrame loadODTrace(List<String> odTraceFiles) {
-        DataFrame odTraceDf = null ;
-        for (String odTraceFile: odTraceFiles) {
-            if(odTraceDf == null) {
-                odTraceDf = FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile).select("date","msisdn","leave_base","arrive_base","leave_time","arrive_time");
+        DataFrame odTraceDf = null;
+        for (String odTraceFile : odTraceFiles) {
+            if (odTraceDf == null) {
+                odTraceDf = FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile).select("date", "msisdn", "leave_base", "arrive_base", "leave_time", "arrive_time");
             } else {
-                odTraceDf = odTraceDf.unionAll(FileUtil.readFile(FileUtil.FileType.CSV, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile).select("date","msisdn","leave_base","arrive_base","leave_time","arrive_time"));
+                odTraceDf = odTraceDf.unionAll(FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_SCHEMA, odTraceFile).select("date", "msisdn", "leave_base", "arrive_base", "leave_time", "arrive_time"));
             }
         }
         return odTraceDf.repartition(params.getPartitions());

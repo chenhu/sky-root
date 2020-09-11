@@ -32,7 +32,7 @@ public class ODTimeStatService implements ComputeService {
         odWorkLiveCombinedDf.persist(StorageLevel.DISK_ONLY());
         //基站特定时间间隔OD统计
         oDTimeIntervalStat.process(odWorkLiveCombinedDf, sqlContext);
-        // 出行时耗-距离分布
+        //出行时耗-距离分布
         oDTimeDistanceStat.process(odWorkLiveCombinedDf, sqlContext);
         odWorkLiveCombinedDf.unpersist();
         logger.info("ODTraceStatService duration: " + stopwatch.toString());

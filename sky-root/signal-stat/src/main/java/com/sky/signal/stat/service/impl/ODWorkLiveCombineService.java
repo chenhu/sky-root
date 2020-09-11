@@ -32,7 +32,7 @@ public class ODWorkLiveCombineService implements ComputeService {
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
 
-        Map<Integer, List<String>> odMap = FilesBatchUtils.getBatchFiles(params.getOdFiles(), params.getStatBatchSize());
+        Map<Integer, List<String>> odMap = FilesBatchUtils.getBatchFiles(params.getODResultPath(), params.getStatBatchSize());
         DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
         // 分批次预处理

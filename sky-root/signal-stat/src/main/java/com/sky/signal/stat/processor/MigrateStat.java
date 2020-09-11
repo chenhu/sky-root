@@ -19,31 +19,21 @@ import static org.apache.spark.sql.functions.*;
  */
 @Service("migrateStat")
 public class MigrateStat implements Serializable {
-    private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(
-            DataTypes.createStructField("date", DataTypes.IntegerType, false),
-            DataTypes.createStructField("region", DataTypes.IntegerType, false),
-            DataTypes.createStructField("peo_num", DataTypes.LongType, false)
-    ));
+    private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false), DataTypes.createStructField("region", DataTypes.IntegerType, false), DataTypes.createStructField("peo_num", DataTypes.LongType, false)));
     @Autowired
     private transient ParamProperties params;
 
-    public DataFrame process(DataFrame validDF, DataFrame workLiveDF, int batchId) {
-        DataFrame joinedDf = validDF.join(workLiveDF, validDF.col("msisdn").equalTo(workLiveDF.col("msisdn")), "left_outer")
-                .select(
-                        validDF.col("date"),
-                        validDF.col("msisdn"),
-                        workLiveDF.col("region")
-                );
-        joinedDf = joinedDf.groupBy("date", "region").agg(countDistinct("msisdn")
-                .as("peo_num")).orderBy(col("date"),col("region"));
-        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getStatPathWithProfile() + batchId + "/migrate-stat");
+    public DataFrame process(DataFrame validDF, DataFrame workLiveDF, Integer batchId) {
+        DataFrame joinedDf = validDF.join(workLiveDF, validDF.col("msisdn").equalTo(workLiveDF.col("msisdn")), "left_outer").select(validDF.col("date"), validDF.col("msisdn"), workLiveDF.col("region"));
+        joinedDf = joinedDf.groupBy("date", "region").agg(countDistinct("msisdn").as("peo_num")).orderBy(col("date"), col("region"));
+        FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getMigrateSavePath(batchId.toString()));
         return joinedDf;
     }
+
     public DataFrame agg() {
-        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getStatPathWithProfile() + "*/migrate-stat");
-        aggDf = aggDf.groupBy("date", "region").agg(sum("peo_num")
-                .as("peo_num")).orderBy(col("date"),col("region"));
-        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "migrate-stat");
+        DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA, params.getMigrateSavePath("*"));
+        aggDf = aggDf.groupBy("date", "region").agg(sum("peo_num").as("peo_num")).orderBy(col("date"), col("region"));
+        FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getMigrateSavePath());
         return aggDf;
     }
 }

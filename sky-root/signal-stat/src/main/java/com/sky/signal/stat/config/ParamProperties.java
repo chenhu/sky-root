@@ -1,6 +1,5 @@
 package com.sky.signal.stat.config;
 
-import com.sky.signal.stat.util.ProfileUtil;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,26 +36,11 @@ public class ParamProperties {
     private String service;
 
     /**
-     * 保存路径
-     */
-    private String savePath;
-
-    /**
-     * 基站数据文件
-     */
-    private String cellFile;
-
-    /**
     * description: 当前处理的地市
     * param:
     * return:
     **/
     private Integer cityCode;
-
-    /**
-     * 手机号段归属地数据文件
-     */
-    private String phoneCityFile;
 
     /**
      * 移动信令数据基础路径
@@ -73,7 +57,7 @@ public class ParamProperties {
     /**
      * 用来做统计分析的有效信令
      */
-    private List<String> validSignalFilesForStat;
+    private List<String> validSignalDate;
 
     /**
      * 统计报表输出的分区数
@@ -83,7 +67,7 @@ public class ParamProperties {
     /**
      * 职住文件
      */
-    private String workLiveFile;
+    private String workLiveName;
 
     /**
      * 职住文件1
@@ -101,27 +85,17 @@ public class ParamProperties {
     /**
      * OD文件
      */
-    private List<String> odFiles;
+    private List<String> odDate;
 
     /**
      * OD trace文件
      */
-    private List<String> odTraceFiles;
+    private List<String> odTraceDate;
 
     /**
      * 出行统计的文件列表
      */
-    private List<String> odTripStatFiles;
-
-    /**
-     * 基站区域对照表
-     */
-    private String baseFile;
-
-    /**
-     * 用户信息
-     */
-    private String userFile;
+    private List<String> odTripStatDate;
 
     /**
      * 分区数
@@ -137,7 +111,7 @@ public class ParamProperties {
     // 服务名称注入
     private String SERVICENAME = "service";
     // 如果数据量比较大，分批次进行处理，每个批次处理的数据"份数"
-    private String BATCH_SIZE = "batch-size";
+    private String BATCH_SIZE = "batches";
 
     // 统计报表最终输出文件数
     private String STAT_PARTIONS = "stat-partition";
@@ -197,48 +171,150 @@ public class ParamProperties {
         }
     }
 
-    /**
-     * 获取客户hdfs上面原始信令数据路径
-     * 目前客户hdfs上面文件路径为 basepath/YYYYMMDD/xxxx.gz
-     * 此方法后面要根据实际情况作改动
-     * @return
-     */
-    public List<String> getTraceSignalFileFullPath() {
-        String orignal = this.getBasePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day: days) {
-            if(orignal.endsWith(sep)) {
-                fileList.add(orignal + "track_" + strYear + strMonth + day);
-            } else {
-                fileList.add(orignal + sep + "track_" + strYear + strMonth + day);
-            }
-        }
-        return fileList;
+    public String getBaseHourSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.BASE_HOUR_STAT).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getBaseHourSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.BASE_HOUR_STAT);
     }
 
-    /**
-    * description: 获取有效信令文件路径
-    * param: []
-    * return: java.lang.String
-    **/
-    public List<String> getValidSignalFileFullPath() {
-        String orignal = this.getSavePath();
-        String sep = java.io.File.separator;
-        String[] days = strDay.split(",");
-        List<String> fileList = new ArrayList<>();
-        for (String day: days) {
-            if(orignal.endsWith(sep)) {
-                fileList.add(orignal + "validSignal" + sep + strYear + strMonth + day);
-            } else {
-                fileList.add(orignal + sep + "validSignal" + sep + strYear + strMonth + day);
-            }
-        }
-        return fileList;
+    public String getMigrateSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.MiGRATE_STAT).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getMigrateSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.MiGRATE_STAT);
     }
 
-    public String getStatPathWithProfile() {
-        return this.getSavePath() + "stat/" + ProfileUtil.getActiveProfile().concat("/");
+    public String getCombineOdSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.COMBINE_OD).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getCombineOdSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.COMBINE_OD);
+    }
+
+    public String getOdDaySavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_DAY_STAT);
+    }
+    public String getODTimeIntervalGeneralSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TIME_INTERVAL_GENERAL_STAT);
+    }
+    public String getODTimeDistanceSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TIME_DISTANCE_STAT);
+    }
+
+    public String getODTraceDaySavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRACE_DAY).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getODTraceDaySavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRACE_DAY);
+    }
+
+    public String getODTraceBusyTimeSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRACE_BUSY_TIME_DAY).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getODTraceBusyTimeSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRACE_BUSY_TIME_DAY);
+    }
+
+    public String getODTripStatSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRIP_STAT).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getODTripStatSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRIP_STAT);
+    }
+
+    public String getODTripClassStatSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRIP_CLASS_STAT).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getODTripClassStatSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRIP_CLASS_STAT);
+    }
+
+    public String getValidSignalStatSavePath(String batchid) {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.VALIDSIGNAL_STAT).concat(batchid).concat(java.io.File.separator);
+    }
+    public String getValidSignalStatSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.VALIDSIGNAL_STAT);
+    }
+
+    public String getWorkLiveStatSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.WORK_LIVE_STAT);
+    }
+    public String getPersonClassStat1SavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.PERSON_CLASS_STAT1);
+    }
+    public String getPersonClassStat2SavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.PERSON_CLASS_STAT2);
+    }
+
+    public String getWorkLiveFile() {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.WORK_LIVE_SAVE_PATH)
+                .concat(this.getWorkLiveName());
+    }
+    public String getValidSignalSavePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(date);
+    }
+    public List<String> getValidSignalFilesForStat() {
+        List<String> result = new ArrayList<>();
+        for(String day: this.getValidSignalDate()) {
+            result.add(this.getValidSignalSavePath(day));
+        }
+        return result;
+    }
+
+    public String getODTracePath(String day) {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.OD_TRACE_SAVE_PATH)
+                .concat(day);
+    }
+
+    public List<String> getODTracePath() {
+        List<String> result = new ArrayList<>();
+        for(String day: this.getOdTraceDate()) {
+            result.add(this.getODTracePath(day));
+        }
+        return result;
+    }
+    public String getODStatTripPath(String day) {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.OD_STAT_TRIP_SAVE_PATH)
+                .concat(day);
+    }
+    public List<String> getODStatTripPath() {
+        List<String> result = new ArrayList<>();
+        for(String day: this.getOdTripStatDate()) {
+            result.add(this.getODStatTripPath(day));
+        }
+        return result;
+    }
+
+    public String getODResultPath(String day) {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.OD_SAVE_PATH)
+                .concat(day);
+    }
+    public List<String> getODResultPath() {
+        List<String> result = new ArrayList<>();
+        for(String day: this.getOdDate()) {
+            result.add(this.getODResultPath(day));
+        }
+        return result;
     }
 }

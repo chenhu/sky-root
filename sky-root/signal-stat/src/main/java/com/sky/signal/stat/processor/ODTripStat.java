@@ -32,8 +32,8 @@ public class ODTripStat implements Serializable{
             @Override
             public Row call(Row row) throws Exception {
                 Integer tripClass = 0;
-                Byte hasTrip = row.getAs("has_trip");
-                Integer staypointCount = row.getAs("staypoint_count");
+                Byte hasTrip = (Byte) row.getAs("has_trip");
+                Integer staypointCount = (Integer) row.getAs("staypoint_count");
                 if(hasTrip == 0) {
                     if(staypointCount == 0) {
                         tripClass = 3;
@@ -43,7 +43,6 @@ public class ODTripStat implements Serializable{
                         tripClass = 2;
                     }
                 }
-
                 return new GenericRowWithSchema(new Object[]{row.getAs("date"), row.getAs("msisdn"),row.getAs("person_class"),tripClass}, ODSchemaProvider.OD_TRIP_STAT_SCHEMA2);
             }
         });
@@ -51,7 +50,7 @@ public class ODTripStat implements Serializable{
         DataFrame df = odTripStat.groupBy("date", "person_class", "trip_class")
                 .agg(countDistinct("msisdn").as("peo_num"))
                 .orderBy("date","person_class", "trip_class");
-        FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getStatPathWithProfile() + "od-trip-class-stat");
+        FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getODTripClassStatSavePath());
         return df;
 
     }

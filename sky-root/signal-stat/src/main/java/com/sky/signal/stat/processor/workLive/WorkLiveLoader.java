@@ -93,9 +93,11 @@ public class WorkLiveLoader implements Serializable {
 
                 Integer person_class = ChangshuPersonClassification.classify(existsDays, sum_time);
 
-                return RowFactory.create(row.getAs("msisdn"), region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
-                        row.getAs("stay_time"), stayTimeClass, existsDays, live_base, liveGeo, row.getAs("live_lng"), row.getAs("live_lat"),
-                        on_lsd, uld, work_base, workGeo, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);
+                return RowFactory.create(row.getAs("msisdn"),
+                        region, jsRegion, cenRegion, sex, row.getAs("age"), ageClass,
+                        row.getAs("stay_time"), stayTimeClass, existsDays, live_base, liveGeo,
+                        row.getAs("live_lng"), row.getAs("live_lat"), on_lsd, uld,
+                        work_base, workGeo, row.getAs("work_lng"), row.getAs("work_lat"), on_wsd, uwd, person_class);
             }
 
         });
@@ -105,9 +107,10 @@ public class WorkLiveLoader implements Serializable {
         // 针对20191001-20191007的职住数据做补全处理
         if (ProfileUtil.getActiveProfile().equals("201910-1")) {
             // 加载20191008-20191031的职住数据,并改名
-            DataFrame workLiveDf1 = FileUtil.readFile(FileUtil.FileType.CSV, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, params.getWorkLiveFile2())
-                    .select("msisdn", "work_base", "live_base",
-                            "exists_days", "stay_time", "live_lng", "live_lat", "work_lng", "work_lat")
+            DataFrame workLiveDf1 = FileUtil.readFile(FileUtil.FileType.PARQUET,
+                    LiveWorkSchemaProvider.WORK_LIVE_SCHEMA,
+                    params.getWorkLiveFile2())
+                    .select("msisdn", "work_base", "live_base", "exists_days", "stay_time", "live_lng", "live_lat", "work_lng", "work_lat")
                     .withColumnRenamed("msisdn", "msisdn1")
                     .withColumnRenamed("work_base", "work_base1")
                     .withColumnRenamed("live_base", "live_base1")
@@ -162,15 +165,7 @@ public class WorkLiveLoader implements Serializable {
                         liveGeo = GeoUtil.geo(live_lat, live_lng);
 
                     }
-                    return RowFactory.create(row.getAs("msisdn"),
-                            row.getAs("region"), row.getAs("js_region"),
-                            row.getAs("cen_region"), row.getAs("sex"),
-                            row.getAs("age"), row.getAs("age_class"),
-                            row.getAs("stay_time"), row.getAs("stay_time_class"),
-                            row.getAs("exists_days"), liveBase, liveGeo, live_lng, live_lat,
-                            row.getAs("on_lsd"), row.getAs("uld"),
-                            workBase, workGeo, work_lng, work_lat,
-                            row.getAs("on_wsd"), row.getAs("uwd"), personClass);
+                    return RowFactory.create(row.getAs("msisdn"), row.getAs("region"), row.getAs("js_region"), row.getAs("cen_region"), row.getAs("sex"), row.getAs("age"), row.getAs("age_class"), row.getAs("stay_time"), row.getAs("stay_time_class"), row.getAs("exists_days"), liveBase, liveGeo, live_lng, live_lat, row.getAs("on_lsd"), row.getAs("uld"), workBase, workGeo, work_lng, work_lat, row.getAs("on_wsd"), row.getAs("uwd"), personClass);
                 }
             });
             workLiveDf = sqlContext.createDataFrame(workLiveRdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);

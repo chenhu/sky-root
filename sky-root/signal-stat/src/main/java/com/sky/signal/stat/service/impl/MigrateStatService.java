@@ -33,22 +33,21 @@ public class MigrateStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","region").repartition(params.getPartitions());
-        workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
+        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn", "region").repartition(params.getPartitions()).persist(StorageLevel.DISK_ONLY());
         Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
-        for( int batchId: validSignalFileMap.keySet()) {
+        for (int batchId : validSignalFileMap.keySet()) {
             List<String> validSignalFiles = validSignalFileMap.get(batchId);
-            migrateStat.process(getValidSignal(validSignalFiles),workLiveDf, batchId);
+            migrateStat.process(getValidSignal(validSignalFiles), workLiveDf, batchId);
         }
         migrateStat.agg();
         workLiveDf.unpersist();
         logger.info("BaseHourStatService duration: " + stopwatch.toString());
     }
+
     private DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
         for (String ValidSignalFile : validSignalFiles) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile)
-                    .select("msisdn","date","base","lat","lng","begin_time","last_time");
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile).select("msisdn", "date", "base", "lat", "lng", "begin_time", "last_time");
             if (validSignalDF == null) {
                 validSignalDF = validDF;
             } else {
