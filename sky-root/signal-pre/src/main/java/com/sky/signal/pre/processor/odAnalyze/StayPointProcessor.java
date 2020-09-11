@@ -246,7 +246,6 @@ public class StayPointProcessor implements Serializable {
             //增加O、D点逗留时间
             Timestamp originBegin = (Timestamp) o.getAs("begin_time");
             int durationO = Math.abs(Seconds.secondsBetween(new DateTime(originEnd), new DateTime(originBegin)).getSeconds());
-            int durationD = Math.abs(Seconds.secondsBetween(new DateTime(destEnd), new DateTime(destBegin)).getSeconds());
             if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400)) {
                 shouldRemoveOD.add(new Tuple2<>(tuple3._1(), tuple3._2()));
                 shouldRemoveOD.add(new Tuple2<>(tuple3._2(), tuple3._1()));
@@ -302,7 +301,7 @@ public class StayPointProcessor implements Serializable {
                         d.getAs("lng"),
                         d.getAs("lat"),
                         originEnd, destBegin, linkedDistance,
-                        maxSpeed, covSpeed, distance, durationO, durationD, moveTime}, ODSchemaProvider.OD_SCHEMA);
+                        maxSpeed, covSpeed, distance, durationO,moveTime}, ODSchemaProvider.OD_SCHEMA);
                 odResult.add(od);
                 pointList.add(o);
                 pointList.add(d);
