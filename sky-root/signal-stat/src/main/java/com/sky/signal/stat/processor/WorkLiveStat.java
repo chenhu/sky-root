@@ -27,7 +27,7 @@ public class WorkLiveStat implements Serializable {
         DataFrame joinedDf = workLiveDF.groupBy("exists_days", "stay_time_class", "live_geo", "on_lsd", "uld", "work_geo", "on_wsd",
                 "uwd", "sex", "age_class").agg(countDistinct("msisdn")
                 .as("peo_num")).orderBy(col("exists_days"), col("stay_time_class"), col("live_geo"), col("on_lsd"), col("uld"),
-                col("work_geo"), col("on_wsd"), col("uwd"), col("sex"), col("age_class"));
+                col("work_geo"), col("on_wsd"), col("uwd"), col("sex"), col("age_class")).drop(col("sex"));
         FileUtil.saveFile(joinedDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getWorkLiveStatSavePath());
         return joinedDf;
     }

@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 
-import static org.apache.spark.sql.functions.count;
-import static org.apache.spark.sql.functions.countDistinct;
+import static org.apache.spark.sql.functions.*;
 
 /**
  * author: ChenHu <chenhu1008@me.com>
@@ -25,7 +24,7 @@ public class DayTripSummaryStat implements Serializable{
     public DataFrame process(DataFrame ODDf) {
         DataFrame df = ODDf.groupBy("date", "person_class", "sex", "age_class")
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
-                .orderBy("date","person_class", "sex", "age_class");
+                .orderBy("date","person_class", "sex", "age_class").drop(col("sex"));
         FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getDayTripSummaryStatSavePath());
         return df;
 

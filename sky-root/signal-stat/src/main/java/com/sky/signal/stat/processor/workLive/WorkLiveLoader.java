@@ -104,72 +104,72 @@ public class WorkLiveLoader implements Serializable {
 
 
         DataFrame workLiveDf = sqlContext.createDataFrame(rdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);
-        // 针对20191001-20191007的职住数据做补全处理
-        if (ProfileUtil.getActiveProfile().equals("201910-1")) {
-            // 加载20191008-20191031的职住数据,并改名
-            DataFrame workLiveDf1 = FileUtil.readFile(FileUtil.FileType.PARQUET,
-                    LiveWorkSchemaProvider.WORK_LIVE_SCHEMA,
-                    params.getWorkLiveFile2())
-                    .select("msisdn", "work_base", "live_base", "exists_days", "stay_time", "live_lng", "live_lat", "work_lng", "work_lat")
-                    .withColumnRenamed("msisdn", "msisdn1")
-                    .withColumnRenamed("work_base", "work_base1")
-                    .withColumnRenamed("live_base", "live_base1")
-                    .withColumnRenamed("exists_days", "exists_days1")
-                    .withColumnRenamed("stay_time", "stay_time1")
-                    .withColumnRenamed("live_lng", "live_lng1")
-                    .withColumnRenamed("live_lat", "live_lat1")
-                    .withColumnRenamed("work_lng", "work_lng1")
-                    .withColumnRenamed("work_lat", "work_lat1");
-
-            //左连接
-            DataFrame joinedDf = workLiveDf.join(workLiveDf1, workLiveDf.col("msisdn").equalTo(workLiveDf1.col("msisdn1")), "left_outer");
-            JavaRDD<Row> workLiveRdd = joinedDf.javaRDD().map(new Function<Row, Row>() {
-                @Override
-                public Row call(Row row) throws Exception {
-
-                    String workBase = (String) row.getAs("work_base");
-                    String liveBase = (String) row.getAs("live_base");
-                    //生成geohash
-                    Double work_lat = (Double) row.getAs("work_lat");
-                    Double work_lng = (Double) row.getAs("work_lng");
-                    String workGeo = GeoUtil.geo(work_lat, work_lng);
-
-                    Double live_lat = (Double) row.getAs("live_lat");
-                    Double live_lng = (Double) row.getAs("live_lng");
-                    String liveGeo = GeoUtil.geo(live_lat, live_lng);
-                    //默认为访客人口
-                    Integer personClass = 2;
-
-                    //如果在第二份中有职住信息，就按照第二份中的职住地，并且人口分类也按照第二份
-                    if (row.getAs("work_base1") != null && row.getAs("live_base1") != null) {
-
-                        workBase = (String) row.getAs("work_base1");
-                        liveBase = (String) row.getAs("live_base1");
-
-                        Double sum_time = (Double) row.getAs("stay_time1");
-                        if (sum_time == null) {
-                            sum_time = 0d;
-                        }
-                        Long existsDays = 0l;
-                        if (row.getAs("exists_days1") != null) {
-                            existsDays = (Long) row.getAs("exists_days1");
-                        }
-                        personClass = ChangshuPersonClassification.classify(existsDays, sum_time);
-
-                        work_lat = (Double) row.getAs("work_lat1");
-                        work_lng = (Double) row.getAs("work_lng1");
-                        workGeo = GeoUtil.geo(work_lat, work_lng);
-
-                        live_lat = (Double) row.getAs("live_lat1");
-                        live_lng = (Double) row.getAs("live_lng1");
-                        liveGeo = GeoUtil.geo(live_lat, live_lng);
-
-                    }
-                    return RowFactory.create(row.getAs("msisdn"), row.getAs("region"), row.getAs("js_region"), row.getAs("cen_region"), row.getAs("sex"), row.getAs("age"), row.getAs("age_class"), row.getAs("stay_time"), row.getAs("stay_time_class"), row.getAs("exists_days"), liveBase, liveGeo, live_lng, live_lat, row.getAs("on_lsd"), row.getAs("uld"), workBase, workGeo, work_lng, work_lat, row.getAs("on_wsd"), row.getAs("uwd"), personClass);
-                }
-            });
-            workLiveDf = sqlContext.createDataFrame(workLiveRdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);
-        }
+//        // 针对20191001-20191007的职住数据做补全处理
+//        if (ProfileUtil.getActiveProfile().equals("201910-1")) {
+//            // 加载20191008-20191031的职住数据,并改名
+//            DataFrame workLiveDf1 = FileUtil.readFile(FileUtil.FileType.PARQUET,
+//                    LiveWorkSchemaProvider.WORK_LIVE_SCHEMA,
+//                    params.getWorkLiveFile2())
+//                    .select("msisdn", "work_base", "live_base", "exists_days", "stay_time", "live_lng", "live_lat", "work_lng", "work_lat")
+//                    .withColumnRenamed("msisdn", "msisdn1")
+//                    .withColumnRenamed("work_base", "work_base1")
+//                    .withColumnRenamed("live_base", "live_base1")
+//                    .withColumnRenamed("exists_days", "exists_days1")
+//                    .withColumnRenamed("stay_time", "stay_time1")
+//                    .withColumnRenamed("live_lng", "live_lng1")
+//                    .withColumnRenamed("live_lat", "live_lat1")
+//                    .withColumnRenamed("work_lng", "work_lng1")
+//                    .withColumnRenamed("work_lat", "work_lat1");
+//
+//            //左连接
+//            DataFrame joinedDf = workLiveDf.join(workLiveDf1, workLiveDf.col("msisdn").equalTo(workLiveDf1.col("msisdn1")), "left_outer");
+//            JavaRDD<Row> workLiveRdd = joinedDf.javaRDD().map(new Function<Row, Row>() {
+//                @Override
+//                public Row call(Row row) throws Exception {
+//
+//                    String workBase = (String) row.getAs("work_base");
+//                    String liveBase = (String) row.getAs("live_base");
+//                    //生成geohash
+//                    Double work_lat = (Double) row.getAs("work_lat");
+//                    Double work_lng = (Double) row.getAs("work_lng");
+//                    String workGeo = GeoUtil.geo(work_lat, work_lng);
+//
+//                    Double live_lat = (Double) row.getAs("live_lat");
+//                    Double live_lng = (Double) row.getAs("live_lng");
+//                    String liveGeo = GeoUtil.geo(live_lat, live_lng);
+//                    //默认为访客人口
+//                    Integer personClass = 2;
+//
+//                    //如果在第二份中有职住信息，就按照第二份中的职住地，并且人口分类也按照第二份
+//                    if (row.getAs("work_base1") != null && row.getAs("live_base1") != null) {
+//
+//                        workBase = (String) row.getAs("work_base1");
+//                        liveBase = (String) row.getAs("live_base1");
+//
+//                        Double sum_time = (Double) row.getAs("stay_time1");
+//                        if (sum_time == null) {
+//                            sum_time = 0d;
+//                        }
+//                        Long existsDays = 0l;
+//                        if (row.getAs("exists_days1") != null) {
+//                            existsDays = (Long) row.getAs("exists_days1");
+//                        }
+//                        personClass = ChangshuPersonClassification.classify(existsDays, sum_time);
+//
+//                        work_lat = (Double) row.getAs("work_lat1");
+//                        work_lng = (Double) row.getAs("work_lng1");
+//                        workGeo = GeoUtil.geo(work_lat, work_lng);
+//
+//                        live_lat = (Double) row.getAs("live_lat1");
+//                        live_lng = (Double) row.getAs("live_lng1");
+//                        liveGeo = GeoUtil.geo(live_lat, live_lng);
+//
+//                    }
+//                    return RowFactory.create(row.getAs("msisdn"), row.getAs("region"), row.getAs("js_region"), row.getAs("cen_region"), row.getAs("sex"), row.getAs("age"), row.getAs("age_class"), row.getAs("stay_time"), row.getAs("stay_time_class"), row.getAs("exists_days"), liveBase, liveGeo, live_lng, live_lat, row.getAs("on_lsd"), row.getAs("uld"), workBase, workGeo, work_lng, work_lat, row.getAs("on_wsd"), row.getAs("uwd"), personClass);
+//                }
+//            });
+//            workLiveDf = sqlContext.createDataFrame(workLiveRdd, LiveWorkSchemaProvider.WORK_LIVE_STAT_SCHEMA);
+//        }
         return workLiveDf;
     }
 }

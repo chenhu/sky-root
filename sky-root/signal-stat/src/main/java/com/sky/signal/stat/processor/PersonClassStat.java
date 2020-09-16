@@ -42,7 +42,7 @@ public class PersonClassStat implements Serializable {
             DataTypes.createStructField("work_base", DataTypes.StringType, true),
             DataTypes.createStructField("on_wsd", DataTypes.LongType, true),
             DataTypes.createStructField("uwd", DataTypes.LongType, true),
-            DataTypes.createStructField("sex", DataTypes.ShortType, false),
+            //DataTypes.createStructField("sex", DataTypes.ShortType, false),
             DataTypes.createStructField("age_class", DataTypes.ShortType, false),
             DataTypes.createStructField("region", DataTypes.IntegerType, false),
             DataTypes.createStructField("cen_region", DataTypes.StringType, false),

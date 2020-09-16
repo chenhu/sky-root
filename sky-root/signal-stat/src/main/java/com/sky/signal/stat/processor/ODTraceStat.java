@@ -17,8 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 
-import static org.apache.spark.sql.functions.count;
-import static org.apache.spark.sql.functions.countDistinct;
+import static org.apache.spark.sql.functions.*;
 
 /**
  * author: ChenHu <chenhu1008@me.com>
@@ -102,9 +101,9 @@ public class ODTraceStat implements Serializable{
     }
 
     public void combineData() {
-        DataFrame odTraceDayDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceDaySavePath("*"));
+        DataFrame odTraceDayDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceDaySavePath("*")).drop(col("sex"));
         FileUtil.saveFile(odTraceDayDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getODTraceDaySavePath());
-        DataFrame odTraceBusyTimeDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceBusyTimeSavePath("*"));
+        DataFrame odTraceBusyTimeDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceBusyTimeSavePath("*")).drop(col("sex"));
         FileUtil.saveFile(odTraceBusyTimeDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getODTraceBusyTimeSavePath());
     }
 }
