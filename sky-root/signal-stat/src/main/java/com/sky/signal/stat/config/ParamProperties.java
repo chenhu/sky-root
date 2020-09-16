@@ -111,7 +111,7 @@ public class ParamProperties {
     // 服务名称注入
     private String SERVICENAME = "service";
     // 如果数据量比较大，分批次进行处理，每个批次处理的数据"份数"
-    private String BATCH_SIZE = "batches";
+    private String BATCH_SIZE = "batch-size";
 
     // 统计报表最终输出文件数
     private String STAT_PARTIONS = "stat-partition";
