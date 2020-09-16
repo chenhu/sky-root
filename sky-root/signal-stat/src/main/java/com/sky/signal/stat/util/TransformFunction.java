@@ -110,13 +110,13 @@ public class TransformFunction implements Serializable {
         JavaRDD<Row> odRDD = odDF.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {
-                int avgTime = row.getAs("move_time");
+                int avgTime = (int) row.getAs("move_time");
                 int moveTimeClass = transformTime(avgTime);
-                int avgDistance = row.getAs("linked_distance");
+                int avgDistance = (int) row.getAs("linked_distance");
                 int tripDistanceClass = transformDistance(avgDistance);
-                double maxSpeed = row.getAs("max_speed");
+                double maxSpeed = (double) row.getAs("max_speed");
                 int maxSpeedClass = transformSpeed(maxSpeed);
-                double covSpeed = row.getAs("cov_speed");
+                double covSpeed = (double) row.getAs("cov_speed");
                 int covSpeedClass = transformCovSpeed(covSpeed);
                 return RowFactory.create(row.getAs("date"), row.getAs("msisdn"),
                         row.getAs("linked_distance"), tripDistanceClass,maxSpeedClass, row.getAs("move_time"), moveTimeClass, covSpeedClass,
