@@ -1,30 +1,34 @@
+#只需要做职住统计-表2
 param:
-  #统计分析需要用到的资源根目录
-  resourceBasePath: /user/bdoc/17/services/hdfs/132/jiangsu/save
-  #统计分析结果内容隔离
-  statSaveBasePath: /user/bdoc/17/services/hdfs/132/jiangsu/201706
-  validSignalFilesForStat:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170621
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170616
-    - /user/bdoc/17/services/hdfs/132/changshu/save/validSignal/20170618
-  odFiles:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20170612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20170621
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20170616
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od/20170618
-  odTripStatFiles:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20170612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20170621
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20170616
-    - /user/bdoc/17/services/hdfs/132/changshu/save/stat_trip/20170618
-  odTraceFiles:
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20170612
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20170621
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20170616
-    - /user/bdoc/17/services/hdfs/132/changshu/save/od_trace/20170618
-
-
-
-
-
+  workLiveName: 201706
+  validSignalDate:
+    - 20190601
+    - 20190602
+    - 20190603
+    - 20170604
+    - 20170605
+    - 20170606
+    - 20170607
+    - 20170608
+    - 20170609
+    - 20170610
+    - 20170611
+    - 20170612
+    - 20170613
+    - 20170614
+    - 20170615
+    - 20170616
+    - 20170617
+    - 20170618
+    - 20170619
+    - 20170620
+    - 20170621
+    - 20170622
+    - 20170623
+    - 20170624
+    - 20170625
+    - 20170626
+    - 20170627
+    - 20170628
+    - 20170629
+    - 20170630
