@@ -499,11 +499,11 @@ public class SignalProcessor implements Serializable {
         JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
         DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
         // 补全归属地信息
-        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
-        DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
+//        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
+//        DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date = path.substring(path.length() - 8);
-        FileUtil.saveFile(signalMerged.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
+        FileUtil.saveFile(signalBaseWithCRMDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
         signalBaseDf.unpersist();
     }
 
@@ -516,10 +516,10 @@ public class SignalProcessor implements Serializable {
         //CRM信息
         final Broadcast<Map<String, Row>> userVar = crmProcess.load();
         // 手机号码归属地信息
-        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
+//        final Broadcast<Map<Integer, Row>> regionVar = phoneAttributionProcess.process();
         //对轨迹数据预处理
         for (String traceFile : params.getTraceFiles()) {
-            oneProcess(traceFile, cellVar, userVar, regionVar);
+            oneProcess(traceFile, cellVar, userVar, null);
         }
     }
 }
