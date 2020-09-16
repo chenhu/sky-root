@@ -52,4 +52,9 @@ public class PathConfig {
     public static final String PERSON_CLASS_STAT2 = "person-class-stat2/";
     //validSignal-stat
     public static final String VALIDSIGNAL_STAT = "validSignal-stat/";
+    //day-trip-with-purpose-summary-stat
+    public static final String DAY_TRIP_WITH_PURPOSE_SUMMARY_STAT= "day-trip-with-purpose-summary-stat/";
+    //day-trip-summary-stat
+    public static final String DAY_TRIP_SUMMARY_STAT= "day-trip-summary-stat/";
+
 }

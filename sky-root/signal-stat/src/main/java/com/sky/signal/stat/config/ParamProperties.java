@@ -247,6 +247,12 @@ public class ParamProperties {
         return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.PERSON_CLASS_STAT2);
     }
 
+    public String getDayTripSummaryStatSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.DAY_TRIP_SUMMARY_STAT);
+    }
+    public String getDayTripSummaryWithPurposeStatSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.DAY_TRIP_WITH_PURPOSE_SUMMARY_STAT);
+    }
     public String getWorkLiveFile() {
         return this.getBasePath()
                 .concat(PathConfig.APP_SAVE_PATH)
