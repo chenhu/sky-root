@@ -175,83 +175,83 @@ public class ParamProperties {
         return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.BASE_HOUR_STAT).concat(batchid).concat(java.io.File.separator);
     }
     public String getBaseHourSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.BASE_HOUR_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.BASE_HOUR_STAT);
     }
 
     public String getMigrateSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.MiGRATE_STAT).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.MiGRATE_STAT).concat(batchid).concat(java.io.File.separator);
     }
     public String getMigrateSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.MiGRATE_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.MiGRATE_STAT);
     }
 
     public String getCombineOdSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.COMBINE_OD).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.COMBINE_OD).concat(batchid).concat(java.io.File.separator);
     }
     public String getCombineOdSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.COMBINE_OD);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.COMBINE_OD);
     }
 
     public String getOdDaySavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_DAY_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_DAY_STAT);
     }
     public String getODTimeIntervalGeneralSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TIME_INTERVAL_GENERAL_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_TIME_INTERVAL_GENERAL_STAT);
     }
     public String getODTimeDistanceSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TIME_DISTANCE_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_TIME_DISTANCE_STAT);
     }
 
     public String getODTraceDaySavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRACE_DAY).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRACE_DAY).concat(batchid).concat(java.io.File.separator);
     }
     public String getODTraceDaySavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRACE_DAY);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_TRACE_DAY);
     }
 
     public String getODTraceBusyTimeSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRACE_BUSY_TIME_DAY).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRACE_BUSY_TIME_DAY).concat(batchid).concat(java.io.File.separator);
     }
     public String getODTraceBusyTimeSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRACE_BUSY_TIME_DAY);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_TRACE_BUSY_TIME_DAY);
     }
 
     public String getODTripStatSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRIP_STAT).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRIP_STAT).concat(batchid).concat(java.io.File.separator);
     }
     public String getODTripStatSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRIP_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_TRIP_STAT);
     }
 
     public String getODTripClassStatSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRIP_CLASS_STAT).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.OD_TRIP_CLASS_STAT).concat(batchid).concat(java.io.File.separator);
     }
     public String getODTripClassStatSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.OD_TRIP_CLASS_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.OD_TRIP_CLASS_STAT);
     }
 
     public String getValidSignalStatSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.VALIDSIGNAL_STAT).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.VALIDSIGNAL_STAT).concat(batchid).concat(java.io.File.separator);
     }
     public String getValidSignalStatSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.VALIDSIGNAL_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.VALIDSIGNAL_STAT);
     }
 
     public String getWorkLiveStatSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.WORK_LIVE_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.WORK_LIVE_STAT);
     }
     public String getPersonClassStat1SavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.PERSON_CLASS_STAT1);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.PERSON_CLASS_STAT1);
     }
     public String getPersonClassStat2SavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.PERSON_CLASS_STAT2);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.PERSON_CLASS_STAT2);
     }
 
     public String getDayTripSummaryStatSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.DAY_TRIP_SUMMARY_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.DAY_TRIP_SUMMARY_STAT);
     }
     public String getDayTripSummaryWithPurposeStatSavePath() {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.DAY_TRIP_WITH_PURPOSE_SUMMARY_STAT);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.DAY_TRIP_WITH_PURPOSE_SUMMARY_STAT);
     }
     public String getWorkLiveFile() {
         return this.getBasePath()

@@ -3,7 +3,6 @@ package com.sky.signal.stat.processor;
 import com.google.common.collect.Lists;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.util.FileUtil;
-import com.sun.tools.corba.se.idl.InterfaceGen;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
