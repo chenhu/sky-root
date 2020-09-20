@@ -38,7 +38,7 @@ public class BaseHourStatService implements ComputeService {
     private DataFrame getValidSignal(List<String> validSignalFiles) {
         DataFrame validSignalDF = null;
         for (String ValidSignalFile : validSignalFiles) {
-            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.CSV, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile)
+            DataFrame validDF = FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, ValidSignalFile)
                     .select("msisdn","date","base","lat","lng","begin_time","last_time");
             if (validSignalDF == null) {
                 validSignalDF = validDF;
