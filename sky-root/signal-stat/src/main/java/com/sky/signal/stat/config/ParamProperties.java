@@ -172,7 +172,7 @@ public class ParamProperties {
     }
 
     public String getBaseHourSavePath(String batchid) {
-        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(PathConfig.STAT_TMP).concat(PathConfig.BASE_HOUR_STAT).concat(batchid).concat(java.io.File.separator);
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.STAT_TMP).concat(PathConfig.BASE_HOUR_STAT).concat(batchid).concat(java.io.File.separator);
     }
     public String getBaseHourSavePath() {
         return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.BASE_HOUR_STAT);
