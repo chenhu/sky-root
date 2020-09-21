@@ -12,6 +12,7 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.storage.StorageLevel;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,6 @@ public class BaseHourStat implements Serializable {
     private transient ParamProperties params;
 
     public DataFrame process(DataFrame validDF, DataFrame workLiveDF, Integer batchId) {
-
         JavaRDD<Row> rdd = validDF.javaRDD().flatMap(new FlatMapFunction<Row, Row>() {
             @Override
             public Iterable<Row> call(Row row) throws Exception {
@@ -57,10 +57,11 @@ public class BaseHourStat implements Serializable {
             }
         });
 
-        DataFrame processedDf = sqlContext.createDataFrame(rdd, SCHEMA);
+        DataFrame processedDf = sqlContext.createDataFrame(rdd, SCHEMA).repartition(params.getPartitions()).persist(StorageLevel.DISK_ONLY());
         DataFrame joinedDf = processedDf.join(workLiveDF, processedDf.col("msisdn").equalTo(workLiveDF.col("msisdn")), "left_outer").select(processedDf.col("date"), processedDf.col("msisdn"), processedDf.col("geohash"), processedDf.col("time_inter"), workLiveDF.col("person_class"), workLiveDF.col("sex"), workLiveDF.col("age_class"));
         joinedDf = joinedDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(countDistinct("msisdn").as("peo_num")).orderBy(col("date"), col("geohash"), col("time_inter"), col("person_class"), col("sex"), col("age_class"));
         FileUtil.saveFile(joinedDf, FileUtil.FileType.CSV, params.getBaseHourSavePath(batchId.toString()));
+        processedDf.unpersist();
         return joinedDf;
     }
 
