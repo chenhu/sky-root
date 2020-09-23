@@ -34,8 +34,19 @@ import static org.apache.spark.sql.functions.*;
  */
 @Service("baseHourStat")
 public class BaseHourStat implements Serializable {
-    private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false), DataTypes.createStructField("msisdn", DataTypes.StringType, false), DataTypes.createStructField("geohash", DataTypes.StringType, false), DataTypes.createStructField("time_inter", DataTypes.IntegerType, false)));
-    private static final StructType SCHEMA1 = DataTypes.createStructType(Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false), DataTypes.createStructField("geohash", DataTypes.StringType, false), DataTypes.createStructField("time_inter", DataTypes.IntegerType, false), DataTypes.createStructField("person_class", DataTypes.IntegerType, false), DataTypes.createStructField("sex", DataTypes.ShortType, false), DataTypes.createStructField("age_class", DataTypes.IntegerType, false), DataTypes.createStructField("peo_num", DataTypes.LongType, false)));
+    private static final StructType SCHEMA = DataTypes.createStructType(Lists.newArrayList(
+            DataTypes.createStructField("date", DataTypes.IntegerType, false),
+            DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+            DataTypes.createStructField("geohash", DataTypes.StringType, false),
+            DataTypes.createStructField("time_inter", DataTypes.IntegerType, false)));
+    private static final StructType SCHEMA1 = DataTypes.createStructType(Lists.newArrayList(
+            DataTypes.createStructField("date", DataTypes.IntegerType, false),
+            DataTypes.createStructField("geohash", DataTypes.StringType, false),
+            DataTypes.createStructField("time_inter", DataTypes.IntegerType, false),
+            DataTypes.createStructField("person_class", DataTypes.IntegerType, false),
+            DataTypes.createStructField("sex", DataTypes.ShortType, false),
+            DataTypes.createStructField("age_class", DataTypes.IntegerType, false),
+            DataTypes.createStructField("peo_num", DataTypes.LongType, false)));
     @Autowired
     private transient SQLContext sqlContext;
     @Autowired

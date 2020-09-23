@@ -65,18 +65,14 @@ public class ParamProperties {
     private Integer statpatitions;
 
     /**
-     * 职住文件
+     * 当前职住文件
      */
     private String workLiveName;
 
     /**
-     * 职住文件1
+     * 辅助职住文件
      */
-    private String workLiveFile1;
-    /**
-     * 职住文件2
-     */
-    private String workLiveFile2;
+    private String otherWorkLiveName;
     /**
      * 停驻点
      */
@@ -260,6 +256,15 @@ public class ParamProperties {
                 .concat(java.io.File.separator)
                 .concat(PathConfig.WORK_LIVE_SAVE_PATH)
                 .concat(this.getWorkLiveName());
+    }
+
+    public String getWorkLiveFileByName(String workLiveName) {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.WORK_LIVE_SAVE_PATH)
+                .concat(workLiveName);
     }
     public String getValidSignalSavePath(String date) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
