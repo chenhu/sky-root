@@ -1,6 +1,7 @@
 #表3到表9
 param:
-  workLiveName: 201906
+  workLiveName: 201910
+  otherWorkLiveName: 201906
   validSignalDate:
     - 20190930
     - 20191001
