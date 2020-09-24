@@ -108,6 +108,9 @@ public class ParamProperties {
     private String SERVICENAME = "service";
     // 如果数据量比较大，分批次进行处理，每个批次处理的数据"份数"
     private String BATCH_SIZE = "batch-size";
+    private Integer crashPosition = 1;
+
+    private static final String CRASH_POSITION = "crash";
 
     // 统计报表最终输出文件数
     private String STAT_PARTIONS = "stat-partition";
@@ -164,6 +167,10 @@ public class ParamProperties {
 
         if (args.containsOption(STAT_PARTIONS)) {
             statpatitions = Integer.valueOf(args.getOptionValues(STAT_PARTIONS).get(0).trim());
+        }
+        //崩溃点
+        if (args.containsOption(CRASH_POSITION)) {
+            crashPosition = Integer.valueOf(args.getOptionValues(CRASH_POSITION).get(0).trim());
         }
     }
 

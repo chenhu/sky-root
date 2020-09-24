@@ -34,7 +34,7 @@ public class ODTraceStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        Map<Integer, List<String>> odTraceMap = FilesBatchUtils.getBatchFiles(params.getODTracePath(), params.getStatBatchSize());
+        Map<Integer, List<String>> odTraceMap = FilesBatchUtils.getBatchFiles(params.getODTracePath(), params.getStatBatchSize(),params.getCrashPosition());
         DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn", "person_class", "sex", "age_class").repartition(params.getPartitions());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
         // 分批次预处理

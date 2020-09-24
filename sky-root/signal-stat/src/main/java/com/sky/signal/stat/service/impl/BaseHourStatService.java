@@ -27,7 +27,7 @@ public class BaseHourStatService implements ComputeService {
     public void compute() {
         DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn","person_class","sex","age_class").repartition(params.getPartitions());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
-        Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize());
+        Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize(),params.getCrashPosition());
         for( int batchId: validSignalFileMap.keySet()) {
             List<String> validSignalFiles = validSignalFileMap.get(batchId);
             baseHourStat.process(getValidSignal(validSignalFiles),workLiveDf, batchId);
