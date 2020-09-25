@@ -25,7 +25,7 @@ public class WorkLiveStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile());
+        DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive();
         // 人口居住地及就业地统计表
         workLiveStat.process(workLiveDf);
 

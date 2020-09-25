@@ -33,7 +33,7 @@ public class MigrateStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn", "region").repartition(params.getPartitions()).persist(StorageLevel.DISK_ONLY());
+        DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive().select("msisdn", "region").repartition(params.getPartitions()).persist(StorageLevel.DISK_ONLY());
         Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize(),params.getCrashPosition());
         for (int batchId : validSignalFileMap.keySet()) {
             List<String> validSignalFiles = validSignalFileMap.get(batchId);

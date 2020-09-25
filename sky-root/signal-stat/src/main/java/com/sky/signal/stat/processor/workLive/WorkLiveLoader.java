@@ -28,8 +28,13 @@ public class WorkLiveLoader implements Serializable {
     @Autowired
     private transient SQLContext sqlContext;
 
-    public DataFrame load(String workLiveFile) {
-        DataFrame df = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, workLiveFile);
+    /**
+     * 如果统计日期不在所用的主职住分析结果的日期范围内，则把统计日期的分析职住结果和主职住分析结果合并后，作为统计日期内的职住分析结果使用
+     * 如果统计日期在所用的主职住分析结果的日期范围内，则直接使用主职住分析结果
+     * @return
+     */
+    public DataFrame loadMergedWorkLive() {
+        DataFrame df = FileUtil.readFile(FileUtil.FileType.PARQUET, LiveWorkSchemaProvider.WORK_LIVE_SCHEMA, params.getWorkLiveFile());
         JavaRDD<Row> rdd = df.javaRDD().map(new Function<Row, Row>() {
             @Override
             public Row call(Row row) throws Exception {

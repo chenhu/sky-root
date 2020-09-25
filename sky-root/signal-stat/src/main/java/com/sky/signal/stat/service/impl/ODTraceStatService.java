@@ -3,7 +3,6 @@ package com.sky.signal.stat.service.impl;
 import com.google.common.base.Stopwatch;
 import com.sky.signal.stat.config.ParamProperties;
 import com.sky.signal.stat.processor.ODTraceStat;
-import com.sky.signal.stat.processor.od.ODLoader;
 import com.sky.signal.stat.processor.od.ODSchemaProvider;
 import com.sky.signal.stat.processor.workLive.WorkLiveLoader;
 import com.sky.signal.stat.service.ComputeService;
@@ -35,7 +34,7 @@ public class ODTraceStatService implements ComputeService {
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         Map<Integer, List<String>> odTraceMap = FilesBatchUtils.getBatchFiles(params.getODTracePath(), params.getStatBatchSize(),params.getCrashPosition());
-        DataFrame workLiveDf = workLiveLoader.load(params.getWorkLiveFile()).select("msisdn", "person_class", "sex", "age_class").repartition(params.getPartitions());
+        DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive().select("msisdn", "person_class", "sex", "age_class").repartition(params.getPartitions());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
         // 分批次预处理
         for (int batchId : odTraceMap.keySet()) {

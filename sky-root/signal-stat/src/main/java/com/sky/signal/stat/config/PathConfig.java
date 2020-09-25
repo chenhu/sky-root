@@ -1,5 +1,7 @@
 package com.sky.signal.stat.config;
 
+import com.sky.signal.stat.util.ProfileUtil;
+
 /**
  * Created by Chenhu on 2020/5/25.
  * 关于路径方面的配置，解决硬编码的问题
@@ -21,7 +23,7 @@ public class PathConfig {
     //临时结果路径
     public static final String STAT_TMP = "tmp/";
     //统计结果根路径
-    public static final String STAT_ROOT = "stat/";
+    public static final String STAT_ROOT = "stat/".concat(ProfileUtil.getActiveProfile()).concat("/");
     //base-hour
     public static final String BASE_HOUR_STAT = "base-hour/";
     //migrate-stat
