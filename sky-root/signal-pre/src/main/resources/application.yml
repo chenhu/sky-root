@@ -1,5 +1,5 @@
 #yaml配置文件支持多profile, 可根据不同profile配置参数
-spring.profiles.active: 2019
+spring.profiles.active: 201706
 
 logging:
   level: #日志级别, 可针对不同package设置
@@ -11,4 +11,5 @@ param:
   appName: wildsky-pre-process
   #目前分析的地市编码，为了让地市分析中间数据以及结果数据可以分开存储，互不干扰，保存路径上面会加入当前地市标识
   cityCode: 1000512
-  basePath: /user/bdoc/17/services/hdfs/132/jiangsu/
+#  basePath: /user/bdoc/17/services/hdfs/132/jiangsu/
+  basePath: /user/bdoc/17/services/hdfs/132/jiangsu_track_second/
