@@ -57,10 +57,6 @@ public class ParamProperties {
     private Integer cityCode;
 
     /**
-     * 当前要分析区县的编码，用于取得当前区县的信令
-     */
-    private Integer districtCode;
-    /**
      * 职住分析每个批次处理有效数据天数
      */
     private Integer batch;
@@ -117,6 +113,17 @@ public class ParamProperties {
             (ParamProperties.class);
 
     /**
+    20201009 把某个区县的从别的地市增加到目前地市进行分析
+    比如：把句容的轨迹放到南京里面。这就需要把句容的基站、句容信令crm信息、句容的轨迹抽取后，放到南京轨迹预处理中
+     **/
+    //被抽取的地市编码
+    private Integer cityToMerge;
+    //被抽取的区县编码
+    private Integer districtToMerge;
+    //合并到的目标地市
+    private Integer destCity;
+
+    /**
      * 注入程序参数
      *
      * @param args 注入的参数
@@ -127,8 +134,14 @@ public class ParamProperties {
         if (args.containsOption(SERVICENAME)) {
             service = args.getOptionValues(SERVICENAME).get(0).trim();
         }
-        if (args.containsOption("districtCode")) {
-            districtCode = Integer.valueOf(args.getOptionValues("districtCode").get(0)) ;
+        if (args.containsOption("cityToMerge")) {
+            cityToMerge = Integer.valueOf(args.getOptionValues("cityToMerge").get(0)) ;
+        }
+        if (args.containsOption("districtToMerge")) {
+            districtToMerge = Integer.valueOf(args.getOptionValues("districtToMerge").get(0)) ;
+        }
+        if (args.containsOption("destCity")) {
+            destCity = Integer.valueOf(args.getOptionValues("destCity").get(0)) ;
         }
         if (args.containsOption("cityCode")) {
             cityCode = Integer.valueOf(args.getOptionValues("cityCode").get(0).trim());
@@ -253,6 +266,17 @@ public class ParamProperties {
     }
 
     /**
+     * 被合并的地市基站文件地市
+     * @return
+     */
+    public String getToMergeCellSavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityToMerge().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.CELL_PATH);
+    }
+
+    /**
      * 获取预处理后的枢纽基站文件保存路径
      */
     public String getTransCellSavePath() {
@@ -291,6 +315,19 @@ public class ParamProperties {
     public String getValidSignalSavePath(String date) {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
                 .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
+                .concat(date);
+    }
+
+    /**
+     * 需要合并的地市有效信令保存路径
+     *
+     * @return
+     */
+    public String getNeedMergeCityValidSignalSavePath(String date) {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityToMerge().toString())
                 .concat(java.io.File.separator)
                 .concat(PathConfig.VALID_SIGNAL_SAVE_PATH)
                 .concat(date);
@@ -426,6 +463,10 @@ public class ParamProperties {
 
     public String getGSDZFilePath() {
         return this.getBasePath().concat(PathConfig.GSDZ_FILE_PATH);
+    }
+
+    public boolean needMerge() {
+        return this.getCityToMerge() > 0 && this.getDistrictToMerge() > 0 && this.getDestCity().intValue() == this.getCityCode().intValue();
     }
 
 }

@@ -5,6 +5,7 @@ import com.google.common.collect.Ordering;
 import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.processor.attribution.PhoneAttributionProcess;
 import com.sky.signal.pre.processor.baseAnalyze.CellLoader;
+import com.sky.signal.pre.processor.baseAnalyze.CellSchemaProvider;
 import com.sky.signal.pre.processor.crmAnalyze.CRMProcess;
 import com.sky.signal.pre.util.FileUtil;
 import com.sky.signal.pre.util.MapUtil;
@@ -25,11 +26,14 @@ import scala.Tuple3;
 import scala.Tuple4;
 import scala.Tuple5;
 
+import javax.xml.crypto.Data;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.spark.sql.functions.col;
 
 /**
  * 原始手机信令数据生成有效手机信令数据
@@ -497,14 +501,27 @@ public class SignalProcessor implements Serializable {
         signalBaseDf = signalBaseDf.persist(StorageLevel.DISK_ONLY());
         // 补全CRM数据、替换外省归属地
         JavaRDD<Row> signalBaseWithCRMRDD = signalLoader.crm(userVar).mergeCRM(signalBaseDf.javaRDD());
-        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_BASE_2);
+        DataFrame signalBaseWithCRMDf = sqlContext.createDataFrame(signalBaseWithCRMRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
         // 补全归属地信息
 //        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
 //        DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
         String date = path.substring(path.length() - 8);
+        //其他区县的信令合并到某个地市处理
+        DataFrame districtValidSignal = getDistrictValidSignal(date);
+        if(districtValidSignal != null) {
+            signalBaseWithCRMDf = signalBaseWithCRMDf.unionAll(districtValidSignal);
+        }
         FileUtil.saveFile(signalBaseWithCRMDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
         signalBaseDf.unpersist();
+    }
+
+    private DataFrame getDistrictValidSignal(String date) {
+        if(params.needMerge()) {
+            return FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, params.getNeedMergeCityValidSignalSavePath(date)).filter(col("district_code").equalTo(params.getCityToMerge()));
+        } else {
+            return null;
+        }
     }
 
     /**

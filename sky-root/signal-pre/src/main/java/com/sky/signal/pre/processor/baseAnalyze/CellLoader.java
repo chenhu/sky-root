@@ -4,7 +4,9 @@ import com.sky.signal.pre.config.ParamProperties;
 import com.sky.signal.pre.util.FileUtil;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
+import static org.apache.spark.sql.functions.col;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +35,12 @@ public class CellLoader implements Serializable {
      */
     public Broadcast<Map<String, Row>> load() {
         // 加载现有的基站数据,这个数据是由 cellProcess.process() 生成的
-        Row[] cellRows = FileUtil.readFile(FileUtil.FileType.PARQUET, CellSchemaProvider.CELL_SCHEMA, params.getCellSavePath()).collect();
+        DataFrame cellDf = FileUtil.readFile(FileUtil.FileType.PARQUET, CellSchemaProvider.CELL_SCHEMA, params.getCellSavePath());
+        DataFrame toMergeCellDf = getDistrictCell();
+        if(toMergeCellDf != null) {
+            cellDf = cellDf.unionAll(toMergeCellDf);
+        }
+        Row[] cellRows = cellDf.collect();
         Map<String, Row> cellMap = new HashMap<>(cellRows.length);
         for (Row row : cellRows) {
             Integer tac = (Integer) row.getAs("tac");
@@ -42,5 +49,13 @@ public class CellLoader implements Serializable {
         }
         final Broadcast<Map<String, Row>> cellVar = sparkContext.broadcast(cellMap);
         return cellVar;
+    }
+
+    private DataFrame getDistrictCell() {
+        if(params.needMerge()) {
+            return FileUtil.readFile(FileUtil.FileType.PARQUET, CellSchemaProvider.CELL_SCHEMA, params.getToMergeCellSavePath()).filter(col("district_code").equalTo(params.getCityToMerge()));
+        } else {
+            return null;
+        }
     }
 }
