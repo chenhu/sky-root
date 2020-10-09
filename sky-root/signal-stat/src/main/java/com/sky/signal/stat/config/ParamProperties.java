@@ -172,6 +172,9 @@ public class ParamProperties {
         if (args.containsOption(CRASH_POSITION)) {
             crashPosition = Integer.valueOf(args.getOptionValues(CRASH_POSITION).get(0).trim());
         }
+        if (args.containsOption("cityCode")) {
+            cityCode = Integer.valueOf(args.getOptionValues("cityCode").get(0).trim());
+        }
     }
 
     public String getBaseHourSavePath(String batchid) {
