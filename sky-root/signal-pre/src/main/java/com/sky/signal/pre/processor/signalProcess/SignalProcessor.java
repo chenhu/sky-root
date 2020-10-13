@@ -518,7 +518,7 @@ public class SignalProcessor implements Serializable {
 
     private DataFrame getDistrictValidSignal(String date) {
         if(params.needMerge()) {
-            return FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, params.getNeedMergeCityValidSignalSavePath(date)).filter(col("district_code").equalTo(params.getCityToMerge()));
+            return FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, params.getNeedMergeCityValidSignalSavePath(date)).filter(col("district_code").equalTo(params.getDistrictToMerge()));
         } else {
             return null;
         }
