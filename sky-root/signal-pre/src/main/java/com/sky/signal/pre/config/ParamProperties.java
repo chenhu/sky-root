@@ -466,6 +466,15 @@ public class ParamProperties {
     }
 
     public boolean needMerge() {
+        if(this.getCityToMerge() == null) {
+            cityToMerge = 0;
+        }
+        if(this.getDistrictToMerge() == null) {
+            districtToMerge = 0;
+        }
+        if(this.getDestCity() == null) {
+            destCity = 0;
+        }
         return this.getCityToMerge() > 0 && this.getDistrictToMerge() > 0 && this.getDestCity().intValue() == this.getCityCode().intValue();
     }
 
