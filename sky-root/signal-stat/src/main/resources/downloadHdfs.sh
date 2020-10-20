@@ -15,14 +15,19 @@ profiles="2017 2019mainstat 2019otherstat"
 workliveProfile="201706worklivestat 201906worklivestat"
 
 basepath="/user/bdoc/17/services/hdfs/132/jiangsu_track_second/stat"
-dataDir="$HOME/jiangsu/data"
+dataDir="$HOME/jiangsu/data1"
+echo -e "current data dir is:$dataDir"
 #下载worklive
 for profile in $workliveProfile;
 do
     hdfsPath="$basepath/$profile/$cityCode/work-live-stat"
     statdir="$dataDir/$cityCode/$profile"
     mkdir -p $statdir
+    echo -e "+++++++++++++++++++++++++++++++"
+    echo -e "Downloading $hdfsPath to $statdir ..."
     hdfs dfs -get $hdfsPath $statdir
+    echo -e "Download done!"
+
     #TEST
     # mkdir -p $statdir/work-live-stat
     # echo "test" >> $statdir/work-live-stat/part-00000
@@ -36,7 +41,10 @@ do
         hdfsPath="$basepath/$profile/$cityCode/$table"
         statdir="$dataDir/$cityCode/$profile"
         mkdir -p $statdir
+        echo -e "+++++++++++++++++++++++++++++++"
+        echo -e "Downloading $hdfsPath to $statdir ..."
         hdfs dfs -get $hdfsPath $statdir
+        echo -e "Download done!"
         #TEST
         # mkdir -p $statdir/$table
         # echo "test" >> $statdir/$table/part-00000
@@ -47,6 +55,7 @@ done;
 statdir="$dataDir/$cityCode"
 mkdir -p $statdir/stat
 #合并worklive
+echo -e "merge worklive files...."
 for profile in $workliveProfile;
 do
     localdir="$dataDir/$cityCode/$profile/work-live-stat"
@@ -54,7 +63,6 @@ do
     mkdir -p $destdir
     for file in $(ls $localdir)
     do
-        echo $file
         if [ ! -f "$destdir/$file" ]
         then
             mv $localdir/$file $destdir/$file
@@ -64,6 +72,7 @@ do
     done;
 done;
 #合并其他表格
+echo -e "merge other tables..."
 for profile in $profiles;
 do
     for table in $little;
@@ -73,7 +82,6 @@ do
         mkdir -p $destdir
         for file in $(ls $localdir)
         do
-            echo $file
             if [ ! -f "$destdir/$file" ]
             then
                 mv $localdir/$file $destdir/$file
@@ -84,7 +92,16 @@ do
 
     done;
 done;
+#clear 
+echo -e "Clearing tmp dirs..."
+for profile in $profiles;
+do
+  rm -rf $dataDir/$cityCode/$profile
+done;
+for profile in $workliveProfile;
+do
+  rm -rf $dataDir/$cityCode/$profile
+done;
 
-
-
+echo -e "Download data from hdfs for city $cityCode finished!"
 
