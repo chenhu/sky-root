@@ -54,6 +54,11 @@ done;
 #合并表格内容
 statdir="$dataDir/$cityCode"
 mkdir -p $statdir/stat
+#download geohash
+hdfs dfs -get /user/bdoc/17/services/hdfs/132/jiangsu_track_second/save/$cityCode/geohash $statdir/stat/
+#download dataquality
+hdfs dfs -get /user/bdoc/17/services/hdfs/132/jiangsu_track_second/save/$cityCode/quality-all $statdir/stat/
+
 #合并worklive
 echo -e "merge worklive files...."
 for profile in $workliveProfile;
@@ -66,8 +71,11 @@ do
         if [ ! -f "$destdir/$file" ]
         then
             mv $localdir/$file $destdir/$file
-        else
+        elif [ ! -f "$destdir/${file}_1" ]
+        then
             mv $localdir/$file $destdir/${file}_1
+        else
+            mv $localdir/$file $destdir/${file}_2
         fi
     done;
 done;
@@ -85,9 +93,12 @@ do
             if [ ! -f "$destdir/$file" ]
             then
                 mv $localdir/$file $destdir/$file
-            else
+            elif [ ! -f "$destdir/${file}_1" ]
+            then
                 mv $localdir/$file $destdir/${file}_1
-            fi
+             else
+                mv $localdir/$file $destdir/${file}_2
+             fi
         done;
 
     done;
