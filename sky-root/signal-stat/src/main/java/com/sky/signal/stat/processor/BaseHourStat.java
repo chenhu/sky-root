@@ -78,7 +78,8 @@ public class BaseHourStat implements Serializable {
 
     public DataFrame agg() {
         DataFrame aggDf = FileUtil.readFile(FileUtil.FileType.CSV, SCHEMA1, params.getBaseHourSavePath("*"));
-        aggDf = aggDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(sum("peo_num").as("peo_num")).orderBy(col("date"), col("geohash"), col("time_inter"), col("person_class"), col("sex"), col("age_class")).drop(col("sex"));
+        aggDf = aggDf.groupBy("date", "geohash", "time_inter", "person_class", "sex", "age_class").agg(sum("peo_num").as("peo_num")).orderBy(col("date"),
+                col("geohash"), col("time_inter"), col("person_class"), col("sex"), col("age_class"));
         FileUtil.saveFile(aggDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getBaseHourSavePath());
         return aggDf;
     }
