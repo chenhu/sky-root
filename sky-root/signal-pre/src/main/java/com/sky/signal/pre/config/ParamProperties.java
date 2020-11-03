@@ -249,6 +249,14 @@ public class ParamProperties {
                 .concat(PathConfig.DATA_QUALITY_SAVE_PATH)
                 .concat(date);
     }
+
+    public String getDataQualitySavePath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.DATA_QUALITY_SAVE_PATH);
+    }
+
     public String getDataQualityAllSavePath() {
         return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
                 .concat(this.getCityCode().toString())
@@ -397,6 +405,13 @@ public class ParamProperties {
                 .concat(batch).concat(java.io.File.separator)
                 .concat("tmp");
     }
+    public String getExistsDaysSavePath() {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.EXISTS_DAYS_SAVE_PATH);
+    }
     public String getLiveSumAllSavePath(String batch) {
         return this.getBasePath()
                 .concat(PathConfig.APP_SAVE_PATH)
@@ -417,6 +432,13 @@ public class ParamProperties {
                 .concat(java.io.File.separator)
                 .concat(PathConfig.ULD);
     }
+    public String getLiveSavePath() {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.LIVE_SAVE_PATH);
+    }
     public String getWorkSumAllSavePath(String batch) {
         return this.getBasePath()
                 .concat(PathConfig.APP_SAVE_PATH)
@@ -436,6 +458,13 @@ public class ParamProperties {
                 .concat(batch)
                 .concat(java.io.File.separator)
                 .concat(PathConfig.UWD);
+    }
+    public String getWorkSavePath() {
+        return this.getBasePath()
+                .concat(PathConfig.APP_SAVE_PATH)
+                .concat(this.getCityCode().toString())
+                .concat(java.io.File.separator)
+                .concat(PathConfig.WORK_SAVE_PATH);
     }
     public String getWorkLiveSavePath() {
         return this.getBasePath()
