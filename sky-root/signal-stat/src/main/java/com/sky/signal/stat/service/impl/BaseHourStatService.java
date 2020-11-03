@@ -25,6 +25,7 @@ public class BaseHourStatService implements ComputeService {
 
     @Override
     public void compute() {
+        this.clearBaseHourTempData();
         DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive().select("msisdn","person_class","sex","age_class").repartition(params.getPartitions());
         workLiveDf = workLiveDf.persist(StorageLevel.DISK_ONLY());
         Map<Integer, List<String>> validSignalFileMap = FilesBatchUtils.getBatchFiles(params.getValidSignalFilesForStat(), params.getStatBatchSize(),params.getCrashPosition());
@@ -48,5 +49,10 @@ public class BaseHourStatService implements ComputeService {
         }
 
         return validSignalDF.repartition(params.getPartitions());
+    }
+
+    private void clearBaseHourTempData() {
+        FileUtil.removeDfsDirectory(params.getBaseHourTempSavePath());
+
     }
 }

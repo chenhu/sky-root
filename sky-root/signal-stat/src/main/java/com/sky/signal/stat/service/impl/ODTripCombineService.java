@@ -6,6 +6,7 @@ import com.sky.signal.stat.processor.CombineTripStatWorkLive;
 import com.sky.signal.stat.processor.od.ODLoader;
 import com.sky.signal.stat.processor.workLive.WorkLiveLoader;
 import com.sky.signal.stat.service.ComputeService;
+import com.sky.signal.stat.util.FileUtil;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.storage.StorageLevel;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ public class ODTripCombineService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-
+        this.clearOdTripTempData();
         Map<Integer, List<String>> odTripMap = FilesBatchUtils.getBatchFiles(params.getODStatTripPath(), params.getStatBatchSize(),params.getCrashPosition());
         DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive().repartition(params.getPartitions());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
@@ -43,5 +44,9 @@ public class ODTripCombineService implements ComputeService {
         }
         workLiveDf.unpersist();
         logger.info("ODTripCombineService duration: " + stopwatch.toString());
+    }
+
+    private void clearOdTripTempData() {
+        FileUtil.removeDfsDirectory(params.getODTripStatTempSavePath());
     }
 }

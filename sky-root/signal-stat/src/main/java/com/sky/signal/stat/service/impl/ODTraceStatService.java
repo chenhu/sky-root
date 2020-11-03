@@ -33,6 +33,7 @@ public class ODTraceStatService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
+        this.clearOdTraceTempData();
         Map<Integer, List<String>> odTraceMap = FilesBatchUtils.getBatchFiles(params.getODTracePath(), params.getStatBatchSize(),params.getCrashPosition());
         DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive().select("msisdn", "person_class", "sex", "age_class").repartition(params.getPartitions());
         workLiveDf.persist(StorageLevel.DISK_ONLY());
@@ -58,5 +59,10 @@ public class ODTraceStatService implements ComputeService {
             }
         }
         return odTraceDf.repartition(params.getPartitions());
+    }
+
+    private void clearOdTraceTempData() {
+        FileUtil.removeDfsDirectory(params.getODTraceDayTempSavePath());
+        FileUtil.removeDfsDirectory(params.getODTraceBusyTimeTempSavePath());
     }
 }
