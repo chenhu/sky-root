@@ -4,7 +4,7 @@
 if [ ! -n "$1" ]
 then
     echo -e "请输入地市编码"
-    exit -1
+    exit 1
 fi
 cityCode=$1
 
@@ -49,19 +49,9 @@ mkdir -p $statdir/stat
 #合并worklive
 for profile in $workliveProfile;
 do
-    localdir="$dataDir/$cityCode/$profile/work-live-stat"
-    destdir="$statdir/stat/work-live-stat"
-    mkdir -p $destdir
-    for file in $(ls $localdir)
-    do
-        echo $file
-        if [ ! -f "$destdir/$file" ]
-        then
-            mv $localdir/$file $destdir/$file
-        else
-            mv $localdir/$file $destdir/${file}_1
-        fi
-    done;
+    localdir="$dataDir/$cityCode/$profile"
+    destdir="$statdir/stat/"
+    mv $localdir $destdir
 done;
 #合并其他表格
 for profile in $profiles;
