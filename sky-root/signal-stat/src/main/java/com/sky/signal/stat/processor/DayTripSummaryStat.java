@@ -24,7 +24,7 @@ public class DayTripSummaryStat implements Serializable{
     public DataFrame process(DataFrame ODDf) {
         DataFrame df = ODDf.groupBy("date", "person_class", "sex", "age_class")
                 .agg(count("*").as("trip_num"), countDistinct("msisdn").as("num_inter"))
-                .orderBy("date","person_class", "sex", "age_class").drop(col("sex"));
+                .orderBy("date","person_class", "sex", "age_class");
         FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getDayTripSummaryStatSavePath());
         return df;
 

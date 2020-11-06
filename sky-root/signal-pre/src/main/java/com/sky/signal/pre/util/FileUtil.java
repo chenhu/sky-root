@@ -1,10 +1,15 @@
 package com.sky.signal.pre.util;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.types.StructType;
 import org.springframework.util.Assert;
+
+import java.io.IOException;
 
 /**
  * 文件服务
@@ -70,5 +75,29 @@ public class FileUtil {
             }
         }
         return result;
+    }
+
+    /**
+     * @Description:
+     * 删除hdfs目录
+     *
+     * @Author: Hu Chen
+     * @Date: 2020/11/3 11:53
+     * @param: [path] 需要删除的目录
+     * @return: void
+     **/
+    public static void removeDfsDirectory(String path) {
+        Configuration configuration = sqlContext.sparkContext().hadoopConfiguration();
+        FileSystem fs = null;
+        try {
+            fs = FileSystem.get(configuration);
+            Path dfsPath = new Path(path);
+            if(fs.exists(dfsPath)) {
+                fs.delete(dfsPath,true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

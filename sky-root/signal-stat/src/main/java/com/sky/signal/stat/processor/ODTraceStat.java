@@ -101,9 +101,9 @@ public class ODTraceStat implements Serializable{
     }
 
     public void combineData() {
-        DataFrame odTraceDayDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceDaySavePath("*")).drop(col("sex"));
+        DataFrame odTraceDayDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceDaySavePath("*"));
         FileUtil.saveFile(odTraceDayDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getODTraceDaySavePath());
-        DataFrame odTraceBusyTimeDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceBusyTimeSavePath("*")).drop(col("sex"));
+        DataFrame odTraceBusyTimeDf =  FileUtil.readFile(FileUtil.FileType.PARQUET, ODSchemaProvider.OD_TRACE_STAT_SCHEMA1,params.getODTraceBusyTimeSavePath("*"));
         FileUtil.saveFile(odTraceBusyTimeDf.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getODTraceBusyTimeSavePath());
     }
 }

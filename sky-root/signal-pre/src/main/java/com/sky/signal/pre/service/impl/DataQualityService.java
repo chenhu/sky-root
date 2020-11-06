@@ -26,6 +26,9 @@ public class DataQualityService implements ComputeService {
     private transient DataQualityProcessor dataQualityProcessor;
     @Override
     public void compute() {
+        //删除临时文件
+        this.clearQualityData();
+
         Map<String, Tuple2<String, String>> signalMap = params.getSignalFilePathTuple2();
         for(String date: signalMap.keySet()) {
             String traceFilePath = signalMap.get(date)._2;
@@ -35,5 +38,10 @@ public class DataQualityService implements ComputeService {
         DataFrame dataQualityAllStat = FileUtil.readFile(FileUtil.FileType.CSV, DataQualitySchemaProvider.SIGNAL_SCHEMA_BASE, params.getDataQualitySavePath("*")).orderBy("date");
         FileUtil.saveFile(dataQualityAllStat.repartition(1), FileUtil.FileType.CSV, params.getDataQualityAllSavePath());
 
+    }
+
+    private void clearQualityData() {
+        FileUtil.removeDfsDirectory(params.getDataQualitySavePath());
+        FileUtil.removeDfsDirectory(params.getDataQualityAllSavePath());
     }
 }

@@ -240,6 +240,7 @@ public class TransformFunction implements Serializable {
     }
     /**
      * description: 年龄:非江苏省0，非江苏省0，1：[1， 5]，2:[6，12]，3:[13，18]，4:[19，24]，5:[25，29]，6:[30，39]，7:[40，49]，8:[50，59]，9:60及以上
+     * 20201030 请将原来的50-59年龄段拆分为两个：50-55，56-60；60及以上改为61及以上
      * param: [age]
      * return: java.lang.Integer
      **/
@@ -261,10 +262,12 @@ public class TransformFunction implements Serializable {
             ageClass = 6;
         } else if (age >= 40 && age <= 49) {
             ageClass = 7;
-        } else if (age >= 50 && age <= 59) {
+        } else if (age >= 50 && age <= 55) {
             ageClass = 8;
-        } else {
+        } else if (age >= 56 && age <= 60) {
             ageClass = 9;
+        } else {
+            ageClass = 10;
         }
         return ageClass;
 
