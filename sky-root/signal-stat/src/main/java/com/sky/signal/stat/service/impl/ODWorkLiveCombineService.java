@@ -32,7 +32,9 @@ public class ODWorkLiveCombineService implements ComputeService {
     @Override
     public void compute() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        this.clearOdWorkLiveCombineTempData();
+        if(params.getCrashPosition() < 2) {
+            this.clearOdWorkLiveCombineTempData();
+        }
         Map<Integer, List<String>> odMap = FilesBatchUtils.getBatchFiles(params.getODResultPath(), params.getStatBatchSize(),params.getCrashPosition());
         DataFrame workLiveDf = workLiveLoader.loadMergedWorkLive();
         workLiveDf.persist(StorageLevel.DISK_ONLY());
