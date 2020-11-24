@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.from_unixtime;
+import static org.apache.spark.sql.functions.unix_timestamp;
 
 /**
  * 原始手机信令数据生成有效手机信令数据
@@ -468,10 +470,12 @@ public class SignalProcessor implements Serializable {
         if (!ProfileUtil.getActiveProfile().equals("local")) {
             partitions = params.getPartitions();
         }
-
+        String date = path.substring(path.length() - 8);
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
         //补全基站信息并删除重复信令
-        DataFrame sourceDf = sqlContext.read().parquet(path).repartition(params.getPartitions());
+        DataFrame sourceDf = sqlContext.read().parquet(path);
+        //过滤掉不是当前处理日期的信令数据
+        sourceDf = sourceDf.filter(from_unixtime(unix_timestamp(sourceDf.col("start_time"), "yyyy-MM-dd hh:mm:ss"), "yyyyMMdd").equalTo(date)).repartition(params.getPartitions());
         sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf).persist(StorageLevel.DISK_ONLY());
         //按手机号码对信令数据预处理
         JavaRDD<Row> rdd4 = SignalProcessUtil.signalToJavaPairRDD(sourceDf, params).values().flatMap(new FlatMapFunction<List<Row>, Row>() {
@@ -506,10 +510,10 @@ public class SignalProcessor implements Serializable {
 //        JavaRDD<Row> signalBaseWithRegionRDD = signalLoader.region(regionVar).mergeAttribution(signalBaseWithCRMDf.javaRDD());
 //        DataFrame signalMerged = sqlContext.createDataFrame(signalBaseWithRegionRDD, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA);
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
-        String date = path.substring(path.length() - 8);
+
         //其他区县的信令合并到某个地市处理
         DataFrame districtValidSignal = getDistrictValidSignal(date);
-        if(districtValidSignal != null) {
+        if (districtValidSignal != null) {
             signalBaseWithCRMDf = signalBaseWithCRMDf.unionAll(districtValidSignal);
         }
         FileUtil.saveFile(signalBaseWithCRMDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
@@ -517,7 +521,7 @@ public class SignalProcessor implements Serializable {
     }
 
     private DataFrame getDistrictValidSignal(String date) {
-        if(params.needMerge()) {
+        if (params.needMerge()) {
             return FileUtil.readFile(FileUtil.FileType.PARQUET, SignalSchemaProvider.SIGNAL_SCHEMA_NO_AREA, params.getNeedMergeCityValidSignalSavePath(date)).filter(col("district_code").equalTo(params.getDistrictToMerge()));
         } else {
             return null;
