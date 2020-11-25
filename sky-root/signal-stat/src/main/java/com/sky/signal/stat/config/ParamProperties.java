@@ -277,6 +277,10 @@ public class ParamProperties {
     public String getDayTripSummaryStatSavePath() {
         return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.DAY_TRIP_SUMMARY_STAT);
     }
+    //临时统计用
+    public String getPersonTripNumSavePath() {
+        return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat("person-trip-num/");
+    }
     public String getDayTripSummaryWithPurposeStatSavePath() {
         return this.getBasePath().concat(PathConfig.STAT_ROOT).concat(this.getCityCode().toString()).concat(java.io.File.separator).concat(PathConfig.DAY_TRIP_WITH_PURPOSE_SUMMARY_STAT);
     }

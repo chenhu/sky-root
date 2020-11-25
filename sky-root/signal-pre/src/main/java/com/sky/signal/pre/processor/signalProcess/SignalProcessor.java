@@ -512,10 +512,10 @@ public class SignalProcessor implements Serializable {
         //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
 
         //其他区县的信令合并到某个地市处理
-        DataFrame districtValidSignal = getDistrictValidSignal(date);
-        if (districtValidSignal != null) {
-            signalBaseWithCRMDf = signalBaseWithCRMDf.unionAll(districtValidSignal);
-        }
+//        DataFrame districtValidSignal = getDistrictValidSignal(date);
+//        if (districtValidSignal != null) {
+//            signalBaseWithCRMDf = signalBaseWithCRMDf.unionAll(districtValidSignal);
+//        }
         FileUtil.saveFile(signalBaseWithCRMDf.repartition(partitions), FileUtil.FileType.PARQUET, params.getValidSignalSavePath(date));
         signalBaseDf.unpersist();
     }

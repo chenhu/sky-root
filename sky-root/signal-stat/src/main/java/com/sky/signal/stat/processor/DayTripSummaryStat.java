@@ -29,4 +29,15 @@ public class DayTripSummaryStat implements Serializable{
         return df;
 
     }
+
+    public DataFrame personTripNumStat(DataFrame ODDf) {
+        DataFrame df = ODDf.groupBy("date", "person_class", "msisdn")
+                .agg(count("*").as("trip_num")).groupBy("date","person_class","trip_num").agg(countDistinct("msisdn").as("num_inter"))
+                .orderBy("date","person_class", "trip_num");
+        FileUtil.saveFile(df.repartition(params.getStatpatitions()), FileUtil.FileType.CSV, params.getPersonTripNumSavePath());
+        return df;
+
+    }
+
+
 }
