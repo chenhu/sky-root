@@ -182,6 +182,9 @@ public class StayPointProcessor implements Serializable {
      * description: 计算OD出行链，删除出行时间小于4分钟的OD出行，删除中间没有位移点并且出行时间大于等于40
      * 分钟的OD出行，记录每个OD对的最大速度、曲线距离、以及速度变异系数
      * 注意：如果 A-B 满足上述条件，也要把B-A的出行删除
+     * 2020-11-26 增加如下逻辑
+     * 1. 如果od距离小于3000米，删除该od对以及其出行链
+     * 2. 经过上述步骤，如果msisdn的出行次数大于5次，则删除没有位移点的od
      * param: [rows]
      * return: java.util.List<org.apache.spark.sql.Row>
      **/
@@ -231,7 +234,8 @@ public class StayPointProcessor implements Serializable {
         List<Tuple2<String, String>> shouldRemoveOD = new ArrayList<>();
         //List保存从小区到小区移动记录，包括O和D中间的位移点
         List<Row> traceOD = new ArrayList<>();
-
+        //用于保存od以及od中间的位移点个数
+        List<Tuple2<Row, Integer>> tmpTuple = new ArrayList<>();
         for (Tuple3<String, String, Timestamp> tuple3 : odTraceMap.keySet()) {
             LinkedList<Row> trace = (LinkedList<Row>) odTraceMap.get(tuple3);
             if (shouldRemoveOD.contains(new Tuple2<>(tuple3._1(), tuple3._2())) || shouldRemoveOD.contains(new Tuple2<>(tuple3._2(), tuple3._1()))) {
@@ -243,10 +247,14 @@ public class StayPointProcessor implements Serializable {
             Timestamp destBegin = (Timestamp) d.getAs("begin_time");
             Timestamp destEnd = (Timestamp) d.getAs("last_time");
             int moveTime = stayPointUtil.getTimeDiff(originEnd, destBegin);
+            //计算od距离
+            int distance = MapUtil.getDistance((Double) d.getAs("lng"),(Double) d.getAs("lat"), (Double) o.getAs("lng"), (Double) o.getAs("lat"));
+
             //增加O、D点逗留时间
             Timestamp originBegin = (Timestamp) o.getAs("begin_time");
             int durationO = Math.abs(Seconds.secondsBetween(new DateTime(originEnd), new DateTime(originBegin)).getSeconds());
-            if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400)) {
+            //时间差小于4分钟或者（大于40分钟而且中间没有位移点）或者 距离小于3KM，删除该od对
+            if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400) || distance < 3000) {
                 shouldRemoveOD.add(new Tuple2<>(tuple3._1(), tuple3._2()));
                 shouldRemoveOD.add(new Tuple2<>(tuple3._2(), tuple3._1()));
                 continue;
@@ -289,8 +297,6 @@ public class StayPointProcessor implements Serializable {
                 } catch (Exception ex) {
 
                 }
-                int distance = MapUtil.getDistance((Double) o.getAs("lng"), (Double) o.getAs
-                        ("lat"), (Double) d.getAs("lng"), (Double) d.getAs("lat"));
 
                 Row od = new GenericRowWithSchema(new Object[]{o.getAs("date"),
                         o.getAs("msisdn"),
@@ -308,9 +314,20 @@ public class StayPointProcessor implements Serializable {
                 if (trace.size() > 1) {
                     traceOD.addAll(createODTrace(trace));
                 }
+                //记录有效od以及od之间的位移点个数
+                tmpTuple.add(new Tuple2(od,trace.size()));
             }
         }
-        return new Tuple3<>(odResult, traceOD,pointList);
+        //如果msisdn的出行次数超过5次，删除od之间没有位移点的od
+        if(odResult.size() > 5) {
+            odResult.clear();
+            for(Tuple2<Row, Integer> tuple: tmpTuple) {
+                if(tuple._2 > 2) {
+                    odResult.add(tuple._1);
+                }
+            }
+        }
+        return new Tuple3<>(odResult, traceOD, pointList);
     }
 
     /**
@@ -545,7 +562,6 @@ public class StayPointProcessor implements Serializable {
                 List<Row> od = result._1();
                 //List保存所有O点和D点，用于区县OD分析
                 List<Row> pointList = result._3();
-                //
                 if (od.size() > 0) {
                     statTrip = setHasTrip(statTrip);
                 }
