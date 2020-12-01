@@ -187,6 +187,8 @@ public class StayPointProcessor implements Serializable {
      * 2. 经过上述步骤，如果msisdn的出行次数大于5次，则删除没有位移点的od
      * 2020-11-27
      * 如果msisdn的出行次数大于5次,删除没有位移点且出行距离小于3km的od以及其出行链
+     * 2020-12-1
+     * 改回2020-11-26的逻辑
      * param: [rows]
      * return: java.util.List<org.apache.spark.sql.Row>
      **/
@@ -237,7 +239,7 @@ public class StayPointProcessor implements Serializable {
         //List保存从小区到小区移动记录，包括O和D中间的位移点
         List<Row> traceOD = new ArrayList<>();
         //用于保存od以及od中间的位移点个数
-        List<Tuple2<Row, LinkedList<Row>>> tmpTuple = new ArrayList<>();
+        List<Tuple2<Row, Integer>> tmpTuple = new ArrayList<>();
         for (Tuple3<String, String, Timestamp> tuple3 : odTraceMap.keySet()) {
             LinkedList<Row> trace = (LinkedList<Row>) odTraceMap.get(tuple3);
             if (shouldRemoveOD.contains(new Tuple2<>(tuple3._1(), tuple3._2())) || shouldRemoveOD.contains(new Tuple2<>(tuple3._2(), tuple3._1()))) {
@@ -255,8 +257,8 @@ public class StayPointProcessor implements Serializable {
             //增加O、D点逗留时间
             Timestamp originBegin = (Timestamp) o.getAs("begin_time");
             int durationO = Math.abs(Seconds.secondsBetween(new DateTime(originEnd), new DateTime(originBegin)).getSeconds());
-            //时间差小于4分钟或者（大于40分钟而且中间没有位移点）
-            if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400)) {
+            //时间差小于4分钟或者（大于40分钟而且中间没有位移点）或者 距离小于3KM，删除该od对
+            if (moveTime <= 240 || (trace.size() == 2 && moveTime >= 2400) || distance < 3000) {
                 shouldRemoveOD.add(new Tuple2<>(tuple3._1(), tuple3._2()));
                 shouldRemoveOD.add(new Tuple2<>(tuple3._2(), tuple3._1()));
                 continue;
@@ -313,24 +315,28 @@ public class StayPointProcessor implements Serializable {
                 odResult.add(od);
                 pointList.add(o);
                 pointList.add(d);
-                if (trace.size() > 1) {
-                    traceOD.addAll(createODTrace(trace));
-                }
                 //记录有效od以及od之间的位移点个数
-                tmpTuple.add(new Tuple2(od,trace));
+                tmpTuple.add(new Tuple2(od,trace.size()));
             }
         }
-        //如果msisdn的出行次数大于5次,删除没有位移点且出行距离小于3km的od以及其出行链
+        //如果msisdn的出行次数超过5次，删除od之间没有位移点的od
         if(odResult.size() > 5) {
             odResult.clear();
-            for(Tuple2<Row, LinkedList<Row>> tuple: tmpTuple) {
-                LinkedList<Row> trace = tuple._2;
-                Row od = tuple._1;
-                if(trace.size() > 2) {
-                    //计算od距离
-                    int distance = MapUtil.getDistance((Double) od.getAs("arrive_lng"),(Double) od.getAs("arrive_lat"), (Double) od.getAs("leave_lng"), (Double) od.getAs("leave_lat"));
-                    if(distance> 3000) {
-                        odResult.add(od);
+            for(Tuple2<Row, Integer> tuple: tmpTuple) {
+                if(tuple._2 > 2) {
+                    odResult.add(tuple._1);
+                }
+            }
+        }
+        //筛选od轨迹
+        for (Tuple3<String, String, Timestamp> tuple3 : odTraceMap.keySet()) {
+            String beginBase = tuple3._1();
+            String endBase = tuple3._2();
+            LinkedList<Row> trace = (LinkedList<Row>) odTraceMap.get(tuple3);
+            for (Row row: odResult) {
+                if(beginBase.equals(row.getAs("leave_base")) && endBase.equals(row.getAs("arrive_base"))) {
+                    if (trace.size() > 1) {
+                        traceOD.addAll(createODTrace(trace));
                     }
                 }
             }
