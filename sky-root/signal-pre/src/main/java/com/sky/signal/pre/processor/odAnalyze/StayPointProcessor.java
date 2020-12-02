@@ -197,9 +197,12 @@ public class StayPointProcessor implements Serializable {
         Map<Tuple3<String, String, Timestamp>, List<Row>> odTraceMap = new HashMap<>();
         List<Row> odResult = new ArrayList<>();
         //List保存所有O点和D点，用于区县OD分析
-        List<Row> pointList = new ArrayList<>();
+//        List<Row> pointList = new ArrayList<>();
+
+        //统计od出行中间位移点个数
+        List<Row> odPointStat = new ArrayList<>();
         if (rows.size() < 2) {
-            return new Tuple3<>(odResult, odResult, pointList);
+            return new Tuple3<>(odResult, odResult, odPointStat);
         }
         // 当前记录
         Row current;
@@ -313,13 +316,15 @@ public class StayPointProcessor implements Serializable {
                         originEnd, destBegin, linkedDistance,
                         maxSpeed, covSpeed, distance, durationO,moveTime}, ODSchemaProvider.OD_SCHEMA);
                 odResult.add(od);
-                pointList.add(o);
-                pointList.add(d);
+//                pointList.add(o);
+//                pointList.add(d);
                 //记录有效od以及od之间的位移点个数
                 tmpTuple.add(new Tuple2(od,trace.size()));
             }
         }
         //如果msisdn的出行次数超过5次，删除od之间没有位移点的od
+        //并统计od之间是否有轨迹
+
         if(odResult.size() > 5) {
             odResult.clear();
             for(Tuple2<Row, Integer> tuple: tmpTuple) {
@@ -327,6 +332,39 @@ public class StayPointProcessor implements Serializable {
                     odResult.add(tuple._1);
                 }
             }
+            Row nowTrace = new GenericRowWithSchema(new Object[]{
+                    odResult.get(0).getAs("date"),
+                    odResult.get(0).getAs("msisdn"),
+                    0,
+                    0}, ODSchemaProvider.OD_POINT_STAT_SCHEMA);
+            Row hasTrace = new GenericRowWithSchema(new Object[]{
+                    odResult.get(0).getAs("date"),
+                    odResult.get(0).getAs("msisdn"),
+                    1,
+                    odResult.size()}, ODSchemaProvider.OD_POINT_STAT_SCHEMA);
+            odPointStat.add(nowTrace);
+            odPointStat.add(hasTrace);
+        } else {
+            int hasTraceOd = 0, noTraceOd = 0;
+            for(Tuple2<Row, Integer> tuple: tmpTuple) {
+                if(tuple._2 > 2) {
+                    hasTraceOd ++;
+                } else {
+                    noTraceOd ++;
+                }
+            }
+            Row nowTrace = new GenericRowWithSchema(new Object[]{
+                    odResult.get(0).getAs("date"),
+                    odResult.get(0).getAs("msisdn"),
+                    0,
+                    noTraceOd}, ODSchemaProvider.OD_POINT_STAT_SCHEMA);
+            Row hasTrace = new GenericRowWithSchema(new Object[]{
+                    odResult.get(0).getAs("date"),
+                    odResult.get(0).getAs("msisdn"),
+                    1,
+                    hasTraceOd}, ODSchemaProvider.OD_POINT_STAT_SCHEMA);
+            odPointStat.add(nowTrace);
+            odPointStat.add(hasTrace);
         }
         //筛选od轨迹
         for (Tuple3<String, String, Timestamp> tuple3 : odTraceMap.keySet()) {
@@ -341,7 +379,9 @@ public class StayPointProcessor implements Serializable {
                 }
             }
         }
-        return new Tuple3<>(odResult, traceOD, pointList);
+
+
+        return new Tuple3<>(odResult, traceOD, odPointStat);
     }
 
     /**
@@ -575,11 +615,12 @@ public class StayPointProcessor implements Serializable {
                 // OD数据，只包含每次出行的O和D
                 List<Row> od = result._1();
                 //List保存所有O点和D点，用于区县OD分析
-                List<Row> pointList = result._3();
+//                List<Row> pointList = result._3();
+                List<Row> pointStatList = result._3();
                 if (od.size() > 0) {
                     statTrip = setHasTrip(statTrip);
                 }
-                return new Tuple4<>(odTrace, od, statTrip,pointList);
+                return new Tuple4<>(odTrace, od, statTrip,pointStatList);
             }
         });
 

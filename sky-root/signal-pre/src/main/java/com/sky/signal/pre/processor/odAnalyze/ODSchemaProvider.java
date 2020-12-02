@@ -83,4 +83,9 @@ public class ODSchemaProvider {
             DataTypes.createStructField("msisdn", DataTypes.StringType, false),
             DataTypes.createStructField("has_trip", DataTypes.ByteType, false),
             DataTypes.createStructField("staypoint_count", DataTypes.IntegerType, false)));
+    public static final StructType OD_POINT_STAT_SCHEMA = DataTypes.createStructType(
+            Lists.newArrayList(DataTypes.createStructField("date", DataTypes.IntegerType, false),
+                    DataTypes.createStructField("msisdn", DataTypes.StringType, false),
+                    DataTypes.createStructField("type", DataTypes.ByteType, false),
+                    DataTypes.createStructField("count", DataTypes.IntegerType, false)));
 }
