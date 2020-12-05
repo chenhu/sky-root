@@ -29,7 +29,6 @@ public class DayTripSummaryStat implements Serializable{
         return df;
 
     }
-
     public DataFrame personTripNumStat(DataFrame ODDf) {
         DataFrame df = ODDf.groupBy("date", "person_class", "msisdn")
                 .agg(count("*").as("trip_num")).groupBy("date","person_class","trip_num").agg(countDistinct("msisdn").as("num_inter"))

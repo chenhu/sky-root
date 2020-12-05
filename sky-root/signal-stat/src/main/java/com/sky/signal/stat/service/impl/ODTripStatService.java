@@ -34,8 +34,8 @@ public class ODTripStatService implements ComputeService {
         odWorkLiveCombinedDf.persist(StorageLevel.DISK_ONLY());
         // 日出行总体特征
         dayTripSummaryStat.process(odWorkLiveCombinedDf);
-        //临时统计
-//        dayTripSummaryStat.personTripNumStat(odWorkLiveCombinedDf);
+        //出行次数对应的出行人数统计
+        dayTripSummaryStat.personTripNumStat(odWorkLiveCombinedDf);
         // 分目的的总体特征
         dayTripPurposeSummaryStat.process(odWorkLiveCombinedDf);
 //        odTripStat.process(odTripStatCombinedDf);
