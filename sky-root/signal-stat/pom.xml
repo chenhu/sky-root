@@ -116,7 +116,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <outputDirectory>
-                        /Users/chenhu/Documents/wildSky/交换文件夹/jars
+                        /Users/chenhu/Documents/wildSky/交换文件夹.nosync/jars
                     </outputDirectory>
                 </configuration>
             </plugin>
