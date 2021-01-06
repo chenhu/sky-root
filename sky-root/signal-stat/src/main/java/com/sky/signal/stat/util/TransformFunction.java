@@ -244,9 +244,9 @@ public class TransformFunction implements Serializable {
      * param: [age]
      * return: java.lang.Integer
      **/
-    public static final Integer transformAgeClass(Short age, Integer region) {
+    public static final Integer transformAgeClass(Short age, Integer cenRegion) {
         Integer ageClass ;
-        if (region == null || age == null || region < 100) {
+        if (cenRegion == 0 || age == -1) {
             ageClass = 0;
         } else if (age >= 1 && age <= 5) {
             ageClass = 1;
@@ -292,15 +292,8 @@ public class TransformFunction implements Serializable {
      * param: [region]
      * return: java.lang.Integer
      **/
-    public static final Integer transformJsRegion(Integer region) {
-        Integer js_region;
-        if (region == null || region < 100) {
-            js_region = 0;
-        } else {
-            js_region = 1;
-        }
-
-        return js_region;
+    public static final Integer transformJsRegion(Integer cenRegion) {
+        return cenRegion == 0? 0 : 1;
     }
 
     /**
@@ -308,9 +301,9 @@ public class TransformFunction implements Serializable {
      * param: [sex]
      * return: java.lang.Integer
      **/
-    public static final Short transformSexClass(Short sex, Integer region) {
+    public static final Short transformSexClass(Short sex, Integer cenRegion) {
         Short sexClass = sex;
-        if (region == null || region < 100) {
+        if (cenRegion == 0  || sex == -1) {
             sexClass = -99;
         } else if(sex != 0 && sex != 1) {
             sexClass = 99;

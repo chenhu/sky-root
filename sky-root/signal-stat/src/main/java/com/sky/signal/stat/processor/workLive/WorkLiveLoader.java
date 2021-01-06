@@ -45,13 +45,14 @@ public class WorkLiveLoader implements Serializable {
                 if (region == null) {
                     region = 0;
                 }
+                String cenRegion = TransformFunction.transformCenRegion((Integer) row.getAs("cen_region"));
                 Integer jsRegion = TransformFunction.transformJsRegion(region);
                 // 性别
                 Short sex = TransformFunction.transformSexClass((Short) row.getAs("sex"), region);
                 // 年龄分类
                 Integer ageClass = TransformFunction.transformAgeClass((Short) row.getAs("age"), region);
 
-                String cenRegion = TransformFunction.transformCenRegion((Integer) row.getAs("cen_region"));
+
                 // 分析时间范围内每日平均逗留时间分类
                 Double stayTime = (Double) row.getAs("stay_time");
                 if (stayTime == null) {
