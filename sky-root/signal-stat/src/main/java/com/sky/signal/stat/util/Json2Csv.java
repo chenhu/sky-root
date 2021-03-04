@@ -33,27 +33,33 @@ import java.io.*;
  **/
 public class Json2Csv {
     public static void main(String... args) {
-        String jsonFilePath = "/Users/chenhu/Documents/wildSky/交换文件夹.nosync/day-base-1000515/day-base-1000515";
-        String csvFilePath = jsonFilePath.concat(".csv");
-        File writeName = new File(csvFilePath);
-        try (FileReader reader = new FileReader(jsonFilePath);
-             FileWriter writer = new FileWriter(writeName);
-             BufferedWriter out = new BufferedWriter(writer);
-             BufferedReader br = new BufferedReader(reader)
-        ) {
-            writeName.createNewFile();
-            String line;
-            out.write("date,geohash\r\n");
+        String[] citys = new String[]{"1000250","1000510","1000511","1000512","1000513","1000514","1000515","1000516","1000517","1000518","1000519","1000523"
+                ,"1000527"};
+        for(String city: citys) {
+            String jsonFilePath = "/Users/chenhu/Documents/wildSky/交换文件夹.nosync/trace-base-stat/".concat(city);
+            String csvFilePath = jsonFilePath.concat(".csv");
+            File writeName = new File(csvFilePath);
+            try (FileReader reader = new FileReader(jsonFilePath);
+                 FileWriter writer = new FileWriter(writeName);
+                 BufferedWriter out = new BufferedWriter(writer);
+                 BufferedReader br = new BufferedReader(reader)
+            ) {
+                writeName.createNewFile();
+                String line;
+                out.write("base\r\n");
 
-            while ((line = br.readLine()) != null) {
-                JSONObject jsonObject = JSON.parseObject(line);
+                while ((line = br.readLine()) != null) {
+                    JSONObject jsonObject = JSON.parseObject(line);
 
-                out.write(jsonObject.getString("date").concat(",").concat(jsonObject.getString("geohash")).concat("\r\n"));
+//                    out.write(jsonObject.getString("date").concat(",").concat(jsonObject.getString("base")).concat("\r\n"));
+                    out.write(jsonObject.getString("base").concat("\r\n"));
 
-                out.flush(); // 把缓存区内容压入文件
+                    out.flush(); // 把缓存区内容压入文件
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+
     }
 }
