@@ -45,7 +45,7 @@ public class ProvinceMsisdnProcessor implements Serializable {
             //加载要处理的地市的信令
             String tracePath = params.getTraceFiles(Integer.valueOf(date));
             //合并基站信息到信令数据中
-            DataFrame sourceDf = FileUtil.readFile(FileUtil.FileType.PARQUET,null, tracePath).repartition(params.getPartitions());
+            DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
             sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf)
                     .groupBy("msisdn","district_code")
                     .agg(count("msisdn").as("num")).filter(col("num").geq(2))
