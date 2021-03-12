@@ -474,7 +474,7 @@ public class SignalProcessor implements Serializable {
     public void processProvince() {
         //普通基站信息
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-        for (String cityCode : params.JS_CITY_CODES) {
+        for (String cityCode : params.getCitys()) {
             for (String traceFile : params.getProvinceSavePathTraceByCityCode(cityCode)) {
                 //通过获取路径后8位的方式暂时取得数据日期，不从数据中获取
                 String date = traceFile.substring(traceFile.length() - 8);

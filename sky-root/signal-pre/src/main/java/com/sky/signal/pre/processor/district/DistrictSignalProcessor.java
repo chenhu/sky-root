@@ -38,7 +38,7 @@ public class DistrictSignalProcessor implements Serializable {
             final Broadcast<Map<String, Boolean>> msisdnVar = districtMsisdnProcessor.load(params.getDistrictCode(),
                     params.getCityCode().toString(),
                     date);
-            for (String cityCode : params.JS_CITY_CODES) {
+            for (String cityCode : params.getCitys()) {
                 OneDaySignalProcess(date, cityCode, msisdnVar);
             }
         }

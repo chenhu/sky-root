@@ -37,7 +37,7 @@ public class ProvinceSignalProcessor implements Serializable {
         for (String date : params.getStrDay().split(",", -1)) {
 //            final Broadcast<Map<String, Boolean>> msisdnVar = provinceMsisdnProcessor.load(date);
             DataFrame msisdnDf = provinceMsisdnProcessor.loadDf(date).cache();
-            for(String cityCode: params.JS_CITY_CODES) {
+            for(String cityCode: params.getCitys()) {
                 OneDaySignalProcess(cityCode,date, msisdnDf);
             }
             msisdnDf.unpersist();
