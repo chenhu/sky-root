@@ -36,6 +36,7 @@ public class PathConfig {
     public static final String PROVINCE_MSISDN_SIGNAL_SAVE_PATH = "trace/province/";
     public static final String DISTRICT_MSISDN_SAVE_PATH = "msisdn/";
     public static final String PROVINCE_MSISDN_SAVE_PATH = "msisdn/province/";
+    public static final String DISTRICT_MSISDN_COUNT_SAVE_PATH = "stat_district_msisdn_count/";
 
 
 

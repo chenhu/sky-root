@@ -422,4 +422,14 @@ public class ParamProperties {
                 .concat(date)
                 .concat(java.io.File.separator);
     }
+
+    /**
+     *  统计手机号码数量数据存储路径
+     * @return
+     */
+    public String getDistrictMsisdnCountStatPath() {
+        return this.getBasePath().concat(PathConfig.APP_SAVE_PATH)
+                .concat(PathConfig.DISTRICT_MSISDN_COUNT_SAVE_PATH)
+                .concat(java.io.File.separator);
+    }
 }
