@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 import static org.apache.spark.sql.functions.count;
+import static org.apache.spark.sql.functions.countDistinct;
 
 /**
  * 统计手机号码数量
@@ -65,7 +66,7 @@ public class DistrictMsisdnStatProcessor {
             DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
             sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf)
                     .groupBy("date","city_code","district_code")
-                    .agg(count("msisdn").as("num")).orderBy("date","city_code","district_code");
+                    .agg(countDistinct("msisdn").as("num")).orderBy("date","city_code","district_code");
             FileUtil.saveFile(sourceDf, FileUtil.FileType.CSV, params.getDistrictMsisdnCountStatPath());
         }
     }
