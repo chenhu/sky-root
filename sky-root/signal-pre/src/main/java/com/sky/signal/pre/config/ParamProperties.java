@@ -165,6 +165,14 @@ public class ParamProperties {
     }
 
     /**
+     * 临时使用
+     * @return
+     */
+    public String getTempTraceFiles() {
+        String tracePath = "/user/bdoc/17/services/hdfs/132/jiangsu_track_second/".concat("*").concat(java.io.File.separator).concat(PathConfig.TRACE_PATH);
+        return tracePath.concat("20190610").concat(java.io.File.separator);
+    }
+    /**
      * 获取当前要处理省轨迹数据路径列表
      * @param cityCode 城市代码
      * @param date 日期

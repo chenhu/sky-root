@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 
-import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.countDistinct;
 
 /**
@@ -59,15 +58,13 @@ public class DistrictMsisdnStatProcessor {
     private transient JavaSparkContext sparkContext;
     public void process() {
         final Broadcast<Map<String, Row>> cellVar = cellLoader.load(params.getCellSavePath());
-        for (String date : params.getStrDay().split(",")) {
-            //加载要处理的地市的信令
-            String tracePath = params.getTraceFiles(Integer.valueOf(date));
-            //合并基站信息到信令数据中
-            DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
-            sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf)
-                    .groupBy("date","city_code","district_code")
-                    .agg(countDistinct("msisdn").as("num")).orderBy("date","city_code","district_code");
-            FileUtil.saveFile(sourceDf, FileUtil.FileType.CSV, params.getDistrictMsisdnCountStatPath());
-        }
+        //加载要处理的地市的信令
+        String tracePath = params.getTempTraceFiles();
+        //合并基站信息到信令数据中
+        DataFrame sourceDf = sqlContext.read().parquet(tracePath).repartition(params.getPartitions());
+        sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf)
+                .groupBy("date","city_code","district_code")
+                .agg(countDistinct("msisdn").as("num")).orderBy("date","city_code","district_code");
+        FileUtil.saveFile(sourceDf, FileUtil.FileType.CSV, params.getDistrictMsisdnCountStatPath());
     }
 }

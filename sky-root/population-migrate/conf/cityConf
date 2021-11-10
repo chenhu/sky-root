@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#export region=" --mode=district --cityCode=1000512 --districtCode=320582 "
+export region=" --mode=province"
+export jscity="1000250,1000510,1000511,1000512,1000513,1000514,1000515,1000516,1000517,1000518,1000519,1000523,1000527"
+
