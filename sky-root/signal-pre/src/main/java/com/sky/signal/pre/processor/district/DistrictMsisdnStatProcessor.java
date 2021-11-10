@@ -65,6 +65,6 @@ public class DistrictMsisdnStatProcessor {
         sourceDf = signalLoader.cell(cellVar).mergeCell(sourceDf)
                 .groupBy("date","city_code","district_code")
                 .agg(countDistinct("msisdn").as("num")).orderBy("date","city_code","district_code");
-        FileUtil.saveFile(sourceDf, FileUtil.FileType.CSV, params.getDistrictMsisdnCountStatPath());
+        FileUtil.saveFile(sourceDf.repartition(1), FileUtil.FileType.CSV, params.getDistrictMsisdnCountStatPath());
     }
 }
