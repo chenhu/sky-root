@@ -195,7 +195,7 @@
             <dependency>
                 <groupId>org.apache.derby</groupId>
                 <artifactId>derby</artifactId>
-                <version>10.12.1.1</version>
+                <version>10.14.2.0</version>
             </dependency>
             <!--spring-kafka-->
             <!--因为服务器上的kafka版本为0.9,所以客户端spring-kakfa要用1.0.x版本才行-->
